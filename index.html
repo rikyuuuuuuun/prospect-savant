@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#0d2238" />
+    <title>Prospect Savant｜チーム分析ダッシュボード</title>
+    <style>
+      :root {
+        --navy-950: #081827;
+        --navy-900: #0d2238;
+        --navy-800: #173957;
+        --ink: #142235;
+        --muted: #68788a;
+        --line: #dbe3ea;
+        --panel: #ffffff;
+        --page: #f3f6f9;
+        --red: #c8403b;
+        --red-deep: #a82f2b;
+        --blue: #3475a7;
+        --blue-deep: #245b86;
+        --gold: #c99a3a;
+        --green: #2f7d62;
+        --shadow: 0 14px 36px rgba(16, 40, 64, 0.08);
+        --radius: 18px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-family: Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        line-height: 1.55;
+      }
+
+      button, input { font: inherit; }
+
+      button:focus-visible,
+      a:focus-visible {
+        outline: 3px solid rgba(52, 117, 167, 0.38);
+        outline-offset: 3px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        color: white;
+        background: rgba(8, 24, 39, 0.96);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar-inner,
+      .container {
+        width: min(1180px, calc(100% - 32px));
+        margin-inline: auto;
+      }
+
+      .topbar-inner {
+        min-height: 62px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        width: 34px;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        background: linear-gradient(135deg, var(--red), var(--blue));
+      }
+
+      .brand-copy { min-width: 0; }
+      .brand-copy strong { display: block; font-size: 15px; letter-spacing: 0.08em; }
+      .brand-copy span { display: block; color: #b8c5d0; font-size: 11px; letter-spacing: 0.08em; }
+
+      .update-pill {
+        flex: 0 0 auto;
+        padding: 7px 11px;
+        color: #dce6ee;
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 999px;
+        font-size: 12px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        color: white;
+        background:
+          radial-gradient(circle at 84% 8%, rgba(52,117,167,0.45), transparent 30%),
+          radial-gradient(circle at 10% 92%, rgba(200,64,59,0.28), transparent 34%),
+          linear-gradient(145deg, var(--navy-950), var(--navy-800));
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(to bottom, black, transparent 86%);
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        padding: 54px 0 40px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: #b7c8d6;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(34px, 6vw, 66px);
+        line-height: 1.04;
+        letter-spacing: -0.045em;
+      }
+
+      .hero-lead {
+        max-width: 720px;
+        margin: 18px 0 0;
+        color: #d5e0e8;
+        font-size: clamp(15px, 2vw, 18px);
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .kpi {
+        min-width: 0;
+        padding: 18px;
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.075);
+      }
+
+      .kpi-label { color: #b7c8d6; font-size: 12px; }
+      .kpi-value { margin-top: 3px; font-size: clamp(24px, 3vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; }
+      .kpi-unit { margin-left: 3px; font-size: 13px; font-weight: 500; color: #d5e0e8; }
+
+      .main { padding: 34px 0 56px; }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 16px;
+      }
+
+      .section-heading h2 { margin: 0; font-size: clamp(23px, 3vw, 32px); letter-spacing: -0.03em; }
+      .section-heading p { max-width: 520px; margin: 0; color: var(--muted); font-size: 13px; text-align: right; }
+
+      .scale-card {
+        display: grid;
+        grid-template-columns: auto minmax(280px, 1fr);
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 18px;
+        padding: 16px 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(16,40,64,0.04);
+      }
+
+      .scale-title { color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+      .scale-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep), #d9e1e8 50%, var(--red-deep)); }
+      .scale-tick { position: absolute; top: -25px; transform: translateX(-50%); color: var(--muted); font-size: 10px; font-weight: 700; }
+      .scale-tick::after { content: ""; position: absolute; top: 19px; left: 50%; width: 1px; height: 13px; background: rgba(255,255,255,0.82); }
+
+      .team-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 18px 0;
+      }
+
+      .filter-button {
+        appearance: none;
+        padding: 8px 14px;
+        color: var(--navy-800);
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        transition: 160ms ease;
+      }
+
+      .filter-button:hover { border-color: #9fb1c1; transform: translateY(-1px); }
+      .filter-button[aria-pressed="true"] { color: white; border-color: var(--navy-800); background: var(--navy-800); }
+
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .team-card {
+        overflow: hidden;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .team-card[hidden] { display: none; }
+
+      .team-card-head {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+        padding: 22px 22px 18px;
+        border-bottom: 1px solid #e6ecf1;
+      }
+
+      .score-ring {
+        --score: 50;
+        --score-color: var(--red);
+        position: relative;
+        width: 106px;
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: conic-gradient(var(--score-color) calc(var(--score) * 1%), #e5ebf0 0);
+      }
+
+      .score-ring::before { content: ""; position: absolute; inset: 9px; border-radius: inherit; background: white; }
+      .score-value { position: relative; text-align: center; line-height: 1; }
+      .score-value strong { display: block; font-size: 35px; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .score-value span { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: 0.16em; }
+
+      .rank-line { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; }
+      .team-title { display: flex; align-items: baseline; gap: 9px; margin: 3px 0 6px; }
+      .team-title h3 { margin: 0; font-size: 30px; line-height: 1; letter-spacing: -0.045em; }
+      .team-title span { color: var(--muted); font-size: 12px; }
+      .team-meta { margin: 0; color: var(--muted); font-size: 13px; }
+      .delta-positive { color: var(--green); font-weight: 700; }
+      .delta-negative { color: var(--red-deep); font-weight: 700; }
+
+      .focus-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+      .focus-badge { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+      .focus-badge.strong { color: #8e2926; background: #fae7e5; }
+      .focus-badge.watch { color: #245b86; background: #e4eff7; }
+
+      .metric-list { padding: 18px 22px 20px; }
+      .metric-row { display: grid; grid-template-columns: 94px minmax(100px, 1fr) 34px; gap: 10px; align-items: center; margin-bottom: 13px; }
+      .metric-row:last-child { margin-bottom: 0; }
+      .metric-label { color: #34485a; font-size: 12px; font-weight: 700; white-space: nowrap; }
+      .metric-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep), #d9e1e8 50%, var(--red-deep)); }
+      .metric-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
+      .metric-marker { --position: 50; --marker: var(--red); position: absolute; top: 50%; left: clamp(5px, calc(var(--position) * 1%), calc(100% - 5px)); width: 17px; height: 17px; border: 4px solid white; border-radius: 50%; background: var(--marker); box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(-50%, -50%); z-index: 1; }
+      .metric-score { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .benchmark-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-top: 1px solid #e6ecf1;
+        background: #f8fafc;
+      }
+
+      .benchmark { min-width: 0; padding: 14px 10px; text-align: center; border-right: 1px solid #e6ecf1; }
+      .benchmark:last-child { border-right: 0; }
+      .benchmark strong { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
+      .benchmark span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+      .team-note { margin: 0; padding: 10px 22px 14px; color: var(--muted); background: #f8fafc; font-size: 11px; }
+
+      .section { margin-top: 42px; }
+
+      .comparison-wrap { overflow-x: auto; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+      .comparison-table { width: 100%; min-width: 720px; border-collapse: collapse; }
+      .comparison-table th, .comparison-table td { padding: 14px 15px; border-bottom: 1px solid #e6ecf1; text-align: center; }
+      .comparison-table th { color: var(--muted); background: #f8fafc; font-size: 11px; letter-spacing: 0.04em; }
+      .comparison-table th:first-child, .comparison-table td:first-child { position: sticky; left: 0; text-align: left; background: white; font-weight: 800; box-shadow: 1px 0 #e6ecf1; }
+      .comparison-table thead th:first-child { background: #f8fafc; }
+      .comparison-table tr:last-child td { border-bottom: 0; }
+      .heat-pill { display: inline-grid; min-width: 42px; min-height: 31px; place-items: center; padding: 4px 8px; color: white; border-radius: 999px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .method-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px; }
+      .info-card { background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+      .info-card h3 { margin: 0 0 15px; font-size: 18px; }
+      .method-list { display: grid; gap: 12px; }
+      .method-item { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 11px; align-items: start; }
+      .method-number { width: 30px; aspect-ratio: 1; display: grid; place-items: center; color: white; background: var(--navy-800); border-radius: 50%; font-size: 12px; font-weight: 800; }
+      .method-item strong { display: block; font-size: 13px; }
+      .method-item p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+
+      .weight-list { display: grid; gap: 9px; }
+      .weight-row { display: grid; grid-template-columns: 92px minmax(90px, 1fr) 38px; gap: 10px; align-items: center; font-size: 12px; }
+      .weight-track { height: 8px; overflow: hidden; background: #e9eef2; border-radius: 999px; }
+      .weight-fill { height: 100%; background: linear-gradient(90deg, var(--navy-800), var(--blue)); border-radius: inherit; }
+      .weight-value { text-align: right; font-weight: 800; }
+
+      .quality-card { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; overflow: hidden; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+      .quality-stat { padding: 20px; border-right: 1px solid #e6ecf1; }
+      .quality-stat:last-child { border-right: 0; }
+      .quality-stat strong { display: block; font-size: 24px; }
+      .quality-stat span { color: var(--muted); font-size: 11px; }
+      .quality-note { grid-column: 1 / -1; margin: 0; padding: 14px 20px; color: var(--muted); background: #f8fafc; border-top: 1px solid #e6ecf1; font-size: 11px; }
+
+      footer { margin-top: 44px; padding: 26px 0 38px; color: #718193; border-top: 1px solid var(--line); font-size: 11px; }
+      .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+
+      .noscript { margin: 30px auto; max-width: 720px; padding: 20px; color: #7b2d2a; background: #fff2f1; border: 1px solid #f0c4c1; border-radius: 12px; }
+
+      @media (max-width: 900px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .team-grid { grid-template-columns: 1fr; }
+        .method-grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 640px) {
+        .topbar-inner, .container { width: min(100% - 22px, 1180px); }
+        .brand-copy span { display: none; }
+        .update-pill { max-width: 138px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hero-inner { padding: 36px 0 30px; }
+        .kpi-grid { gap: 8px; margin-top: 24px; }
+        .kpi { padding: 14px; }
+        .section-heading { align-items: start; flex-direction: column; gap: 6px; }
+        .section-heading p { text-align: left; }
+        .scale-card { grid-template-columns: 1fr; gap: 25px; }
+        .team-card-head { grid-template-columns: 92px minmax(0,1fr); padding: 18px 16px 15px; }
+        .score-ring { width: 88px; }
+        .score-value strong { font-size: 30px; }
+        .metric-list { padding: 16px; }
+        .metric-row { grid-template-columns: 78px minmax(80px,1fr) 30px; gap: 7px; }
+        .metric-label { font-size: 11px; }
+        .benchmark-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .benchmark:nth-child(2) { border-right: 0; }
+        .benchmark:nth-child(-n+2) { border-bottom: 1px solid #e6ecf1; }
+        .quality-card { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .quality-stat:nth-child(2) { border-right: 0; }
+        .quality-stat:nth-child(-n+2) { border-bottom: 1px solid #e6ecf1; }
+        .footer-inner { flex-direction: column; gap: 5px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">P</div>
+          <div class="brand-copy"><strong>PROSPECT SAVANT</strong><span>TEAM PERFORMANCE INTELLIGENCE</span></div>
+        </div>
+        <div class="update-pill" id="update-pill">データ基準日を取得中</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="eyebrow">A–D TEAM ANALYTICS</p>
+        <h1>数字で見る、<br />チームの現在地。</h1>
+        <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・家庭継続の5指標で比較します。</p>
+        <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
+      </div>
+    </section>
+
+    <main class="container main">
+      <section aria-labelledby="profiles-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">TEAM PROFILES</p><h2 id="profiles-title">チーム・プロフィール</h2></div>
+          <p>赤側ほど強み、青側ほど改善余地。中央の50が比較上の平均水準です。</p>
+        </div>
+        <div class="scale-card" aria-label="スコアの読み方">
+          <div class="scale-title">PERCENTILE RANK</div>
+          <div class="scale-track" id="score-scale"></div>
+        </div>
+        <div class="team-tools" id="team-filters" aria-label="表示チームを選択"></div>
+        <div class="team-grid" id="team-grid"></div>
+      </section>
+
+      <section class="section" aria-labelledby="comparison-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">COMPARISON</p><h2 id="comparison-title">5指標の比較</h2></div>
+          <p>各スコアは0〜100。色と数字をセットで見ると、チームごとの個性が分かります。</p>
+        </div>
+        <div class="comparison-wrap"><table class="comparison-table" id="comparison-table"></table></div>
+      </section>
+
+      <section class="section" aria-labelledby="method-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">SCORING</p><h2 id="method-title">スコアの考え方</h2></div>
+          <p>総合点は5指標を配点比率で統合。参考値や未算出項目を確定値として扱いません。</p>
+        </div>
+        <div class="method-grid">
+          <article class="info-card"><h3>読み方の基本</h3><div class="method-list" id="method-list"></div></article>
+          <article class="info-card"><h3>総合点の配点</h3><div class="weight-list" id="weight-list"></div></article>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="quality-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">DATA QUALITY</p><h2 id="quality-title">データ品質</h2></div>
+          <p>数値の強弱だけでなく、どこまで集計できているかも同時に確認します。</p>
+        </div>
+        <div class="quality-card" id="quality-card"></div>
+      </section>
+    </main>
+
+    <footer><div class="container footer-inner"><span>PROSPECT SAVANT｜スタッフ共有用ダッシュボード</span><span id="footer-date"></span></div></footer>
+    <noscript><div class="noscript">このダッシュボードの表示にはJavaScriptが必要です。</div></noscript>
+
+    <script src="./data.js"></script>
+    <script>
+      (() => {
+        "use strict";
+        const data = window.PROSPECT_SAVANT_DATA;
+        if (!data) return;
+
+        const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        const formatNumber = new Intl.NumberFormat("ja-JP");
+        const formatDelta = (value) => value > 0 ? `+${value}` : `${value}`;
+        const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
+        const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
+        const strongest = (team) => [...metricKeys].sort((a,b) => team.metrics[b] - team.metrics[a]);
+
+        document.getElementById("update-pill").textContent = `基準日 ${data.asOfLabel}`;
+        document.getElementById("footer-date").textContent = `最終集計 ${data.asOfLabel}`;
+
+        const kpis = [
+          ["運用会員数", formatNumber.format(data.headline.members), "名"],
+          ["前月差（参考）", formatDelta(data.headline.monthlyDelta), "名"],
+          ["年度入会率", data.headline.admissionRate.toFixed(1), "%"],
+          ["直近イベント実参加", formatNumber.format(data.headline.latestEventParticipants), "名"],
+        ];
+        document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit]) => `
+          <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div></article>
+        `).join("");
+
+        document.getElementById("score-scale").innerHTML = data.scoreGuide.map((item) => `
+          <span class="scale-tick" style="left:${item.value}%">${item.value}<br>${item.label}</span>
+        `).join("");
+
+        const filters = [{ id: "ALL", label: "全チーム" }, ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` }))];
+        document.getElementById("team-filters").innerHTML = filters.map((filter, index) => `
+          <button type="button" class="filter-button" data-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
+        `).join("");
+
+        document.getElementById("team-grid").innerHTML = data.teams.map((team) => {
+          const order = strongest(team);
+          const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
+          const priorityLabel = data.metricLabels[order[order.length - 1]];
+          const deltaClass = team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative";
+          const metrics = metricKeys.map((key) => {
+            const score = team.metrics[key];
+            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}</span></div>`;
+          }).join("");
+          return `
+            <article class="team-card" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点">
+              <div class="team-card-head">
+                <div class="score-ring" style="--score:${team.overall};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${team.overall}</strong><span>OVERALL</span></div></div>
+                <div>
+                  <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
+                  <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
+                  <p class="team-meta">前月差 <span class="${deltaClass}">${formatDelta(team.monthlyDelta)}名</span></p>
+                  <div class="focus-row"><span class="focus-badge strong">強み：${strengthLabels}</span><span class="focus-badge watch">改善：${priorityLabel}</span></div>
+                </div>
+              </div>
+              <div class="metric-list">${metrics}</div>
+              <div class="benchmark-grid">
+                <div class="benchmark"><strong>${team.benchmark.retentionIndex.toFixed(1)}%</strong><span>長期加重定着指数</span></div>
+                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span></div>
+                <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span></div>
+                <div class="benchmark"><strong>${team.benchmark.repeatRate.toFixed(1)}%</strong><span>イベント継続参加率</span></div>
+              </div>
+              ${team.note ? `<p class="team-note">${team.note}</p>` : ""}
+            </article>`;
+        }).join("");
+
+        document.getElementById("team-filters").addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-filter]");
+          if (!button) return;
+          const filter = button.dataset.filter;
+          document.querySelectorAll("button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+          document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
+        });
+
+        const tableHeaders = metricKeys.map((key) => `<th scope="col">${data.metricLabels[key]}</th>`).join("");
+        const tableRows = data.teams.map((team) => `<tr><td>${team.id} TEAM</td>${metricKeys.map((key) => `<td><span class="heat-pill" style="background:${heatColor(team.metrics[key])}">${team.metrics[key]}</span></td>`).join("")}<td><span class="heat-pill" style="background:${heatColor(team.overall)}">${team.overall}</span></td></tr>`).join("");
+        document.getElementById("comparison-table").innerHTML = `<thead><tr><th scope="col">チーム</th>${tableHeaders}<th scope="col">総合</th></tr></thead><tbody>${tableRows}</tbody>`;
+
+        document.getElementById("method-list").innerHTML = data.methodology.map((item, index) => `<div class="method-item"><span class="method-number">${index + 1}</span><div><strong>${item.title}</strong><p>${item.body}</p></div></div>`).join("");
+        document.getElementById("weight-list").innerHTML = data.weights.map((item) => `<div class="weight-row"><span>${item.label}</span><div class="weight-track"><div class="weight-fill" style="width:${item.value / 30 * 100}%"></div></div><span class="weight-value">${item.value}%</span></div>`).join("");
+
+        const quality = data.quality;
+        document.getElementById("quality-card").innerHTML = `
+          <div class="quality-stat"><strong>${quality.completeness}%</strong><span>A〜D データ充足</span></div>
+          <div class="quality-stat"><strong>${quality.eventCount}</strong><span>集計済みイベント</span></div>
+          <div class="quality-stat"><strong>${quality.competitionCount}</strong><span>集計済み大会</span></div>
+          <div class="quality-stat"><strong>${formatNumber.format(quality.competitionRows)}</strong><span>大会順位データ</span></div>
+          <p class="quality-note">${quality.note}</p>`;
+      })();
+    </script>
+  </body>
+</html>
