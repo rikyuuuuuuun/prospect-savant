@@ -177,6 +177,7 @@
       .kpi-label { color: #b7c8d6; font-size: 12px; }
       .kpi-value { margin-top: 3px; font-size: clamp(24px, 3vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; }
       .kpi-unit { margin-left: 3px; font-size: 13px; font-weight: 500; color: #d5e0e8; }
+      .kpi-detail { min-height: 17px; margin-top: 4px; color: #b7c8d6; font-size: 10px; font-variant-numeric: tabular-nums; }
 
       .main { padding: 34px 0 56px; }
 
@@ -307,6 +308,7 @@
       .benchmark:last-child { border-right: 0; }
       .benchmark strong { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
       .benchmark span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+      .benchmark-detail { min-height: 14px; margin-top: 4px; color: #526678; font-size: 9px; line-height: 1.35; font-variant-numeric: tabular-nums; }
       .team-note { margin: 0; padding: 10px 22px 14px; color: var(--muted); background: #f8fafc; font-size: 11px; }
 
       .section { margin-top: 42px; }
@@ -530,6 +532,25 @@
         </div>
       </section>
 
+      <section class="section" id="school-age-section" aria-labelledby="school-age-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">SCHOOL-AGE RETENTION</p><h2 id="school-age-title">学齢節目別の継続率</h2></div>
+          <p>進級・進学の節目で、どの程度在籍が続いているかを比較します。チームを選ぶと、その線を強調します。</p>
+        </div>
+        <div class="retention-panel">
+          <div class="retention-toolbar">
+            <div class="retention-toolbar-copy"><strong>表示チーム</strong><span>全体比較と1チームの詳細を切り替え</span></div>
+            <div class="retention-controls" id="school-age-filters" aria-label="学齢節目別継続率の表示チームを選択"></div>
+          </div>
+          <div class="retention-chart-shell" id="school-age-chart-shell">
+            <svg class="retention-chart" id="school-age-chart" role="img" aria-labelledby="school-age-svg-title school-age-svg-desc"></svg>
+            <div class="curve-tooltip" id="school-age-tooltip" role="tooltip"></div>
+          </div>
+          <p class="curve-summary" id="school-age-summary" aria-live="polite"></p>
+          <p class="curve-note" id="school-age-note"></p>
+        </div>
+      </section>
+
       <section class="section" aria-labelledby="comparison-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">COMPARISON</p><h2 id="comparison-title">5指標の比較</h2></div>
@@ -563,6 +584,7 @@
 
     <script src="./data.js"></script>
     <script src="./retention-data.js"></script>
+    <script src="./school-age-data.js"></script>
     <script>
       (() => {
         "use strict";
@@ -571,13 +593,16 @@
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
+        const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
         const formatNumber = new Intl.NumberFormat("ja-JP");
         const formatDelta = (value) => value > 0 ? `+${value}` : `${value}`;
+        const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
         const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
         const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
         const strongest = (team) => [...metricKeys].sort((a,b) => team.metrics[b] - team.metrics[a]);
         const svgNamespace = "http://www.w3.org/2000/svg";
         const retentionState = { selected: "ALL", resizeFrame: 0, observer: null };
+        const schoolAgeState = { selected: "ALL", resizeFrame: 0, observer: null };
         const retentionColors = {
           OVERALL: "var(--overall)",
           A: "var(--team-a)",
@@ -862,17 +887,284 @@
           }
         };
 
+        const getSchoolAgeSeries = () => {
+          const chart = schoolAgeRetention;
+          if (!chart) return [];
+          return [
+            {
+              id: "OVERALL",
+              label: chart.overall.label,
+              rates: chart.overall.rates,
+              samples: chart.overall.samples,
+            },
+            ...data.teams.map((team) => ({
+              id: team.id,
+              label: `${team.id} TEAM`,
+              rates: chart.teams[team.id].rates,
+              samples: chart.teams[team.id].samples,
+            })),
+          ];
+        };
+
+        const schoolAgePointText = (series, index) => {
+          const chart = schoolAgeRetention;
+          return `${chart.milestones[index]} ${Number(series.rates[index]).toFixed(1)}%（対象${formatNumber.format(series.samples[index])}名）`;
+        };
+
+        const updateSchoolAgeSelection = (teamId) => {
+          const chart = schoolAgeRetention;
+          if (!chart) return;
+          const validIds = ["ALL", ...data.teams.map((team) => team.id)];
+          schoolAgeState.selected = validIds.includes(teamId) ? teamId : "ALL";
+
+          document.querySelectorAll("#school-age-filters [data-school-filter]").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.schoolFilter === schoolAgeState.selected));
+          });
+
+          document.querySelectorAll("#school-age-chart [data-school-series]").forEach((group) => {
+            const id = group.dataset.schoolSeries;
+            const isAll = schoolAgeState.selected === "ALL";
+            group.classList.toggle("is-selected", !isAll && id === schoolAgeState.selected);
+            group.classList.toggle("is-muted", !isAll && id !== schoolAgeState.selected && id !== "OVERALL");
+            group.classList.toggle("is-reference", !isAll && id === "OVERALL");
+          });
+
+          const series = schoolAgeState.selected === "ALL"
+            ? getSchoolAgeSeries().find((item) => item.id === "OVERALL")
+            : getSchoolAgeSeries().find((item) => item.id === schoolAgeState.selected);
+          if (!series) return;
+
+          const pointIndexes = series.rates
+            .map((rate, index) => ({ rate, index, sample: series.samples[index] }))
+            .filter((point) => point.rate !== null && point.rate !== undefined && point.sample >= chart.minimumSample)
+            .map((point) => point.index);
+          const prefix = schoolAgeState.selected === "ALL" ? "全体基準" : series.label;
+          document.getElementById("school-age-summary").textContent = pointIndexes.length
+            ? `${prefix}｜${pointIndexes.map((index) => schoolAgePointText(series, index)).join("　/　")}`
+            : `${prefix}｜表示できる対象数の節目がありません`;
+        };
+
+        const showSchoolAgeTooltip = (series, index, x, y, chartHeight) => {
+          const tooltip = document.getElementById("school-age-tooltip");
+          const shell = document.getElementById("school-age-chart-shell");
+          const svg = document.getElementById("school-age-chart");
+          tooltip.innerHTML = `<strong>${series.label}</strong><br>${schoolAgePointText(series, index)}`;
+          tooltip.classList.add("is-visible");
+          const svgHeight = svg.getBoundingClientRect().height;
+          const yPixels = y * (svgHeight / chartHeight);
+          const clampedX = Math.max(78, Math.min(shell.clientWidth - 78, x));
+          tooltip.style.left = `${clampedX}px`;
+          tooltip.style.top = `${yPixels}px`;
+          tooltip.style.transform = yPixels < 74
+            ? "translate(-50%, 12px)"
+            : "translate(-50%, calc(-100% - 12px))";
+        };
+
+        const hideSchoolAgeTooltip = () => {
+          document.getElementById("school-age-tooltip").classList.remove("is-visible");
+        };
+
+        const renderSchoolAgeChart = () => {
+          const chart = schoolAgeRetention;
+          if (!chart) {
+            document.getElementById("school-age-section").hidden = true;
+            return;
+          }
+
+          const shell = document.getElementById("school-age-chart-shell");
+          const svg = document.getElementById("school-age-chart");
+          const width = Math.max(300, Math.round(shell.getBoundingClientRect().width));
+          const height = width < 560 ? 338 : 410;
+          const margin = {
+            top: 28,
+            right: width < 560 ? 24 : 56,
+            bottom: 58,
+            left: width < 560 ? 44 : 52,
+          };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+          const xScale = (index) => margin.left + (index / Math.max(1, chart.milestones.length - 1)) * plotWidth;
+          const yScale = (rate) => margin.top + ((100 - rate) / 100) * plotHeight;
+
+          svg.replaceChildren();
+          svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+          svg.setAttribute("aria-label", "年長から高校進学までの学齢節目別A〜Dチーム継続率");
+
+          const title = createSvgNode("title", { id: "school-age-svg-title" });
+          title.textContent = "学齢節目別の継続率";
+          const description = createSvgNode("desc", { id: "school-age-svg-desc" });
+          description.textContent = "チームを選ぶと選択した線が強調され、各点で継続率と対象人数を確認できます。";
+          svg.append(title, description);
+
+          [100, 75, 50, 25, 0].forEach((rate) => {
+            const y = yScale(rate);
+            svg.append(createSvgNode("line", {
+              class: "curve-grid-line",
+              x1: margin.left,
+              x2: width - margin.right,
+              y1: y,
+              y2: y,
+            }));
+            const label = createSvgNode("text", {
+              class: "curve-axis-label",
+              x: margin.left - 9,
+              y: y + 4,
+              "text-anchor": "end",
+            });
+            label.textContent = `${rate}%`;
+            svg.append(label);
+          });
+
+          chart.milestones.forEach((milestone, index) => {
+            const x = xScale(index);
+            svg.append(createSvgNode("line", {
+              class: "curve-axis-line",
+              x1: x,
+              x2: x,
+              y1: height - margin.bottom,
+              y2: height - margin.bottom + 5,
+            }));
+            const label = createSvgNode("text", {
+              class: "curve-axis-label",
+              x,
+              y: height - margin.bottom + 23,
+              "text-anchor": "middle",
+            });
+            label.textContent = milestone;
+            svg.append(label);
+          });
+
+          svg.append(createSvgNode("line", {
+            class: "curve-axis-line",
+            x1: margin.left,
+            x2: width - margin.right,
+            y1: height - margin.bottom,
+            y2: height - margin.bottom,
+          }));
+
+          const xTitle = createSvgNode("text", {
+            class: "curve-axis-title",
+            x: margin.left + plotWidth / 2,
+            y: height - 8,
+            "text-anchor": "middle",
+          });
+          xTitle.textContent = "学齢の節目";
+          const yTitle = createSvgNode("text", {
+            class: "curve-axis-title",
+            x: margin.left,
+            y: 14,
+            "text-anchor": "start",
+          });
+          yTitle.textContent = "継続率";
+          svg.append(xTitle, yTitle);
+
+          const labelOffsets = { OVERALL: 15, A: -11, B: 13, C: -10, D: -10 };
+          getSchoolAgeSeries().forEach((series) => {
+            const group = createSvgNode("g", {
+              class: `curve-series${series.id === "OVERALL" ? " is-overall" : ""}`,
+              "data-school-series": series.id,
+              style: `--series-color:${retentionColors[series.id]}`,
+            });
+
+            let pathData = "";
+            let drawing = false;
+            series.rates.forEach((rate, index) => {
+              const sample = series.samples[index];
+              if (rate === null || rate === undefined || sample < chart.minimumSample) {
+                drawing = false;
+                return;
+              }
+              const x = xScale(index);
+              const y = yScale(rate);
+              pathData += `${drawing ? " L" : "M"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+              drawing = true;
+            });
+            group.append(createSvgNode("path", { class: "curve-line", d: pathData.trim() }));
+
+            let lastIndex = -1;
+            series.rates.forEach((rate, index) => {
+              const sample = series.samples[index];
+              if (rate === null || rate === undefined || sample < chart.minimumSample) return;
+              lastIndex = index;
+              const x = xScale(index);
+              const y = yScale(rate);
+              group.append(createSvgNode("circle", { class: "curve-dot", cx: x, cy: y, r: series.id === "OVERALL" ? 3.2 : 4 }));
+              const hit = createSvgNode("circle", { class: "curve-hit", cx: x, cy: y, r: 13 });
+              hit.setAttribute("aria-label", `${series.label} ${schoolAgePointText(series, index)}`);
+              hit.addEventListener("pointerenter", () => showSchoolAgeTooltip(series, index, x, y, height));
+              hit.addEventListener("pointerleave", hideSchoolAgeTooltip);
+              hit.addEventListener("click", () => updateSchoolAgeSelection(series.id === "OVERALL" ? "ALL" : series.id));
+              group.append(hit);
+            });
+
+            if (lastIndex >= 0) {
+              const endX = xScale(lastIndex);
+              const endY = yScale(series.rates[lastIndex]);
+              const nearRight = endX > width - margin.right - 48;
+              const label = createSvgNode("text", {
+                class: "curve-end-label",
+                x: endX + (nearRight ? -8 : 8),
+                y: Math.max(margin.top + 12, Math.min(height - margin.bottom - 5, endY + labelOffsets[series.id])),
+                "text-anchor": nearRight ? "end" : "start",
+              });
+              label.textContent = series.label;
+              group.append(label);
+            }
+            svg.append(group);
+          });
+
+          updateSchoolAgeSelection(schoolAgeState.selected);
+        };
+
+        const initializeSchoolAgeChart = () => {
+          const chart = schoolAgeRetention;
+          if (!chart) {
+            document.getElementById("school-age-section").hidden = true;
+            return;
+          }
+          const filters = [
+            { id: "ALL", label: "全チーム" },
+            ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` })),
+          ];
+          document.getElementById("school-age-filters").innerHTML = filters.map((filter, index) => `
+            <button type="button" class="curve-filter-button" data-school-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
+          `).join("");
+          document.getElementById("school-age-filters").addEventListener("click", (event) => {
+            const button = event.target.closest("button[data-school-filter]");
+            if (!button) return;
+            updateSchoolAgeSelection(button.dataset.schoolFilter);
+          });
+          document.getElementById("school-age-note").textContent = chart.note;
+          renderSchoolAgeChart();
+
+          const scheduleRender = () => {
+            cancelAnimationFrame(schoolAgeState.resizeFrame);
+            schoolAgeState.resizeFrame = requestAnimationFrame(renderSchoolAgeChart);
+          };
+          if ("ResizeObserver" in window) {
+            schoolAgeState.observer = new ResizeObserver(scheduleRender);
+            schoolAgeState.observer.observe(document.getElementById("school-age-chart-shell"));
+          } else {
+            window.addEventListener("resize", scheduleRender);
+          }
+        };
+
         document.getElementById("update-pill").textContent = `基準日 ${data.asOfLabel}`;
         document.getElementById("footer-date").textContent = `最終集計 ${data.asOfLabel}`;
 
         const kpis = [
-          ["運用会員数", formatNumber.format(data.headline.members), "名"],
-          ["前月差（参考）", formatDelta(data.headline.monthlyDelta), "名"],
-          ["年度入会率", data.headline.admissionRate.toFixed(1), "%"],
-          ["直近イベント実参加", formatNumber.format(data.headline.latestEventParticipants), "名"],
+          ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
+          ["前月差（参考）", formatDelta(data.headline.monthlyDelta), "名", ""],
+          [
+            "年度入会率",
+            data.headline.admissionRate.toFixed(1),
+            "%",
+            `前年同期間 ${data.headline.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(data.headline.admissionYoYDelta)}`,
+          ],
+          ["直近イベント実参加", formatNumber.format(data.headline.latestEventParticipants), "名", ""],
         ];
-        document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit]) => `
-          <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div></article>
+        document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail]) => `
+          <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-detail">${detail}</div></article>
         `).join("");
 
         document.getElementById("score-scale").innerHTML = data.scoreGuide.map((item) => `
@@ -906,8 +1198,8 @@
               </div>
               <div class="metric-list">${metrics}</div>
               <div class="benchmark-grid">
-                <div class="benchmark"><strong>${team.benchmark.retentionIndex.toFixed(1)}%</strong><span>長期加重定着指数</span></div>
-                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span></div>
+                <div class="benchmark"><strong>${team.benchmark.retention12mRate.toFixed(1)}%</strong><span>12か月継続率</span><div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
+                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span><div class="benchmark-detail">前年 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
                 <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span></div>
                 <div class="benchmark"><strong>${team.benchmark.repeatRate.toFixed(1)}%</strong><span>イベント継続参加率</span></div>
               </div>
@@ -924,6 +1216,7 @@
         });
 
         initializeRetentionCurve();
+        initializeSchoolAgeChart();
 
         const tableHeaders = metricKeys.map((key) => `<th scope="col">${data.metricLabels[key]}</th>`).join("");
         const tableRows = data.teams.map((team) => `<tr><td>${team.id} TEAM</td>${metricKeys.map((key) => `<td><span class="heat-pill" style="background:${heatColor(team.metrics[key])}">${team.metrics[key]}</span></td>`).join("")}<td><span class="heat-pill" style="background:${heatColor(team.overall)}">${team.overall}</span></td></tr>`).join("");
