@@ -24,6 +24,11 @@
         --blue-deep: #245b86;
         --gold: #c99a3a;
         --green: #2f7d62;
+        --team-a: #c8403b;
+        --team-b: #d28a35;
+        --team-c: #3475a7;
+        --team-d: #6f5b9a;
+        --overall: #68788a;
         --shadow: 0 14px 36px rgba(16, 40, 64, 0.08);
         --radius: 18px;
       }
@@ -306,6 +311,94 @@
 
       .section { margin-top: 42px; }
 
+      .retention-panel {
+        overflow: hidden;
+        padding: 22px;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .retention-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 12px;
+      }
+
+      .retention-toolbar-copy strong { display: block; font-size: 13px; }
+      .retention-toolbar-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+      .retention-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+
+      .curve-filter-button {
+        appearance: none;
+        padding: 7px 12px;
+        color: var(--navy-800);
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+      }
+
+      .curve-filter-button:hover { border-color: #9fb1c1; transform: translateY(-1px); }
+      .curve-filter-button[aria-pressed="true"] { color: white; border-color: var(--navy-800); background: var(--navy-800); }
+      .retention-chart-shell { position: relative; width: 100%; min-height: 330px; }
+      .retention-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+      .curve-grid-line { stroke: #e5ebf0; stroke-width: 1; shape-rendering: crispEdges; }
+      .curve-axis-line { stroke: #aebbc6; stroke-width: 1; shape-rendering: crispEdges; }
+      .curve-axis-label { fill: var(--muted); font-size: 11px; }
+      .curve-axis-title { fill: #425466; font-size: 11px; font-weight: 700; }
+      .curve-series { opacity: 0.88; transition: opacity 230ms ease; }
+      .curve-line {
+        fill: none;
+        stroke: var(--series-color);
+        stroke-width: 2.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+        transition: stroke-width 230ms ease, filter 230ms ease;
+      }
+      .curve-dot {
+        fill: white;
+        stroke: var(--series-color);
+        stroke-width: 2.2;
+        vector-effect: non-scaling-stroke;
+        transition: r 230ms ease, opacity 230ms ease;
+      }
+      .curve-hit { fill: transparent; cursor: pointer; }
+      .curve-end-label { fill: var(--series-color); font-size: 11px; font-weight: 700; paint-order: stroke; stroke: white; stroke-width: 4px; stroke-linejoin: round; }
+      .curve-series.is-overall .curve-line { stroke-dasharray: 7 6; stroke-width: 2; }
+      .curve-series.is-overall .curve-dot { fill: var(--overall); stroke-width: 0; }
+      .curve-series.is-muted { opacity: 0.12; }
+      .curve-series.is-reference { opacity: 0.4; }
+      .curve-series.is-selected { opacity: 1; }
+      .curve-series.is-selected .curve-line { stroke-width: 4.6; filter: drop-shadow(0 2px 3px rgba(8, 24, 39, 0.24)); }
+      .curve-series.is-selected .curve-dot { r: 5.5; }
+      .curve-tooltip {
+        position: absolute;
+        z-index: 3;
+        max-width: 190px;
+        padding: 9px 11px;
+        color: white;
+        background: rgba(8, 24, 39, 0.94);
+        border-radius: 9px;
+        box-shadow: 0 8px 20px rgba(8,24,39,0.2);
+        font-size: 11px;
+        line-height: 1.45;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, calc(-100% - 12px));
+        transition: opacity 120ms ease;
+      }
+      .curve-tooltip.is-visible { opacity: 1; }
+      .curve-summary { margin: 10px 0 0; color: #34485a; font-size: 12px; font-weight: 700; }
+      .curve-note { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
+
       .comparison-wrap { overflow-x: auto; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
       .comparison-table { width: 100%; min-width: 720px; border-collapse: collapse; }
       .comparison-table th, .comparison-table td { padding: 14px 15px; border-bottom: 1px solid #e6ecf1; text-align: center; }
@@ -358,6 +451,11 @@
         .section-heading { align-items: start; flex-direction: column; gap: 6px; }
         .section-heading p { text-align: left; }
         .scale-card { grid-template-columns: 1fr; gap: 25px; }
+        .retention-panel { padding: 16px 12px 15px; }
+        .retention-toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+        .retention-controls { justify-content: flex-start; }
+        .curve-filter-button { padding: 7px 10px; }
+        .retention-chart-shell { min-height: 300px; }
         .team-card-head { grid-template-columns: 92px minmax(0,1fr); padding: 18px 16px 15px; }
         .score-ring { width: 88px; }
         .score-value strong { font-size: 30px; }
@@ -413,6 +511,25 @@
         <div class="team-grid" id="team-grid"></div>
       </section>
 
+      <section class="section" id="retention-section" aria-labelledby="retention-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">RETENTION CURVE</p><h2 id="retention-title">入会後の定着曲線</h2></div>
+          <p>右側まで高く残るほど長期定着が強い状態です。チームを選ぶと、その曲線を前面に強調します。</p>
+        </div>
+        <div class="retention-panel">
+          <div class="retention-toolbar">
+            <div class="retention-toolbar-copy"><strong>表示チーム</strong><span>全体の比較と1チームの詳細を切り替え</span></div>
+            <div class="retention-controls" id="retention-filters" aria-label="定着曲線の表示チームを選択"></div>
+          </div>
+          <div class="retention-chart-shell" id="retention-chart-shell">
+            <svg class="retention-chart" id="retention-chart" role="img" aria-labelledby="retention-svg-title retention-svg-desc"></svg>
+            <div class="curve-tooltip" id="curve-tooltip" role="tooltip"></div>
+          </div>
+          <p class="curve-summary" id="curve-summary" aria-live="polite"></p>
+          <p class="curve-note" id="curve-note"></p>
+        </div>
+      </section>
+
       <section class="section" aria-labelledby="comparison-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">COMPARISON</p><h2 id="comparison-title">5指標の比較</h2></div>
@@ -445,6 +562,7 @@
     <noscript><div class="noscript">このダッシュボードの表示にはJavaScriptが必要です。</div></noscript>
 
     <script src="./data.js"></script>
+    <script src="./retention-data.js"></script>
     <script>
       (() => {
         "use strict";
@@ -452,11 +570,297 @@
         if (!data) return;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const formatNumber = new Intl.NumberFormat("ja-JP");
         const formatDelta = (value) => value > 0 ? `+${value}` : `${value}`;
         const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
         const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
         const strongest = (team) => [...metricKeys].sort((a,b) => team.metrics[b] - team.metrics[a]);
+        const svgNamespace = "http://www.w3.org/2000/svg";
+        const retentionState = { selected: "ALL", resizeFrame: 0, observer: null };
+        const retentionColors = {
+          OVERALL: "var(--overall)",
+          A: "var(--team-a)",
+          B: "var(--team-b)",
+          C: "var(--team-c)",
+          D: "var(--team-d)",
+        };
+
+        const createSvgNode = (tag, attributes = {}) => {
+          const node = document.createElementNS(svgNamespace, tag);
+          Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
+          return node;
+        };
+
+        const getRetentionSeries = () => {
+          const curve = retentionCurve;
+          if (!curve) return [];
+          return [
+            {
+              id: "OVERALL",
+              label: curve.overall.label,
+              rates: curve.overall.rates,
+              samples: curve.overall.samples,
+            },
+            ...data.teams.map((team) => ({
+              id: team.id,
+              label: `${team.id} TEAM`,
+              rates: curve.teams[team.id].rates,
+              samples: curve.teams[team.id].samples,
+            })),
+          ];
+        };
+
+        const lastValidCurveIndex = (series) => {
+          for (let index = series.rates.length - 1; index >= 0; index -= 1) {
+            if (series.rates[index] !== null && series.rates[index] !== undefined) return index;
+          }
+          return -1;
+        };
+
+        const curvePointText = (series, index) => {
+          const curve = retentionCurve;
+          return `${curve.months[index]}か月 ${Number(series.rates[index]).toFixed(1)}%（対象${formatNumber.format(series.samples[index])}名）`;
+        };
+
+        const updateRetentionSelection = (teamId) => {
+          const curve = retentionCurve;
+          if (!curve) return;
+          const validIds = ["ALL", ...data.teams.map((team) => team.id)];
+          retentionState.selected = validIds.includes(teamId) ? teamId : "ALL";
+
+          document.querySelectorAll("#retention-filters [data-curve-filter]").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.curveFilter === retentionState.selected));
+          });
+
+          document.querySelectorAll("#retention-chart [data-series]").forEach((group) => {
+            const id = group.dataset.series;
+            const isAll = retentionState.selected === "ALL";
+            group.classList.toggle("is-selected", !isAll && id === retentionState.selected);
+            group.classList.toggle("is-muted", !isAll && id !== retentionState.selected && id !== "OVERALL");
+            group.classList.toggle("is-reference", !isAll && id === "OVERALL");
+          });
+
+          const series = retentionState.selected === "ALL"
+            ? getRetentionSeries().find((item) => item.id === "OVERALL")
+            : getRetentionSeries().find((item) => item.id === retentionState.selected);
+          if (!series) return;
+
+          const lastIndex = lastValidCurveIndex(series);
+          const preferredMonths = [6, 12];
+          const pointIndexes = preferredMonths
+            .map((month) => curve.months.indexOf(month))
+            .filter((index) => index >= 0 && series.rates[index] !== null && series.rates[index] !== undefined);
+          if (lastIndex >= 0 && !pointIndexes.includes(lastIndex)) pointIndexes.push(lastIndex);
+          const prefix = retentionState.selected === "ALL" ? "全体基準" : series.label;
+          document.getElementById("curve-summary").textContent = `${prefix}｜${pointIndexes.map((index) => curvePointText(series, index)).join("　/　")}`;
+        };
+
+        const showCurveTooltip = (series, index, x, y, chartHeight) => {
+          const tooltip = document.getElementById("curve-tooltip");
+          const shell = document.getElementById("retention-chart-shell");
+          const svg = document.getElementById("retention-chart");
+          tooltip.innerHTML = `<strong>${series.label}</strong><br>${curvePointText(series, index)}`;
+          tooltip.classList.add("is-visible");
+          const svgHeight = svg.getBoundingClientRect().height;
+          const yPixels = y * (svgHeight / chartHeight);
+          const clampedX = Math.max(78, Math.min(shell.clientWidth - 78, x));
+          tooltip.style.left = `${clampedX}px`;
+          tooltip.style.top = `${yPixels}px`;
+          tooltip.style.transform = yPixels < 74
+            ? "translate(-50%, 12px)"
+            : "translate(-50%, calc(-100% - 12px))";
+        };
+
+        const hideCurveTooltip = () => {
+          document.getElementById("curve-tooltip").classList.remove("is-visible");
+        };
+
+        const renderRetentionChart = () => {
+          const curve = retentionCurve;
+          if (!curve) {
+            document.getElementById("retention-section").hidden = true;
+            return;
+          }
+
+          const shell = document.getElementById("retention-chart-shell");
+          const svg = document.getElementById("retention-chart");
+          const width = Math.max(300, Math.round(shell.getBoundingClientRect().width));
+          const height = width < 560 ? 338 : 410;
+          const margin = {
+            top: 28,
+            right: width < 560 ? 30 : 68,
+            bottom: 52,
+            left: width < 560 ? 44 : 52,
+          };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+          const maxMonth = Math.max(...curve.months);
+          const xScale = (month) => margin.left + ((month - 1) / (maxMonth - 1)) * plotWidth;
+          const yScale = (rate) => margin.top + ((100 - rate) / 100) * plotHeight;
+
+          svg.replaceChildren();
+          svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+          svg.setAttribute("aria-label", "入会後1か月から48か月までのA〜Dチーム別継続率");
+
+          const title = createSvgNode("title", { id: "retention-svg-title" });
+          title.textContent = "入会後の定着曲線";
+          const description = createSvgNode("desc", { id: "retention-svg-desc" });
+          description.textContent = "チームを選ぶと選択した曲線が強調され、各点で継続率と対象人数を確認できます。";
+          svg.append(title, description);
+
+          [100, 75, 50, 25, 0].forEach((rate) => {
+            const y = yScale(rate);
+            svg.append(createSvgNode("line", {
+              class: "curve-grid-line",
+              x1: margin.left,
+              x2: width - margin.right,
+              y1: y,
+              y2: y,
+            }));
+            const label = createSvgNode("text", {
+              class: "curve-axis-label",
+              x: margin.left - 9,
+              y: y + 4,
+              "text-anchor": "end",
+            });
+            label.textContent = `${rate}%`;
+            svg.append(label);
+          });
+
+          const xTickMonths = [1, 6, 12, 18, 24, 36, 48].filter((month) => curve.months.includes(month));
+          xTickMonths.forEach((month) => {
+            const x = xScale(month);
+            svg.append(createSvgNode("line", {
+              class: "curve-axis-line",
+              x1: x,
+              x2: x,
+              y1: height - margin.bottom,
+              y2: height - margin.bottom + 5,
+            }));
+            const label = createSvgNode("text", {
+              class: "curve-axis-label",
+              x,
+              y: height - margin.bottom + 21,
+              "text-anchor": "middle",
+            });
+            label.textContent = month;
+            svg.append(label);
+          });
+
+          svg.append(createSvgNode("line", {
+            class: "curve-axis-line",
+            x1: margin.left,
+            x2: width - margin.right,
+            y1: height - margin.bottom,
+            y2: height - margin.bottom,
+          }));
+
+          const xTitle = createSvgNode("text", {
+            class: "curve-axis-title",
+            x: margin.left + plotWidth / 2,
+            y: height - 8,
+            "text-anchor": "middle",
+          });
+          xTitle.textContent = "入会後の経過月数";
+          const yTitle = createSvgNode("text", {
+            class: "curve-axis-title",
+            x: margin.left,
+            y: 14,
+            "text-anchor": "start",
+          });
+          yTitle.textContent = "継続率";
+          svg.append(xTitle, yTitle);
+
+          getRetentionSeries().forEach((series) => {
+            const group = createSvgNode("g", {
+              class: `curve-series${series.id === "OVERALL" ? " is-overall" : ""}`,
+              "data-series": series.id,
+              style: `--series-color:${retentionColors[series.id]}`,
+            });
+
+            let pathData = "";
+            let drawing = false;
+            series.rates.forEach((rate, index) => {
+              const sample = series.samples[index];
+              if (rate === null || rate === undefined || sample < curve.minimumSample) {
+                drawing = false;
+                return;
+              }
+              const x = xScale(curve.months[index]);
+              const y = yScale(rate);
+              pathData += `${drawing ? " L" : "M"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+              drawing = true;
+            });
+
+            group.append(createSvgNode("path", { class: "curve-line", d: pathData.trim() }));
+
+            series.rates.forEach((rate, index) => {
+              const sample = series.samples[index];
+              if (rate === null || rate === undefined || sample < curve.minimumSample) return;
+              const x = xScale(curve.months[index]);
+              const y = yScale(rate);
+              group.append(createSvgNode("circle", { class: "curve-dot", cx: x, cy: y, r: series.id === "OVERALL" ? 3.2 : 4 }));
+              const hit = createSvgNode("circle", { class: "curve-hit", cx: x, cy: y, r: 12 });
+              hit.setAttribute("aria-label", `${series.label} ${curvePointText(series, index)}`);
+              hit.addEventListener("pointerenter", () => showCurveTooltip(series, index, x, y, height));
+              hit.addEventListener("pointerleave", hideCurveTooltip);
+              hit.addEventListener("click", () => updateRetentionSelection(series.id === "OVERALL" ? "ALL" : series.id));
+              group.append(hit);
+            });
+
+            const lastIndex = lastValidCurveIndex(series);
+            if (lastIndex >= 0) {
+              const endX = xScale(curve.months[lastIndex]);
+              const endY = yScale(series.rates[lastIndex]);
+              const nearRight = endX > width - margin.right - 46;
+              const label = createSvgNode("text", {
+                class: "curve-end-label",
+                x: endX + (nearRight ? -8 : 8),
+                y: Math.max(margin.top + 12, endY - 8),
+                "text-anchor": nearRight ? "end" : "start",
+              });
+              label.textContent = series.label;
+              group.append(label);
+            }
+            svg.append(group);
+          });
+
+          updateRetentionSelection(retentionState.selected);
+        };
+
+        const initializeRetentionCurve = () => {
+          const curve = retentionCurve;
+          if (!curve) {
+            document.getElementById("retention-section").hidden = true;
+            return;
+          }
+          const filters = [
+            { id: "ALL", label: "全チーム" },
+            ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` })),
+          ];
+          document.getElementById("retention-filters").innerHTML = filters.map((filter, index) => `
+            <button type="button" class="curve-filter-button" data-curve-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
+          `).join("");
+          document.getElementById("retention-filters").addEventListener("click", (event) => {
+            const button = event.target.closest("button[data-curve-filter]");
+            if (!button) return;
+            updateRetentionSelection(button.dataset.curveFilter);
+          });
+          document.getElementById("curve-note").textContent = curve.note;
+          renderRetentionChart();
+
+          const scheduleRender = () => {
+            cancelAnimationFrame(retentionState.resizeFrame);
+            retentionState.resizeFrame = requestAnimationFrame(renderRetentionChart);
+          };
+          if ("ResizeObserver" in window) {
+            retentionState.observer = new ResizeObserver(scheduleRender);
+            retentionState.observer.observe(document.getElementById("retention-chart-shell"));
+          } else {
+            window.addEventListener("resize", scheduleRender);
+          }
+        };
 
         document.getElementById("update-pill").textContent = `基準日 ${data.asOfLabel}`;
         document.getElementById("footer-date").textContent = `最終集計 ${data.asOfLabel}`;
@@ -518,6 +922,8 @@
           document.querySelectorAll("button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
           document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
         });
+
+        initializeRetentionCurve();
 
         const tableHeaders = metricKeys.map((key) => `<th scope="col">${data.metricLabels[key]}</th>`).join("");
         const tableRows = data.teams.map((team) => `<tr><td>${team.id} TEAM</td>${metricKeys.map((key) => `<td><span class="heat-pill" style="background:${heatColor(team.metrics[key])}">${team.metrics[key]}</span></td>`).join("")}<td><span class="heat-pill" style="background:${heatColor(team.overall)}">${team.overall}</span></td></tr>`).join("");
