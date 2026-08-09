@@ -1,13 +1,13 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  asOf: "2026-08-09",
-  asOfLabel: "2026年8月9日",
+  asOf: "2026-08-10",
+  asOfLabel: "2026年8月10日",
   periodLabel: "2026年度累計",
   headline: {
     members: 1030,
     monthlyDelta: 3,
-    admissionRate: 40.1,
+    admissionRate: 38.0,
     admissionPreviousRate: 68.5,
-    admissionYoYDelta: -28.4,
+    admissionYoYDelta: -30.5,
     latestEventParticipants: 133,
   },
   scoreGuide: [
@@ -60,9 +60,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       benchmark: {
         retention12mRate: 79.3,
         retention12mSample: 387,
-        admissionRate: 76.6,
+        admissionRate: 69.2,
         admissionPreviousRate: 80.6,
-        admissionYoYDelta: -4.0,
+        admissionYoYDelta: -11.5,
         eventRate: 19.7,
         repeatRate: 39.8,
       },
@@ -94,8 +94,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       status: "参考値を含む",
       metrics: { retention: 33, admission: 38, event: 26, growth: 13, family: 38 },
       benchmark: {
-        retention12mRate: 77.6,
-        retention12mSample: 143,
+        retention12mRate: 77.8,
+        retention12mSample: 144,
         admissionRate: 21.1,
         admissionPreviousRate: 63.6,
         admissionYoYDelta: -42.6,
