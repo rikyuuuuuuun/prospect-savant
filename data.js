@@ -1,147 +1,256 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  scoreVersion: "v5-event-participation-70-30",
-  asOf: "2026-08-12",
-  asOfLabel: "2026年8月12日",
-  periodLabel: "2026年度累計",
-  headline: {
-    members: 1030,
-    monthlyDelta: 3,
-    admissionRate: 72.7,
-    admissionPreviousRate: 68.5,
-    admissionYoYDelta: 4.2,
-    latestEventParticipants: 124,
+  "scoreVersion": "v6-event-eligibility-70-30",
+  "asOf": "2026-08-12",
+  "asOfLabel": "2026年8月12日",
+  "periodLabel": "2026年度累計",
+  "headline": {
+    "members": 1030,
+    "monthlyDelta": 3,
+    "admissionRate": 72.7,
+    "admissionPreviousRate": 68.5,
+    "admissionYoYDelta": 4.2,
+    "latestEventParticipants": 124
   },
-  comparison: {
-    scoreVersion: "v4-event-percentile-50-50",
-    previousAsOf: "2026-08-11",
-    previousAsOfLabel: "2026年8月11日",
-    headline: {
-      members: 1031,
-      monthlyDelta: 4,
-      admissionRate: 72.7,
-      latestEventParticipants: 133,
+  "comparison": {
+    "scoreVersion": "v5-event-participation-70-30",
+    "previousAsOf": "2026-08-12",
+    "previousAsOfLabel": "2026年8月12日",
+    "headline": {
+      "members": 1030,
+      "monthlyDelta": 3,
+      "admissionRate": 72.7,
+      "admissionPreviousRate": 68.5,
+      "admissionYoYDelta": 4.2,
+      "latestEventParticipants": 124
     },
-    teams: [
-      { id: "A", rank: 1, members: 327, overall: 79, metrics: { retention: 81, admission: 88, event: 63, growth: 88, family: 68 } },
-      { id: "B", rank: 2, members: 308, overall: 61, metrics: { retention: 48, admission: 63, event: 83, growth: 63, family: 63 } },
-      { id: "C", rank: 3, members: 208, overall: 30, metrics: { retention: 17, admission: 38, event: 37, growth: 38, family: 29 } },
-      { id: "D", rank: 4, members: 188, overall: 25, metrics: { retention: 33, admission: 13, event: 26, growth: 13, family: 38 } },
-    ],
+    "teams": [
+      {
+        "id": "A",
+        "rank": 1,
+        "members": 326,
+        "overall": 79,
+        "metrics": {
+          "retention": 81,
+          "admission": 88,
+          "event": 64,
+          "growth": 88,
+          "family": 68
+        }
+      },
+      {
+        "id": "B",
+        "rank": 2,
+        "members": 308,
+        "overall": 60,
+        "metrics": {
+          "retention": 48,
+          "admission": 63,
+          "event": 72,
+          "growth": 63,
+          "family": 63
+        }
+      },
+      {
+        "id": "C",
+        "rank": 3,
+        "members": 208,
+        "overall": 31,
+        "metrics": {
+          "retention": 17,
+          "admission": 38,
+          "event": 46,
+          "growth": 38,
+          "family": 29
+        }
+      },
+      {
+        "id": "D",
+        "rank": 4,
+        "members": 188,
+        "overall": 26,
+        "metrics": {
+          "retention": 33,
+          "admission": 13,
+          "event": 39,
+          "growth": 13,
+          "family": 38
+        }
+      }
+    ]
   },
-  scoreGuide: [
-    { value: 0, label: "LOW" },
-    { value: 50, label: "MID" },
-    { value: 80, label: "STRONG" },
-    { value: 100, label: "MAX" },
+  "scoreGuide": [
+    {
+      "value": 0,
+      "label": "LOW"
+    },
+    {
+      "value": 50,
+      "label": "MID"
+    },
+    {
+      "value": 80,
+      "label": "STRONG"
+    },
+    {
+      "value": 100,
+      "label": "MAX"
+    }
   ],
-  weights: [
-    { key: "retention", label: "定着力", value: 30 },
-    { key: "admission", label: "年度入会力", value: 20 },
-    { key: "growth", label: "成長力", value: 20 },
-    { key: "event", label: "イベント力", value: 15 },
-    { key: "family", label: "家庭継続力", value: 15 },
+  "weights": [
+    {
+      "key": "retention",
+      "label": "定着力",
+      "value": 30
+    },
+    {
+      "key": "admission",
+      "label": "年度入会力",
+      "value": 20
+    },
+    {
+      "key": "growth",
+      "label": "成長力",
+      "value": 20
+    },
+    {
+      "key": "event",
+      "label": "イベント力",
+      "value": 15
+    },
+    {
+      "key": "family",
+      "label": "家庭継続力",
+      "value": 15
+    }
   ],
-  metricLabels: {
-    retention: "定着力",
-    admission: "年度入会力",
-    event: "イベント力",
-    growth: "成長力",
-    family: "家庭継続力",
+  "metricLabels": {
+    "retention": "定着力",
+    "admission": "年度入会力",
+    "event": "イベント力",
+    "growth": "成長力",
+    "family": "家庭継続力"
   },
-  teams: [
+  "teams": [
     {
-      id: "A",
-      rank: 1,
-      members: 326,
-      monthlyDelta: 16,
-      overall: 79,
-      status: "算出済",
-      metrics: { retention: 81, admission: 88, event: 64, growth: 88, family: 68 },
-      benchmark: {
-        retention12mRate: 82.4,
-        retention12mSample: 493,
-        admissionRate: 86.0,
-        admissionPreviousRate: 82.7,
-        admissionYoYDelta: 3.3,
-        eventRate: 16.7,
-        repeatRate: 41.6,
+      "id": "A",
+      "rank": 1,
+      "members": 326,
+      "monthlyDelta": 16,
+      "overall": 79,
+      "status": "算出済",
+      "metrics": {
+        "retention": 81,
+        "admission": 88,
+        "event": 66,
+        "growth": 88,
+        "family": 63
       },
+      "benchmark": {
+        "retention12mRate": 82.4,
+        "retention12mSample": 493,
+        "admissionRate": 86,
+        "admissionPreviousRate": 82.7,
+        "admissionYoYDelta": 3.3,
+        "eventRate": 18.8,
+        "repeatRate": 37.5
+      }
     },
     {
-      id: "B",
-      rank: 2,
-      members: 308,
-      monthlyDelta: 4,
-      overall: 60,
-      status: "算出済",
-      metrics: { retention: 48, admission: 63, event: 72, growth: 63, family: 63 },
-      benchmark: {
-        retention12mRate: 79.3,
-        retention12mSample: 387,
-        admissionRate: 76.6,
-        admissionPreviousRate: 80.6,
-        admissionYoYDelta: -4.0,
-        eventRate: 19.0,
-        repeatRate: 46.1,
+      "id": "B",
+      "rank": 2,
+      "members": 308,
+      "monthlyDelta": 4,
+      "overall": 60,
+      "status": "算出済",
+      "metrics": {
+        "retention": 48,
+        "admission": 63,
+        "event": 76,
+        "growth": 63,
+        "family": 63
       },
+      "benchmark": {
+        "retention12mRate": 79.3,
+        "retention12mSample": 387,
+        "admissionRate": 76.6,
+        "admissionPreviousRate": 80.6,
+        "admissionYoYDelta": -4,
+        "eventRate": 20.8,
+        "repeatRate": 45.5
+      }
     },
     {
-      id: "C",
-      rank: 3,
-      members: 208,
-      monthlyDelta: -14,
-      overall: 31,
-      status: "算出済",
-      metrics: { retention: 17, admission: 38, event: 46, growth: 38, family: 29 },
-      benchmark: {
-        retention12mRate: 69.4,
-        retention12mSample: 271,
-        admissionRate: 63.8,
-        admissionPreviousRate: 59.5,
-        admissionYoYDelta: 4.2,
-        eventRate: 9.1,
-        repeatRate: 39.3,
+      "id": "C",
+      "rank": 3,
+      "members": 208,
+      "monthlyDelta": -14,
+      "overall": 33,
+      "status": "算出済",
+      "metrics": {
+        "retention": 17,
+        "admission": 38,
+        "event": 50,
+        "growth": 38,
+        "family": 34
       },
+      "benchmark": {
+        "retention12mRate": 69.4,
+        "retention12mSample": 271,
+        "admissionRate": 63.8,
+        "admissionPreviousRate": 59.5,
+        "admissionYoYDelta": 4.2,
+        "eventRate": 11.3,
+        "repeatRate": 38.3
+      }
     },
     {
-      id: "D",
-      rank: 4,
-      members: 188,
-      monthlyDelta: -3,
-      overall: 26,
-      status: "参考値を含む",
-      metrics: { retention: 33, admission: 13, event: 39, growth: 13, family: 38 },
-      benchmark: {
-        retention12mRate: 77.8,
-        retention12mSample: 144,
-        admissionRate: 57.9,
-        admissionPreviousRate: 63.6,
-        admissionYoYDelta: -5.7,
-        eventRate: 7.4,
-        repeatRate: 34.4,
+      "id": "D",
+      "rank": 4,
+      "members": 188,
+      "monthlyDelta": -3,
+      "overall": 27,
+      "status": "参考値を含む",
+      "metrics": {
+        "retention": 33,
+        "admission": 13,
+        "event": 43,
+        "growth": 13,
+        "family": 38
       },
-      note: "家庭継続力は評価対象が十分に蓄積するまで暫定です。",
-    },
+      "benchmark": {
+        "retention12mRate": 77.8,
+        "retention12mSample": 144,
+        "admissionRate": 57.9,
+        "admissionPreviousRate": 63.6,
+        "admissionYoYDelta": -5.7,
+        "eventRate": 10.4,
+        "repeatRate": 31.1
+      },
+      "note": "家庭継続力は評価対象が十分に蓄積するまで暫定です。イベント力は2025年4月のチーム発足後だけを評価しています。"
+    }
   ],
-  methodology: [
+  "methodology": [
     {
-      title: "指標ごとに正規化",
-      body: "定着・入会・成長・家庭継続はパーセンタイル、イベント力は開催済み実績の歴代MAX到達度で表示します。",
+      "title": "指標ごとに正規化",
+      "body": "定着・入会・成長・家庭継続はパーセンタイル、イベント力は対象実績の歴代MAX到達度で表示します。"
     },
     {
-      title: "イベント力は参加率主軸",
-      body: "平均実参加率70％＋継続参加率30％。順位型ではないため、各チームの改善が点数へ直接反映されます。",
+      "title": "イベント力は一般会員対象のみ",
+      "body": "合同練習会など一般会員が参加できる開催回の平均実参加率70％＋継続参加率30％。大会参加者限定の練習は除外します。"
     },
     {
-      title: "欠損は推測しない",
-      body: "利用できない指標は除外し、利用可能な配点のみで比例換算します。参考値・推定値は明記します。",
-    },
+      "title": "発足前・欠損は推測しない",
+      "body": "Dチームは2025年4月の発足後だけを評価します。利用できない指標は除外し、参考値・推定値は明記します。"
+    }
   ],
-  quality: {
-    completeness: 100,
-    eventCount: 8,
-    competitionCount: 2,
-    competitionRows: 1068,
-    note: "集計指標のみを掲載。会員個人情報・会場名・金額は公開データに含めていません。",
-  },
+  "quality": {
+    "completeness": 100,
+    "eventCount": 6,
+    "eventRecordCount": 8,
+    "excludedEventCount": 2,
+    "dEvaluationStart": "2025-04-01",
+    "competitionCount": 2,
+    "competitionRows": 1068,
+    "note": "一般会員対象イベント6件を掲載（開催済み練習会の記録8件のうち、大会参加者限定練習2件を除外）。Dは2025年4月発足後のみ評価。会員個人情報・会場名・金額は公開データに含めていません。"
+  }
 });

@@ -1054,6 +1054,10 @@
         };
 
         const eventTeamIds = () => data.teams.map((team) => team.id);
+        const isEligibleEventTeam = (event, teamId) => {
+          const team = event?.teams?.[teamId];
+          return Boolean(team && team.eligible !== false && Number.isFinite(team.rate));
+        };
         const isoParts = (value) => String(value).split("-").map(Number);
         const eventDateLabel = (event) => {
           const [startYear, startMonth, startDay] = isoParts(event.startDate);
@@ -1094,15 +1098,17 @@
             ...eventTeamIds().map((teamId) => ({
               id: teamId,
               label: `${teamId} TEAM`,
-              rates: events.map((event) => event.teams[teamId].rate),
-              participants: events.map((event) => event.teams[teamId].participants),
-              members: events.map((event) => event.teams[teamId].members),
+              rates: events.map((event) => isEligibleEventTeam(event, teamId) ? event.teams[teamId].rate : null),
+              participants: events.map((event) => isEligibleEventTeam(event, teamId) ? event.teams[teamId].participants : null),
+              members: events.map((event) => isEligibleEventTeam(event, teamId) ? event.teams[teamId].members : null),
             })),
           ];
         };
 
-        const eventPointText = (series, event, index) =>
-          `${event.shortName}｜${Number(series.rates[index]).toFixed(1)}%（${formatNumber.format(series.participants[index])}/${formatNumber.format(series.members[index])}名）`;
+        const eventPointText = (series, event, index) => {
+          if (!Number.isFinite(series.rates[index])) return `${event.shortName}｜発足前・評価対象外`;
+          return `${event.shortName}｜${Number(series.rates[index]).toFixed(1)}%（${formatNumber.format(series.participants[index])}/${formatNumber.format(series.members[index])}名）`;
+        };
 
         const showEventTooltip = (series, event, index, x, y, chartHeight) => {
           const tooltip = document.getElementById("event-tooltip");
@@ -1147,11 +1153,14 @@
             <div class="event-overall-track"><div class="event-overall-fill" style="width:${overallWidth}%"></div></div>`;
 
           const rankedTeams = eventTeamIds()
+            .filter((teamId) => isEligibleEventTeam(selected, teamId))
             .map((teamId) => ({ teamId, ...selected.teams[teamId] }))
             .sort((a, b) => b.rate - a.rate || b.participants - a.participants || a.teamId.localeCompare(b.teamId));
+          const excludedTeams = eventTeamIds().filter((teamId) => !isEligibleEventTeam(selected, teamId));
 
-          document.getElementById("event-team-list").innerHTML = rankedTeams.map((team, index) => {
-            const previousDelta = previous ? team.rate - previous.teams[team.teamId].rate : null;
+          const rankedRows = rankedTeams.map((team, index) => {
+            const previousTeam = previous && isEligibleEventTeam(previous, team.teamId) ? previous.teams[team.teamId] : null;
+            const previousDelta = previousTeam ? team.rate - previousTeam.rate : null;
             const averageDelta = team.rate - eventHistory.teams[team.teamId].averageRate;
             const width = Math.max(0, Math.min(100, team.rate / maxRate * 100));
             return `
@@ -1161,20 +1170,31 @@
                 <span class="event-rate-track"><span class="event-rate-fill" style="--event-team-color:${retentionColors[team.teamId]};width:${width}%"></span></span>
                 <span class="event-team-number"><strong>${team.rate.toFixed(1)}%</strong><span>${formatNumber.format(team.participants)} / ${formatNumber.format(team.members)}名</span></span>
                 <span class="event-team-change">
-                  ${previousDelta === null ? "<span>初回</span>" : `<span class="${deltaTone(previousDelta)}">前回 ${formatRateDelta(previousDelta)}</span>`}
+                  ${previousDelta === null ? "<span>比較対象外</span>" : `<span class="${deltaTone(previousDelta)}">前回 ${formatRateDelta(previousDelta)}</span>`}
                   <small>平均比 ${formatRateDelta(averageDelta)}</small>
                 </span>
               </button>`;
           }).join("");
+          const excludedRows = excludedTeams.map((teamId) => `
+            <div class="event-team-row" aria-label="${teamId}チーム 発足前・評価対象外">
+              <span class="event-team-rank">—</span>
+              <span class="event-team-name"><span class="event-team-dot" style="--event-team-color:${retentionColors[teamId]}"></span>${teamId} TEAM</span>
+              <span class="event-rate-track"></span>
+              <span class="event-team-number"><strong>対象外</strong><span>2025年4月発足</span></span>
+              <span class="event-team-change"><span>未設立</span><small>スコア非算入</small></span>
+            </div>`).join("");
+          document.getElementById("event-team-list").innerHTML = rankedRows + excludedRows;
 
           const rateLeader = rankedTeams[0];
           const eventScoreLeader = eventTeamIds()
             .map((teamId) => ({ teamId, ...eventHistory.teams[teamId] }))
             .sort((a, b) => b.score - a.score || b.averageRate - a.averageRate || a.teamId.localeCompare(b.teamId))[0];
           const improvementLeader = previous
-            ? [...rankedTeams].sort((a, b) =>
-              (b.rate - previous.teams[b.teamId].rate) - (a.rate - previous.teams[a.teamId].rate)
-            )[0]
+            ? [...rankedTeams]
+              .filter((team) => isEligibleEventTeam(previous, team.teamId))
+              .sort((a, b) =>
+                (b.rate - previous.teams[b.teamId].rate) - (a.rate - previous.teams[a.teamId].rate)
+              )[0] || null
             : null;
           const improvementDelta = improvementLeader
             ? improvementLeader.rate - previous.teams[improvementLeader.teamId].rate
@@ -1184,7 +1204,7 @@
           document.getElementById("event-insights").innerHTML = `
             <article class="event-insight"><span>RATE LEADER</span><strong>${rateLeader.teamId} TEAM · ${rateLeader.rate.toFixed(1)}%</strong><p>この開催回の参加率トップ</p></article>
             <article class="event-insight"><span>EVENT POWER</span><strong>${eventScoreLeader.teamId} TEAM · ${eventScoreLeader.score}点</strong><p>平均参加率70%＋リピート30%</p></article>
-            <article class="event-insight"><span>${improvementLeader ? "BEST CHANGE" : "ABOVE AVERAGE"}</span><strong>${improvementLeader ? `${improvementLeader.teamId} TEAM · ${formatRateDelta(improvementDelta)}` : `${aboveAverageCount} / 4 TEAM`}</strong><p>${improvementLeader ? "前回イベントからの伸び幅トップ" : "各チーム通算平均以上"}</p></article>`;
+            <article class="event-insight"><span>${improvementLeader ? "BEST CHANGE" : "ABOVE AVERAGE"}</span><strong>${improvementLeader ? `${improvementLeader.teamId} TEAM · ${formatRateDelta(improvementDelta)}` : `${aboveAverageCount} / ${rankedTeams.length} TEAM`}</strong><p>${improvementLeader ? "前回イベントからの伸び幅トップ" : "各チーム通算平均以上"}</p></article>`;
         };
 
         const renderEventChart = () => {
@@ -1198,7 +1218,7 @@
           const plotHeight = height - margin.top - margin.bottom;
           const events = [...eventHistory.events].reverse();
           const seriesList = getEventSeries();
-          const observedMax = Math.max(eventHistory.historicalMaxRate, ...seriesList.flatMap((series) => series.rates));
+          const observedMax = Math.max(eventHistory.historicalMaxRate, ...seriesList.flatMap((series) => series.rates).filter(Number.isFinite));
           const yMax = Math.max(10, Math.ceil((observedMax + 2) / 5) * 5);
           const xScale = (index) => margin.left + (index / Math.max(1, events.length - 1)) * plotWidth;
           const yScale = (rate) => margin.top + ((yMax - rate) / yMax) * plotHeight;
@@ -1270,12 +1290,23 @@
               "data-event-series": series.id,
               style: `--event-series-color:${retentionColors[series.id]}`,
             });
+            let drawing = false;
             const pathData = series.rates
-              .map((rate, index) => `${index ? "L" : "M"} ${xScale(index).toFixed(2)} ${yScale(rate).toFixed(2)}`)
+              .map((rate, index) => {
+                if (!Number.isFinite(rate)) {
+                  drawing = false;
+                  return "";
+                }
+                const command = drawing ? "L" : "M";
+                drawing = true;
+                return `${command} ${xScale(index).toFixed(2)} ${yScale(rate).toFixed(2)}`;
+              })
+              .filter(Boolean)
               .join(" ");
-            group.append(createSvgNode("path", { class: "event-line", d: pathData }));
+            if (pathData) group.append(createSvgNode("path", { class: "event-line", d: pathData }));
 
             series.rates.forEach((rate, index) => {
+              if (!Number.isFinite(rate)) return;
               const x = xScale(index);
               const y = yScale(rate);
               const dotClass = `event-dot${index === selectedChronologicalIndex ? " is-current" : ""}`;
