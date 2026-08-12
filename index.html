@@ -376,6 +376,49 @@
         box-shadow: var(--shadow);
       }
 
+      .event-upcoming-list {
+        display: grid;
+        gap: 8px;
+        padding: 14px 16px;
+        background: #fff9eb;
+        border-bottom: 1px solid #ead9ad;
+      }
+
+      .event-upcoming-list[hidden] { display: none; }
+      .event-upcoming-card {
+        overflow: hidden;
+        color: #55431d;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid #e5cf91;
+        border-radius: 12px;
+      }
+
+      .event-upcoming-card summary {
+        display: grid;
+        grid-template-columns: auto auto minmax(0,1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 11px 13px;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .event-upcoming-card summary::-webkit-details-marker { display: none; }
+      .event-upcoming-kicker { color: #8a6816; font-size: 9px; font-weight: 900; letter-spacing: 0.12em; }
+      .event-upcoming-date { color: #6c571e; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .event-upcoming-name { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+      .event-upcoming-badge {
+        padding: 4px 8px;
+        color: #674f12;
+        background: #f6df9f;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .event-upcoming-card p { margin: 0; padding: 0 13px 12px; color: #75612e; font-size: 10px; line-height: 1.6; }
+
       .event-timeline {
         display: flex;
         gap: 8px;
@@ -426,7 +469,9 @@
       }
 
       .event-summary-content { position: relative; z-index: 1; }
+      .event-summary-date-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
       .event-summary-date { color: #b7c8d6; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; }
+      .event-complete-badge { padding: 4px 8px; color: #cdeedd; background: rgba(57,160,118,0.2); border: 1px solid rgba(117,213,173,0.28); border-radius: 999px; font-size: 9px; font-weight: 900; letter-spacing: 0.04em; }
       .event-summary-name { min-height: 54px; margin: 6px 0 24px; font-size: clamp(21px, 2.6vw, 30px); line-height: 1.18; letter-spacing: -0.035em; }
       .event-total-label { color: #b7c8d6; font-size: 11px; }
       .event-total-value { margin-top: 1px; font-size: clamp(48px, 6vw, 76px); font-weight: 800; line-height: 1; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
@@ -663,6 +708,9 @@
         .movement-item:nth-last-child(-n+4) { border-right: 0; border-bottom: 1px solid #e6ecf1; }
         .movement-item:last-child { border-bottom: 0; }
         .event-summary-card { min-height: 330px; padding: 23px; }
+        .event-upcoming-card summary { grid-template-columns: auto 1fr auto; }
+        .event-upcoming-kicker { grid-column: 1 / -1; }
+        .event-upcoming-name { white-space: normal; }
         .event-team-panel { padding: 18px 12px; }
         .event-team-row { grid-template-columns: 26px 62px minmax(76px, 1fr) 70px; gap: 7px; padding: 10px 7px; }
         .event-team-change { grid-column: 3 / 5; text-align: left; padding-left: 1px; }
@@ -732,9 +780,10 @@
       <section class="section" id="event-section" aria-labelledby="event-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">EVENT LIVE BOARD</p><h2 id="event-title">イベント・ライブボード</h2></div>
-          <p>直近イベントの参加率をA〜Dで比較。開催回を切り替えると、順位・前回差・推移が連動して変わります。</p>
+          <p>開催済みイベントの参加率をA〜Dで比較。開催予定回は暫定表示に分け、実績ランキングには含めません。</p>
         </div>
         <div class="event-board">
+          <div class="event-upcoming-list" id="event-upcoming-list" aria-label="開催予定のイベント" hidden></div>
           <div class="event-timeline" id="event-timeline" aria-label="表示するイベントを選択"></div>
           <div class="event-main-grid">
             <article class="event-summary-card">
@@ -1081,7 +1130,7 @@
           const overallWidth = Math.max(0, Math.min(100, selected.total.rate / maxRate * 100));
 
           document.getElementById("event-summary").innerHTML = `
-            <div class="event-summary-date">${escapeHtml(eventDateLabel(selected))}</div>
+            <div class="event-summary-date-row"><div class="event-summary-date">${escapeHtml(eventDateLabel(selected))}</div><span class="event-complete-badge">開催済・正式集計</span></div>
             <h3 class="event-summary-name">${escapeHtml(selected.name)}</h3>
             <div class="event-total-label">全体実参加</div>
             <div class="event-total-value">${formatNumber.format(selected.total.participants)}<span>名</span></div>
@@ -1269,6 +1318,25 @@
           if (!eventHistory?.events?.length) {
             section.hidden = true;
             return;
+          }
+
+          const upcomingList = document.getElementById("event-upcoming-list");
+          const upcomingEvents = Array.isArray(eventHistory.upcomingEvents) ? eventHistory.upcomingEvents : [];
+          if (upcomingEvents.length) {
+            upcomingList.hidden = false;
+            upcomingList.innerHTML = upcomingEvents.map((event) => `
+              <details class="event-upcoming-card">
+                <summary>
+                  <span class="event-upcoming-kicker">UPCOMING</span>
+                  <span class="event-upcoming-date">${escapeHtml(eventDateLabel(event))}</span>
+                  <strong class="event-upcoming-name">${escapeHtml(event.name)}</strong>
+                  <span class="event-upcoming-badge">${escapeHtml(event.statusLabel || "開催予定・暫定")}</span>
+                </summary>
+                <p>${escapeHtml(event.note || "開催後に実参加を確定してから正式集計へ反映します。")} 現在のA〜Dランキング、参加率推移、開催回数の集計対象外です。</p>
+              </details>`).join("");
+          } else {
+            upcomingList.hidden = true;
+            upcomingList.replaceChildren();
           }
 
           document.getElementById("event-timeline").innerHTML = eventHistory.events.map((event) => `
@@ -1862,10 +1930,10 @@
             `前年同期間 ${data.headline.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(data.headline.admissionYoYDelta)}`,
           ],
           [
-            "直近イベント実参加",
+            "直近開催イベント実参加",
             formatNumber.format(data.headline.latestEventParticipants),
             "名",
-            latestEvent ? `参加率 ${latestEvent.total.rate.toFixed(1)}% ・ 開催時点 ${formatNumber.format(latestEvent.total.members)}名` : "",
+            latestEvent ? `${eventDateLabel(latestEvent)}開催済 ・ 参加率 ${latestEvent.total.rate.toFixed(1)}% ・ 開催時点 ${formatNumber.format(latestEvent.total.members)}名` : "",
           ],
         ];
         document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail]) => `

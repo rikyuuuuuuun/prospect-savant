@@ -7,13 +7,26 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
     C: { averageRate: 9.1, repeatRate: 39.3, score: 36 },
     D: { averageRate: 7.4, repeatRate: 34.4, score: 19 },
   },
+  upcomingEvents: [
+    {
+      id: "UPCOMING-2026-HIGH-0823",
+      startDate: "2026-08-23",
+      endDate: "2026-08-23",
+      name: "2026高難度特化練習会｜8/23開催予定",
+      shortName: "高難度｜8/23",
+      status: "provisional",
+      statusLabel: "開催予定・暫定",
+      aggregate: false,
+      note: "開催前のため現時点では暫定扱いです。開催後に実参加を確定してから、参加率・ランキング・開催回数へ反映します。",
+    },
+  ],
   events: [
     {
       id: "EV-2026-HIGH",
       startDate: "2026-08-09",
       endDate: "2026-08-09",
-      name: "2026高難度特化練習会",
-      shortName: "高難度特化",
+      name: "2026高難度特化練習会｜8/9開催済",
+      shortName: "高難度｜8/9",
       total: { participants: 124, members: 1052, rate: 11.8 },
       teams: {
         A: { participants: 44, members: 331, rate: 13.3 },
@@ -121,5 +134,5 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       },
     },
   ],
-  note: "参加率は各イベント開催時点の推定会員数を分母に算出。実参加人数と率を分け、キャンセルは含みません。",
+  note: "参加率は各イベント開催時点の推定会員数を分母に算出。実参加人数と率を分け、キャンセルは含みません。開催前の回は予定・暫定として別表示し、参加率・ランキング・開催回数には含めません。",
 });
