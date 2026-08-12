@@ -10,6 +10,22 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     admissionYoYDelta: 4.2,
     latestEventParticipants: 124,
   },
+  comparison: {
+    previousAsOf: "2026-08-11",
+    previousAsOfLabel: "2026年8月11日",
+    headline: {
+      members: 1031,
+      monthlyDelta: 4,
+      admissionRate: 72.7,
+      latestEventParticipants: 133,
+    },
+    teams: [
+      { id: "A", rank: 1, members: 327, overall: 79, metrics: { retention: 81, admission: 88, event: 63, growth: 88, family: 68 } },
+      { id: "B", rank: 2, members: 308, overall: 61, metrics: { retention: 48, admission: 63, event: 83, growth: 63, family: 63 } },
+      { id: "C", rank: 3, members: 208, overall: 30, metrics: { retention: 17, admission: 38, event: 37, growth: 38, family: 29 } },
+      { id: "D", rank: 4, members: 188, overall: 25, metrics: { retention: 33, admission: 13, event: 26, growth: 13, family: 38 } },
+    ],
+  },
   scoreGuide: [
     { value: 0, label: "LOW" },
     { value: 50, label: "AVERAGE" },

@@ -274,6 +274,9 @@
       .score-value { position: relative; text-align: center; line-height: 1; }
       .score-value strong { display: block; font-size: 35px; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
       .score-value span { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: 0.16em; }
+      .score-change { display: block; margin-top: 4px; font-size: 9px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .score-change.up { color: var(--green); }
+      .score-change.down { color: var(--red-deep); }
 
       .rank-line { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; }
       .team-title { display: flex; align-items: baseline; gap: 9px; margin: 3px 0 6px; }
@@ -289,13 +292,16 @@
       .focus-badge.watch { color: #245b86; background: #e4eff7; }
 
       .metric-list { padding: 18px 22px 20px; }
-      .metric-row { display: grid; grid-template-columns: 94px minmax(100px, 1fr) 34px; gap: 10px; align-items: center; margin-bottom: 13px; }
+      .metric-row { display: grid; grid-template-columns: 94px minmax(100px, 1fr) 46px; gap: 10px; align-items: center; margin-bottom: 13px; }
       .metric-row:last-child { margin-bottom: 0; }
       .metric-label { color: #34485a; font-size: 12px; font-weight: 700; white-space: nowrap; }
       .metric-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep), #d9e1e8 50%, var(--red-deep)); }
       .metric-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
       .metric-marker { --position: 50; --marker: var(--red); position: absolute; top: 50%; left: clamp(5px, calc(var(--position) * 1%), calc(100% - 5px)); width: 17px; height: 17px; border: 4px solid white; border-radius: 50%; background: var(--marker); box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(-50%, -50%); z-index: 1; }
       .metric-score { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .metric-score small { display: block; margin-top: 1px; font-size: 8px; }
+      .metric-score small.up { color: var(--green); }
+      .metric-score small.down { color: var(--red-deep); }
 
       .benchmark-grid {
         display: grid;
@@ -312,6 +318,194 @@
       .team-note { margin: 0; padding: 10px 22px 14px; color: var(--muted); background: #f8fafc; font-size: 11px; }
 
       .section { margin-top: 42px; }
+
+      .movement-panel {
+        overflow: hidden;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .movement-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 20px 15px;
+        border-bottom: 1px solid #e6ecf1;
+      }
+
+      .movement-head strong { display: block; font-size: 14px; }
+      .movement-head span { color: var(--muted); font-size: 11px; }
+      .movement-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+      .movement-item {
+        position: relative;
+        min-width: 0;
+        padding: 17px 18px 16px;
+        color: inherit;
+        background: white;
+        border: 0;
+        border-right: 1px solid #e6ecf1;
+        border-bottom: 1px solid #e6ecf1;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 160ms ease, transform 160ms ease;
+      }
+
+      .movement-item:nth-child(4n) { border-right: 0; }
+      .movement-item:nth-last-child(-n+4) { border-bottom: 0; }
+      .movement-item:hover { z-index: 1; background: #f8fafc; transform: translateY(-2px); }
+      .movement-kicker { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.1em; }
+      .movement-team { display: inline-flex; align-items: center; gap: 6px; }
+      .movement-team::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--movement-color, var(--overall)); }
+      .movement-label { display: block; margin-top: 9px; color: #34485a; font-size: 11px; font-weight: 700; }
+      .movement-values { display: flex; align-items: baseline; gap: 7px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+      .movement-values strong { font-size: 20px; letter-spacing: -0.03em; }
+      .movement-before { color: var(--muted); font-size: 11px; }
+      .movement-delta { font-size: 11px; font-weight: 800; }
+      .movement-delta.up { color: var(--green); }
+      .movement-delta.down { color: var(--red-deep); }
+
+      .event-board {
+        overflow: hidden;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .event-timeline {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 14px 16px;
+        border-bottom: 1px solid #e6ecf1;
+        scrollbar-width: thin;
+      }
+
+      .event-chip {
+        flex: 0 0 auto;
+        min-width: 134px;
+        padding: 9px 12px;
+        color: #34485a;
+        background: #f8fafc;
+        border: 1px solid #dbe3ea;
+        border-radius: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: 160ms ease;
+      }
+
+      .event-chip:hover { border-color: #9fb1c1; transform: translateY(-1px); }
+      .event-chip[aria-pressed="true"] { color: white; border-color: var(--navy-800); background: var(--navy-800); }
+      .event-chip-date { display: block; opacity: 0.72; font-size: 9px; font-weight: 800; letter-spacing: 0.08em; }
+      .event-chip-name { display: block; margin-top: 2px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+      .event-main-grid { display: grid; grid-template-columns: 0.88fr 1.3fr; min-height: 420px; }
+      .event-summary-card {
+        position: relative;
+        overflow: hidden;
+        padding: 28px;
+        color: white;
+        background:
+          radial-gradient(circle at 100% 0%, rgba(52,117,167,0.5), transparent 42%),
+          linear-gradient(150deg, var(--navy-950), var(--navy-800));
+      }
+
+      .event-summary-card::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        bottom: -86px;
+        width: 230px;
+        aspect-ratio: 1;
+        border: 32px solid rgba(255,255,255,0.045);
+        border-radius: 50%;
+      }
+
+      .event-summary-content { position: relative; z-index: 1; }
+      .event-summary-date { color: #b7c8d6; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; }
+      .event-summary-name { min-height: 54px; margin: 6px 0 24px; font-size: clamp(21px, 2.6vw, 30px); line-height: 1.18; letter-spacing: -0.035em; }
+      .event-total-label { color: #b7c8d6; font-size: 11px; }
+      .event-total-value { margin-top: 1px; font-size: clamp(48px, 6vw, 76px); font-weight: 800; line-height: 1; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
+      .event-total-value span { margin-left: 5px; font-size: 15px; font-weight: 600; letter-spacing: 0; color: #d5e0e8; }
+      .event-overall-row { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-top: 25px; }
+      .event-overall-rate strong { display: block; font-size: 29px; line-height: 1; font-variant-numeric: tabular-nums; }
+      .event-overall-rate span, .event-overall-meta { color: #b7c8d6; font-size: 10px; }
+      .event-overall-meta { text-align: right; }
+      .event-overall-delta { display: block; margin-top: 4px; font-size: 11px; font-weight: 800; }
+      .event-overall-delta.up { color: #75d5ad; }
+      .event-overall-delta.down { color: #ffaaa5; }
+      .event-overall-track { height: 7px; overflow: hidden; margin-top: 12px; background: rgba(255,255,255,0.12); border-radius: 999px; }
+      .event-overall-fill { height: 100%; background: linear-gradient(90deg, var(--red), #f0b766); border-radius: inherit; transition: width 420ms cubic-bezier(.2,.8,.2,1); }
+
+      .event-team-panel { min-width: 0; padding: 24px; }
+      .event-team-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+      .event-team-head strong { font-size: 14px; }
+      .event-team-head span { color: var(--muted); font-size: 10px; }
+      .event-team-list { display: grid; gap: 9px; }
+
+      .event-team-row {
+        display: grid;
+        grid-template-columns: 30px 68px minmax(120px, 1fr) 78px 92px;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+        padding: 11px 10px;
+        color: inherit;
+        background: #f8fafc;
+        border: 1px solid #e6ecf1;
+        border-radius: 12px;
+        text-align: left;
+        cursor: pointer;
+        transition: 160ms ease;
+      }
+
+      .event-team-row:hover { border-color: #9fb1c1; background: white; transform: translateX(2px); }
+      .event-team-rank { color: var(--muted); font-size: 11px; font-weight: 800; }
+      .event-team-name { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; }
+      .event-team-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--event-team-color); }
+      .event-rate-track { position: relative; height: 10px; overflow: hidden; background: #e5ebf0; border-radius: 999px; }
+      .event-rate-fill { height: 100%; width: 0; background: var(--event-team-color); border-radius: inherit; transition: width 420ms cubic-bezier(.2,.8,.2,1); }
+      .event-team-number { text-align: right; font-variant-numeric: tabular-nums; }
+      .event-team-number strong { display: block; font-size: 15px; }
+      .event-team-number span { display: block; color: var(--muted); font-size: 9px; }
+      .event-team-change { text-align: right; font-size: 9px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .event-team-change .up { color: var(--green); }
+      .event-team-change .down { color: var(--red-deep); }
+      .event-team-change small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; font-weight: 600; }
+
+      .event-insight-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); border-top: 1px solid #e6ecf1; border-bottom: 1px solid #e6ecf1; }
+      .event-insight { min-width: 0; padding: 17px 20px; border-right: 1px solid #e6ecf1; }
+      .event-insight:last-child { border-right: 0; }
+      .event-insight span { display: block; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; }
+      .event-insight strong { display: block; margin-top: 4px; font-size: 17px; font-variant-numeric: tabular-nums; }
+      .event-insight p { margin: 2px 0 0; color: var(--muted); font-size: 10px; }
+
+      .event-trend { padding: 22px; }
+      .event-trend-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 10px; }
+      .event-trend-copy strong { display: block; font-size: 13px; }
+      .event-trend-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+      .event-filter-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+      .event-chart-shell { position: relative; width: 100%; min-height: 330px; }
+      .event-chart { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+      .event-selected-guide { stroke: rgba(20,34,53,0.18); stroke-width: 1.4; stroke-dasharray: 4 5; }
+      .event-line { fill: none; stroke: var(--event-series-color); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+      .event-dot { fill: white; stroke: var(--event-series-color); stroke-width: 2.3; vector-effect: non-scaling-stroke; }
+      .event-hit { fill: transparent; cursor: pointer; }
+      .event-series { opacity: 0.86; transition: opacity 180ms ease; }
+      .event-series.is-overall .event-line { stroke-dasharray: 7 6; stroke-width: 2; }
+      .event-series.is-overall .event-dot { fill: var(--overall); stroke-width: 0; }
+      .event-series.is-muted { opacity: 0.11; }
+      .event-series.is-reference { opacity: 0.38; }
+      .event-series.is-selected { opacity: 1; }
+      .event-series.is-selected .event-line { stroke-width: 4.5; filter: drop-shadow(0 2px 3px rgba(8,24,39,0.22)); }
+      .event-series.is-selected .event-dot { r: 5.5; }
+      .event-dot.is-current { fill: var(--event-series-color); stroke: white; stroke-width: 3; filter: drop-shadow(0 2px 3px rgba(8,24,39,0.28)); }
+      .event-chart-summary { margin: 8px 0 0; color: #34485a; font-size: 12px; font-weight: 700; }
+      .event-note { margin: 8px 0 0; color: var(--muted); font-size: 10px; }
 
       .retention-panel {
         overflow: hidden;
@@ -439,6 +633,13 @@
 
       @media (max-width: 900px) {
         .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .movement-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .movement-item:nth-child(4n) { border-right: 1px solid #e6ecf1; }
+        .movement-item:nth-child(2n) { border-right: 0; }
+        .movement-item:nth-last-child(-n+4) { border-bottom: 1px solid #e6ecf1; }
+        .movement-item:nth-last-child(-n+2) { border-bottom: 0; }
+        .event-main-grid { grid-template-columns: 1fr; }
+        .event-summary-card { min-height: 360px; }
         .team-grid { grid-template-columns: 1fr; }
         .method-grid { grid-template-columns: 1fr; }
       }
@@ -453,6 +654,24 @@
         .section-heading { align-items: start; flex-direction: column; gap: 6px; }
         .section-heading p { text-align: left; }
         .scale-card { grid-template-columns: 1fr; gap: 25px; }
+        .movement-head { align-items: flex-start; flex-direction: column; gap: 3px; }
+        .movement-grid { grid-template-columns: 1fr; }
+        .movement-item,
+        .movement-item:nth-child(2n),
+        .movement-item:nth-child(4n),
+        .movement-item:nth-last-child(-n+2),
+        .movement-item:nth-last-child(-n+4) { border-right: 0; border-bottom: 1px solid #e6ecf1; }
+        .movement-item:last-child { border-bottom: 0; }
+        .event-summary-card { min-height: 330px; padding: 23px; }
+        .event-team-panel { padding: 18px 12px; }
+        .event-team-row { grid-template-columns: 26px 62px minmax(76px, 1fr) 70px; gap: 7px; padding: 10px 7px; }
+        .event-team-change { grid-column: 3 / 5; text-align: left; padding-left: 1px; }
+        .event-insight-grid { grid-template-columns: 1fr; }
+        .event-insight { border-right: 0; border-bottom: 1px solid #e6ecf1; }
+        .event-insight:last-child { border-bottom: 0; }
+        .event-trend { padding: 18px 11px; }
+        .event-trend-toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+        .event-filter-controls { justify-content: flex-start; }
         .retention-panel { padding: 16px 12px 15px; }
         .retention-toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
         .retention-controls { justify-content: flex-start; }
@@ -500,7 +719,49 @@
     </section>
 
     <main class="container main">
-      <section aria-labelledby="profiles-title">
+      <section id="movement-section" aria-labelledby="movement-title" hidden>
+        <div class="movement-panel">
+          <div class="movement-head">
+            <div><strong id="movement-title">前回公開からの変化</strong><span id="movement-period"></span></div>
+            <span>カードを選ぶと該当チームへ移動します</span>
+          </div>
+          <div class="movement-grid" id="movement-grid"></div>
+        </div>
+      </section>
+
+      <section class="section" id="event-section" aria-labelledby="event-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">EVENT LIVE BOARD</p><h2 id="event-title">イベント・ライブボード</h2></div>
+          <p>直近イベントの参加率をA〜Dで比較。開催回を切り替えると、順位・前回差・推移が連動して変わります。</p>
+        </div>
+        <div class="event-board">
+          <div class="event-timeline" id="event-timeline" aria-label="表示するイベントを選択"></div>
+          <div class="event-main-grid">
+            <article class="event-summary-card">
+              <div class="event-summary-content" id="event-summary"></div>
+            </article>
+            <div class="event-team-panel">
+              <div class="event-team-head"><strong>A〜D 参加率ランキング</strong><span id="event-scale-label"></span></div>
+              <div class="event-team-list" id="event-team-list"></div>
+            </div>
+          </div>
+          <div class="event-insight-grid" id="event-insights"></div>
+          <div class="event-trend">
+            <div class="event-trend-toolbar">
+              <div class="event-trend-copy"><strong>開催回ごとの参加率推移</strong><span>点を選ぶと、その開催回の詳細へ切り替わります</span></div>
+              <div class="event-filter-controls" id="event-filters" aria-label="イベント推移の表示チームを選択"></div>
+            </div>
+            <div class="event-chart-shell" id="event-chart-shell">
+              <svg class="event-chart" id="event-chart" role="img" aria-labelledby="event-svg-title event-svg-desc"></svg>
+              <div class="curve-tooltip" id="event-tooltip" role="tooltip"></div>
+            </div>
+            <p class="event-chart-summary" id="event-chart-summary" aria-live="polite"></p>
+            <p class="event-note" id="event-note"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="profiles-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">TEAM PROFILES</p><h2 id="profiles-title">チーム・プロフィール</h2></div>
           <p>赤側ほど強み、青側ほど改善余地。中央の50が比較上の平均水準です。</p>
@@ -583,6 +844,7 @@
     <noscript><div class="noscript">このダッシュボードの表示にはJavaScriptが必要です。</div></noscript>
 
     <script src="./data.js"></script>
+    <script src="./event-data.js"></script>
     <script src="./retention-data.js"></script>
     <script src="./school-age-data.js"></script>
     <script>
@@ -592,6 +854,7 @@
         if (!data) return;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        const eventHistory = window.PROSPECT_EVENT_HISTORY;
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
         const formatNumber = new Intl.NumberFormat("ja-JP");
@@ -603,6 +866,12 @@
         const svgNamespace = "http://www.w3.org/2000/svg";
         const retentionState = { selected: "ALL", resizeFrame: 0, observer: null };
         const schoolAgeState = { selected: "ALL", resizeFrame: 0, observer: null };
+        const eventState = {
+          selectedEventId: eventHistory?.latestEventId || eventHistory?.events?.[0]?.id || "",
+          selectedTeam: "ALL",
+          resizeFrame: 0,
+          observer: null,
+        };
         const retentionColors = {
           OVERALL: "var(--overall)",
           A: "var(--team-a)",
@@ -615,6 +884,435 @@
           const node = document.createElementNS(svgNamespace, tag);
           Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
           return node;
+        };
+
+        const escapeHtml = (value) => String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+
+        const activateProfileTeam = (teamId) => {
+          const target = document.querySelector(`#team-filters [data-filter="${teamId}"]`)
+            || document.querySelector('#team-filters [data-filter="ALL"]');
+          if (target) target.click();
+          document.getElementById("profiles-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
+        const buildMovementItems = () => {
+          const comparison = data.comparison;
+          if (!comparison?.teams?.length) return [];
+          const items = [];
+          const previousTeams = new Map(comparison.teams.map((team) => [team.id, team]));
+
+          data.teams.forEach((team) => {
+            const previous = previousTeams.get(team.id);
+            if (!previous) return;
+            const overallDelta = team.overall - previous.overall;
+            if (overallDelta) {
+              items.push({
+                teamId: team.id,
+                kicker: `${team.id} TEAM · OVERALL`,
+                label: "総合点",
+                before: previous.overall,
+                after: team.overall,
+                delta: overallDelta,
+                unit: "点",
+                priority: 5,
+              });
+            }
+
+            metricKeys.forEach((key) => {
+              const delta = team.metrics[key] - previous.metrics[key];
+              if (!delta) return;
+              items.push({
+                teamId: team.id,
+                kicker: `${team.id} TEAM · ${key.toUpperCase()}`,
+                label: data.metricLabels[key],
+                before: previous.metrics[key],
+                after: team.metrics[key],
+                delta,
+                unit: "点",
+                priority: 4,
+              });
+            });
+
+            const memberDelta = team.members - previous.members;
+            if (memberDelta) {
+              items.push({
+                teamId: team.id,
+                kicker: `${team.id} TEAM · MEMBERS`,
+                label: "運用会員数",
+                before: previous.members,
+                after: team.members,
+                delta: memberDelta,
+                unit: "名",
+                priority: 2,
+              });
+            }
+          });
+
+          const headlineDelta = data.headline.members - comparison.headline.members;
+          if (headlineDelta) {
+            items.push({
+              teamId: "ALL",
+              kicker: "ALL TEAM · MEMBERS",
+              label: "全体運用会員数",
+              before: comparison.headline.members,
+              after: data.headline.members,
+              delta: headlineDelta,
+              unit: "名",
+              priority: 3,
+            });
+          }
+
+          return items
+            .sort((a, b) => b.priority - a.priority || Math.abs(b.delta) - Math.abs(a.delta) || a.teamId.localeCompare(b.teamId))
+            .slice(0, 8);
+        };
+
+        const initializeMovement = () => {
+          const section = document.getElementById("movement-section");
+          const items = buildMovementItems();
+          if (!items.length) {
+            section.hidden = true;
+            return;
+          }
+
+          section.hidden = false;
+          document.getElementById("movement-period").textContent =
+            `${data.comparison.previousAsOfLabel} → ${data.asOfLabel}`;
+          document.getElementById("movement-grid").innerHTML = items.map((item) => {
+            const tone = item.delta > 0 ? "up" : "down";
+            const teamColor = retentionColors[item.teamId] || retentionColors.OVERALL;
+            return `
+              <button type="button" class="movement-item" data-movement-team="${item.teamId}" style="--movement-color:${teamColor}" aria-label="${item.kicker} ${item.label} ${formatDelta(item.delta)}${item.unit}">
+                <span class="movement-kicker"><span class="movement-team">${item.kicker}</span><span class="movement-delta ${tone}">${formatDelta(item.delta)}${item.unit}</span></span>
+                <span class="movement-label">${item.label}</span>
+                <span class="movement-values"><span class="movement-before">${formatNumber.format(item.before)} →</span><strong>${formatNumber.format(item.after)}${item.unit}</strong></span>
+              </button>`;
+          }).join("");
+
+          document.getElementById("movement-grid").addEventListener("click", (event) => {
+            const button = event.target.closest("[data-movement-team]");
+            if (!button) return;
+            activateProfileTeam(button.dataset.movementTeam);
+          });
+        };
+
+        const eventTeamIds = () => data.teams.map((team) => team.id);
+        const isoParts = (value) => String(value).split("-").map(Number);
+        const eventDateLabel = (event) => {
+          const [startYear, startMonth, startDay] = isoParts(event.startDate);
+          const [endYear, endMonth, endDay] = isoParts(event.endDate);
+          if (event.startDate === event.endDate) return `${startYear}年${startMonth}月${startDay}日`;
+          if (startYear === endYear) return `${startYear}年${startMonth}月${startDay}日〜${endMonth}月${endDay}日`;
+          return `${startYear}年${startMonth}月${startDay}日〜${endYear}年${endMonth}月${endDay}日`;
+        };
+        const eventChipDate = (event) => {
+          const [year, month, day] = isoParts(event.startDate);
+          return `${year}.${String(month).padStart(2, "0")}.${String(day).padStart(2, "0")}`;
+        };
+        const eventAxisDate = (event) => {
+          const [year, month] = isoParts(event.startDate);
+          return `${String(year).slice(2)}/${month}`;
+        };
+        const formatRateDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
+        const deltaTone = (value) => value > 0 ? "up" : value < 0 ? "down" : "";
+
+        const getSelectedEventIndex = () => eventHistory.events.findIndex((event) => event.id === eventState.selectedEventId);
+        const getSelectedEvent = () => eventHistory.events[getSelectedEventIndex()] || eventHistory.events[0];
+        const getPreviousEvent = () => {
+          const index = getSelectedEventIndex();
+          return index >= 0 ? eventHistory.events[index + 1] || null : null;
+        };
+
+        const getEventSeries = () => {
+          if (!eventHistory?.events?.length) return [];
+          const events = [...eventHistory.events].reverse();
+          return [
+            {
+              id: "OVERALL",
+              label: "全体",
+              rates: events.map((event) => event.total.rate),
+              participants: events.map((event) => event.total.participants),
+              members: events.map((event) => event.total.members),
+            },
+            ...eventTeamIds().map((teamId) => ({
+              id: teamId,
+              label: `${teamId} TEAM`,
+              rates: events.map((event) => event.teams[teamId].rate),
+              participants: events.map((event) => event.teams[teamId].participants),
+              members: events.map((event) => event.teams[teamId].members),
+            })),
+          ];
+        };
+
+        const eventPointText = (series, event, index) =>
+          `${event.shortName}｜${Number(series.rates[index]).toFixed(1)}%（${formatNumber.format(series.participants[index])}/${formatNumber.format(series.members[index])}名）`;
+
+        const showEventTooltip = (series, event, index, x, y, chartHeight) => {
+          const tooltip = document.getElementById("event-tooltip");
+          const shell = document.getElementById("event-chart-shell");
+          const svg = document.getElementById("event-chart");
+          tooltip.innerHTML = `<strong>${escapeHtml(series.label)}</strong><br>${escapeHtml(eventPointText(series, event, index))}`;
+          tooltip.classList.add("is-visible");
+          const svgHeight = svg.getBoundingClientRect().height;
+          const yPixels = y * (svgHeight / chartHeight);
+          const clampedX = Math.max(82, Math.min(shell.clientWidth - 82, x));
+          tooltip.style.left = `${clampedX}px`;
+          tooltip.style.top = `${yPixels}px`;
+          tooltip.style.transform = yPixels < 74
+            ? "translate(-50%, 12px)"
+            : "translate(-50%, calc(-100% - 12px))";
+        };
+
+        const hideEventTooltip = () => {
+          document.getElementById("event-tooltip").classList.remove("is-visible");
+        };
+
+        const renderEventOverview = () => {
+          const selected = getSelectedEvent();
+          const previous = getPreviousEvent();
+          if (!selected) return;
+          const overallDelta = previous ? selected.total.rate - previous.total.rate : null;
+          const maxRate = Math.max(1, eventHistory.historicalMaxRate);
+          const overallWidth = Math.max(0, Math.min(100, selected.total.rate / maxRate * 100));
+
+          document.getElementById("event-summary").innerHTML = `
+            <div class="event-summary-date">${escapeHtml(eventDateLabel(selected))}</div>
+            <h3 class="event-summary-name">${escapeHtml(selected.name)}</h3>
+            <div class="event-total-label">全体実参加</div>
+            <div class="event-total-value">${formatNumber.format(selected.total.participants)}<span>名</span></div>
+            <div class="event-overall-row">
+              <div class="event-overall-rate"><strong>${selected.total.rate.toFixed(1)}%</strong><span>全体参加率</span></div>
+              <div class="event-overall-meta">開催時点 ${formatNumber.format(selected.total.members)}名
+                ${overallDelta === null ? "" : `<span class="event-overall-delta ${deltaTone(overallDelta)}">前回比 ${formatRateDelta(overallDelta)}</span>`}
+                ${selected.total.unassignedParticipants ? `<span class="event-overall-delta">A〜D未帰属 ${selected.total.unassignedParticipants}名</span>` : ""}
+              </div>
+            </div>
+            <div class="event-overall-track"><div class="event-overall-fill" style="width:${overallWidth}%"></div></div>`;
+
+          const rankedTeams = eventTeamIds()
+            .map((teamId) => ({ teamId, ...selected.teams[teamId] }))
+            .sort((a, b) => b.rate - a.rate || b.participants - a.participants || a.teamId.localeCompare(b.teamId));
+
+          document.getElementById("event-team-list").innerHTML = rankedTeams.map((team, index) => {
+            const previousDelta = previous ? team.rate - previous.teams[team.teamId].rate : null;
+            const averageDelta = team.rate - eventHistory.teams[team.teamId].averageRate;
+            const width = Math.max(0, Math.min(100, team.rate / maxRate * 100));
+            return `
+              <button type="button" class="event-team-row" data-event-team="${team.teamId}" aria-label="${team.teamId}チーム 参加率${team.rate.toFixed(1)}%。推移を強調表示">
+                <span class="event-team-rank">#${index + 1}</span>
+                <span class="event-team-name"><span class="event-team-dot" style="--event-team-color:${retentionColors[team.teamId]}"></span>${team.teamId} TEAM</span>
+                <span class="event-rate-track"><span class="event-rate-fill" style="--event-team-color:${retentionColors[team.teamId]};width:${width}%"></span></span>
+                <span class="event-team-number"><strong>${team.rate.toFixed(1)}%</strong><span>${formatNumber.format(team.participants)} / ${formatNumber.format(team.members)}名</span></span>
+                <span class="event-team-change">
+                  ${previousDelta === null ? "<span>初回</span>" : `<span class="${deltaTone(previousDelta)}">前回 ${formatRateDelta(previousDelta)}</span>`}
+                  <small>平均比 ${formatRateDelta(averageDelta)}</small>
+                </span>
+              </button>`;
+          }).join("");
+
+          const rateLeader = rankedTeams[0];
+          const participantLeader = [...rankedTeams].sort((a, b) => b.participants - a.participants || b.rate - a.rate)[0];
+          const improvementLeader = previous
+            ? [...rankedTeams].sort((a, b) =>
+              (b.rate - previous.teams[b.teamId].rate) - (a.rate - previous.teams[a.teamId].rate)
+            )[0]
+            : null;
+          const improvementDelta = improvementLeader
+            ? improvementLeader.rate - previous.teams[improvementLeader.teamId].rate
+            : null;
+          const aboveAverageCount = rankedTeams.filter((team) => team.rate >= eventHistory.teams[team.teamId].averageRate).length;
+
+          document.getElementById("event-insights").innerHTML = `
+            <article class="event-insight"><span>RATE LEADER</span><strong>${rateLeader.teamId} TEAM · ${rateLeader.rate.toFixed(1)}%</strong><p>この開催回の参加率トップ</p></article>
+            <article class="event-insight"><span>MOST PARTICIPANTS</span><strong>${participantLeader.teamId} TEAM · ${formatNumber.format(participantLeader.participants)}名</strong><p>実参加人数トップ</p></article>
+            <article class="event-insight"><span>${improvementLeader ? "BEST CHANGE" : "ABOVE AVERAGE"}</span><strong>${improvementLeader ? `${improvementLeader.teamId} TEAM · ${formatRateDelta(improvementDelta)}` : `${aboveAverageCount} / 4 TEAM`}</strong><p>${improvementLeader ? "前回イベントからの伸び幅トップ" : "各チーム通算平均以上"}</p></article>`;
+        };
+
+        const renderEventChart = () => {
+          if (!eventHistory?.events?.length) return;
+          const shell = document.getElementById("event-chart-shell");
+          const svg = document.getElementById("event-chart");
+          const width = Math.max(300, Math.round(shell.getBoundingClientRect().width));
+          const height = width < 560 ? 340 : 390;
+          const margin = { top: 28, right: width < 560 ? 20 : 38, bottom: 58, left: width < 560 ? 42 : 50 };
+          const plotWidth = width - margin.left - margin.right;
+          const plotHeight = height - margin.top - margin.bottom;
+          const events = [...eventHistory.events].reverse();
+          const seriesList = getEventSeries();
+          const observedMax = Math.max(eventHistory.historicalMaxRate, ...seriesList.flatMap((series) => series.rates));
+          const yMax = Math.max(10, Math.ceil((observedMax + 2) / 5) * 5);
+          const xScale = (index) => margin.left + (index / Math.max(1, events.length - 1)) * plotWidth;
+          const yScale = (rate) => margin.top + ((yMax - rate) / yMax) * plotHeight;
+          const selectedChronologicalIndex = events.findIndex((event) => event.id === eventState.selectedEventId);
+
+          svg.replaceChildren();
+          svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+          svg.setAttribute("aria-label", "過去イベントのA〜Dチーム別参加率推移");
+          const title = createSvgNode("title", { id: "event-svg-title" });
+          title.textContent = "イベント参加率の推移";
+          const description = createSvgNode("desc", { id: "event-svg-desc" });
+          description.textContent = "チームを選ぶと推移を強調し、各点を選ぶとイベント詳細が切り替わります。";
+          svg.append(title, description);
+
+          [0, 0.25, 0.5, 0.75, 1].forEach((ratio) => {
+            const rate = yMax * ratio;
+            const y = yScale(rate);
+            svg.append(createSvgNode("line", { class: "curve-grid-line", x1: margin.left, x2: width - margin.right, y1: y, y2: y }));
+            const label = createSvgNode("text", { class: "curve-axis-label", x: margin.left - 8, y: y + 4, "text-anchor": "end" });
+            label.textContent = `${Number(rate.toFixed(1))}%`;
+            svg.append(label);
+          });
+
+          events.forEach((event, index) => {
+            const x = xScale(index);
+            svg.append(createSvgNode("line", { class: "curve-axis-line", x1: x, x2: x, y1: height - margin.bottom, y2: height - margin.bottom + 5 }));
+            if (width >= 560 || index % 2 === 0 || index === events.length - 1) {
+              const label = createSvgNode("text", { class: "curve-axis-label", x, y: height - margin.bottom + 21, "text-anchor": "middle" });
+              label.textContent = eventAxisDate(event);
+              svg.append(label);
+            }
+          });
+
+          svg.append(createSvgNode("line", {
+            class: "curve-axis-line",
+            x1: margin.left,
+            x2: width - margin.right,
+            y1: height - margin.bottom,
+            y2: height - margin.bottom,
+          }));
+          if (selectedChronologicalIndex >= 0) {
+            const selectedX = xScale(selectedChronologicalIndex);
+            svg.append(createSvgNode("line", {
+              class: "event-selected-guide",
+              x1: selectedX,
+              x2: selectedX,
+              y1: margin.top,
+              y2: height - margin.bottom,
+            }));
+          }
+
+          const yTitle = createSvgNode("text", { class: "curve-axis-title", x: margin.left, y: 14, "text-anchor": "start" });
+          yTitle.textContent = "実参加率";
+          const xTitle = createSvgNode("text", { class: "curve-axis-title", x: margin.left + plotWidth / 2, y: height - 8, "text-anchor": "middle" });
+          xTitle.textContent = "イベント開催時期";
+          svg.append(yTitle, xTitle);
+
+          seriesList.forEach((series) => {
+            const isAll = eventState.selectedTeam === "ALL";
+            const classNames = [
+              "event-series",
+              series.id === "OVERALL" ? "is-overall" : "",
+              !isAll && series.id === eventState.selectedTeam ? "is-selected" : "",
+              !isAll && series.id === "OVERALL" ? "is-reference" : "",
+              !isAll && series.id !== eventState.selectedTeam && series.id !== "OVERALL" ? "is-muted" : "",
+            ].filter(Boolean).join(" ");
+            const group = createSvgNode("g", {
+              class: classNames,
+              "data-event-series": series.id,
+              style: `--event-series-color:${retentionColors[series.id]}`,
+            });
+            const pathData = series.rates
+              .map((rate, index) => `${index ? "L" : "M"} ${xScale(index).toFixed(2)} ${yScale(rate).toFixed(2)}`)
+              .join(" ");
+            group.append(createSvgNode("path", { class: "event-line", d: pathData }));
+
+            series.rates.forEach((rate, index) => {
+              const x = xScale(index);
+              const y = yScale(rate);
+              const dotClass = `event-dot${index === selectedChronologicalIndex ? " is-current" : ""}`;
+              group.append(createSvgNode("circle", { class: dotClass, cx: x, cy: y, r: index === selectedChronologicalIndex ? 5 : 4 }));
+              const hit = createSvgNode("circle", { class: "event-hit", cx: x, cy: y, r: 13 });
+              hit.setAttribute("aria-label", `${series.label} ${eventPointText(series, events[index], index)}`);
+              hit.addEventListener("pointerenter", () => showEventTooltip(series, events[index], index, x, y, height));
+              hit.addEventListener("pointerleave", hideEventTooltip);
+              hit.addEventListener("click", () => updateEventSelection(events[index].id));
+              group.append(hit);
+            });
+            svg.append(group);
+          });
+
+          const selected = getSelectedEvent();
+          const selectedSeries = eventState.selectedTeam === "ALL"
+            ? seriesList.find((series) => series.id === "OVERALL")
+            : seriesList.find((series) => series.id === eventState.selectedTeam);
+          const pointIndex = events.findIndex((event) => event.id === selected.id);
+          document.getElementById("event-chart-summary").textContent =
+            `${eventState.selectedTeam === "ALL" ? "全体" : `${eventState.selectedTeam} TEAM`}｜${selected.shortName} ${eventPointText(selectedSeries, selected, pointIndex).split("｜")[1]}`;
+        };
+
+        const updateEventTeamSelection = (teamId) => {
+          const validIds = ["ALL", ...eventTeamIds()];
+          eventState.selectedTeam = validIds.includes(teamId) ? teamId : "ALL";
+          document.querySelectorAll("#event-filters [data-event-filter]").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.eventFilter === eventState.selectedTeam));
+          });
+          renderEventChart();
+        };
+
+        const updateEventSelection = (eventId) => {
+          const validEvent = eventHistory.events.find((event) => event.id === eventId);
+          eventState.selectedEventId = validEvent ? validEvent.id : eventHistory.events[0].id;
+          document.querySelectorAll("#event-timeline [data-event-id]").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.eventId === eventState.selectedEventId));
+          });
+          renderEventOverview();
+          renderEventChart();
+        };
+
+        const initializeEventBoard = () => {
+          const section = document.getElementById("event-section");
+          if (!eventHistory?.events?.length) {
+            section.hidden = true;
+            return;
+          }
+
+          document.getElementById("event-timeline").innerHTML = eventHistory.events.map((event) => `
+            <button type="button" class="event-chip" data-event-id="${event.id}" aria-pressed="${event.id === eventState.selectedEventId}">
+              <span class="event-chip-date">${eventChipDate(event)}</span>
+              <span class="event-chip-name">${escapeHtml(event.shortName)}</span>
+            </button>`).join("");
+          document.getElementById("event-scale-label").textContent =
+            `歴代MAX ${eventHistory.historicalMaxRate.toFixed(1)}% = 100`;
+          document.getElementById("event-note").textContent = eventHistory.note;
+
+          const filters = [{ id: "ALL", label: "全体" }, ...eventTeamIds().map((teamId) => ({ id: teamId, label: `${teamId} TEAM` }))];
+          document.getElementById("event-filters").innerHTML = filters.map((filter) => `
+            <button type="button" class="curve-filter-button" data-event-filter="${filter.id}" aria-pressed="${filter.id === eventState.selectedTeam}">${filter.label}</button>
+          `).join("");
+
+          document.getElementById("event-timeline").addEventListener("click", (event) => {
+            const button = event.target.closest("[data-event-id]");
+            if (!button) return;
+            updateEventSelection(button.dataset.eventId);
+          });
+          document.getElementById("event-team-list").addEventListener("click", (event) => {
+            const button = event.target.closest("[data-event-team]");
+            if (!button) return;
+            updateEventTeamSelection(button.dataset.eventTeam);
+            document.getElementById("event-chart-shell").scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+          document.getElementById("event-filters").addEventListener("click", (event) => {
+            const button = event.target.closest("[data-event-filter]");
+            if (!button) return;
+            updateEventTeamSelection(button.dataset.eventFilter);
+          });
+
+          updateEventSelection(eventState.selectedEventId);
+          const scheduleRender = () => {
+            cancelAnimationFrame(eventState.resizeFrame);
+            eventState.resizeFrame = requestAnimationFrame(renderEventChart);
+          };
+          if ("ResizeObserver" in window) {
+            eventState.observer = new ResizeObserver(scheduleRender);
+            eventState.observer.observe(document.getElementById("event-chart-shell"));
+          } else {
+            window.addEventListener("resize", scheduleRender);
+          }
         };
 
         const getRetentionSeries = () => {
@@ -1152,6 +1850,8 @@
         document.getElementById("update-pill").textContent = `基準日 ${data.asOfLabel}`;
         document.getElementById("footer-date").textContent = `最終集計 ${data.asOfLabel}`;
 
+        const latestEvent = eventHistory?.events?.find((event) => event.id === eventHistory.latestEventId)
+          || eventHistory?.events?.[0];
         const kpis = [
           ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
           ["前月差（参考）", formatDelta(data.headline.monthlyDelta), "名", ""],
@@ -1161,7 +1861,12 @@
             "%",
             `前年同期間 ${data.headline.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(data.headline.admissionYoYDelta)}`,
           ],
-          ["直近イベント実参加", formatNumber.format(data.headline.latestEventParticipants), "名", ""],
+          [
+            "直近イベント実参加",
+            formatNumber.format(data.headline.latestEventParticipants),
+            "名",
+            latestEvent ? `参加率 ${latestEvent.total.rate.toFixed(1)}% ・ 開催時点 ${formatNumber.format(latestEvent.total.members)}名` : "",
+          ],
         ];
         document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail]) => `
           <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-detail">${detail}</div></article>
@@ -1178,17 +1883,23 @@
 
         document.getElementById("team-grid").innerHTML = data.teams.map((team) => {
           const order = strongest(team);
+          const previousTeam = data.comparison?.teams?.find((item) => item.id === team.id);
+          const overallChange = previousTeam ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
           const deltaClass = team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
-            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}</span></div>`;
+            const change = previousTeam ? score - previousTeam.metrics[key] : 0;
+            const changeMarkup = change
+              ? `<small class="${deltaTone(change)}">${formatDelta(change)}</small>`
+              : "";
+            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
           }).join("");
           return `
             <article class="team-card" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点">
               <div class="team-card-head">
-                <div class="score-ring" style="--score:${team.overall};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${team.overall}</strong><span>OVERALL</span></div></div>
+                <div class="score-ring" style="--score:${team.overall};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${team.overall}</strong><span>OVERALL</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
                 <div>
                   <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
@@ -1215,6 +1926,8 @@
           document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
         });
 
+        initializeMovement();
+        initializeEventBoard();
         initializeRetentionCurve();
         initializeSchoolAgeChart();
 
