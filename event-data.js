@@ -1,11 +1,14 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
   latestEventId: "EV-2026-HIGH",
+  scoringVersion: "v5-event-participation-70-30",
+  scoreWeights: { participation: 70, repeat: 30 },
   historicalMaxRate: 31.9,
+  repeatMaxRate: 46.1,
   teams: {
-    A: { averageRate: 16.7, repeatRate: 41.6, score: 66 },
-    B: { averageRate: 19.0, repeatRate: 46.1, score: 86 },
-    C: { averageRate: 9.1, repeatRate: 39.3, score: 36 },
-    D: { averageRate: 7.4, repeatRate: 34.4, score: 19 },
+    A: { averageRate: 16.7, participationScore: 52.3, repeatRate: 41.6, repeatScore: 90.3, score: 64 },
+    B: { averageRate: 19.0, participationScore: 59.4, repeatRate: 46.1, repeatScore: 100.0, score: 72 },
+    C: { averageRate: 9.1, participationScore: 28.4, repeatRate: 39.3, repeatScore: 85.3, score: 46 },
+    D: { averageRate: 7.4, participationScore: 23.3, repeatRate: 34.4, repeatScore: 74.6, score: 39 },
   },
   upcomingEvents: [
     {
@@ -134,5 +137,5 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       },
     },
   ],
-  note: "参加率は各イベント開催時点の推定会員数を分母に算出。実参加人数と率を分け、キャンセルは含みません。開催前の回は予定・暫定として別表示し、参加率・ランキング・開催回数には含めません。",
+  note: "参加率は各イベント開催時点の推定会員数を分母に算出。イベント力は平均実参加率70％＋累積継続参加率30％を、それぞれ開催済み実績のMAX＝100点で換算します。開催前の回は予定・暫定として別表示し、点数・参加率・ランキング・開催回数には含めません。",
 });

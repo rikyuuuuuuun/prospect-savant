@@ -1,4 +1,5 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
+  scoreVersion: "v5-event-participation-70-30",
   asOf: "2026-08-12",
   asOfLabel: "2026年8月12日",
   periodLabel: "2026年度累計",
@@ -11,6 +12,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     latestEventParticipants: 124,
   },
   comparison: {
+    scoreVersion: "v4-event-percentile-50-50",
     previousAsOf: "2026-08-11",
     previousAsOfLabel: "2026年8月11日",
     headline: {
@@ -28,9 +30,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   scoreGuide: [
     { value: 0, label: "LOW" },
-    { value: 50, label: "AVERAGE" },
-    { value: 80, label: "TOP 20%" },
-    { value: 100, label: "ELITE" },
+    { value: 50, label: "MID" },
+    { value: 80, label: "STRONG" },
+    { value: 100, label: "MAX" },
   ],
   weights: [
     { key: "retention", label: "定着力", value: 30 },
@@ -54,7 +56,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       monthlyDelta: 16,
       overall: 79,
       status: "算出済",
-      metrics: { retention: 81, admission: 88, event: 66, growth: 88, family: 68 },
+      metrics: { retention: 81, admission: 88, event: 64, growth: 88, family: 68 },
       benchmark: {
         retention12mRate: 82.4,
         retention12mSample: 493,
@@ -70,9 +72,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       rank: 2,
       members: 308,
       monthlyDelta: 4,
-      overall: 62,
+      overall: 60,
       status: "算出済",
-      metrics: { retention: 48, admission: 63, event: 86, growth: 63, family: 63 },
+      metrics: { retention: 48, admission: 63, event: 72, growth: 63, family: 63 },
       benchmark: {
         retention12mRate: 79.3,
         retention12mSample: 387,
@@ -88,9 +90,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       rank: 3,
       members: 208,
       monthlyDelta: -14,
-      overall: 30,
+      overall: 31,
       status: "算出済",
-      metrics: { retention: 17, admission: 38, event: 36, growth: 38, family: 29 },
+      metrics: { retention: 17, admission: 38, event: 46, growth: 38, family: 29 },
       benchmark: {
         retention12mRate: 69.4,
         retention12mSample: 271,
@@ -106,9 +108,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       rank: 4,
       members: 188,
       monthlyDelta: -3,
-      overall: 23,
+      overall: 26,
       status: "参考値を含む",
-      metrics: { retention: 33, admission: 13, event: 19, growth: 13, family: 38 },
+      metrics: { retention: 33, admission: 13, event: 39, growth: 13, family: 38 },
       benchmark: {
         retention12mRate: 77.8,
         retention12mSample: 144,
@@ -123,12 +125,12 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   ],
   methodology: [
     {
-      title: "50が中央水準",
-      body: "A〜Dの現在値だけで単純順位を付けず、比較可能な実績分布の中での位置をパーセンタイルで表示します。",
+      title: "指標ごとに正規化",
+      body: "定着・入会・成長・家庭継続はパーセンタイル、イベント力は開催済み実績の歴代MAX到達度で表示します。",
     },
     {
-      title: "80は上位20％",
-      body: "高得点をむやみに100へ揃えず、80以上は明確な強み、100はトップ水準として扱います。",
+      title: "イベント力は参加率主軸",
+      body: "平均実参加率70％＋継続参加率30％。順位型ではないため、各チームの改善が点数へ直接反映されます。",
     },
     {
       title: "欠損は推測しない",

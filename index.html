@@ -311,6 +311,7 @@
       }
 
       .benchmark { min-width: 0; padding: 14px 10px; text-align: center; border-right: 1px solid #e6ecf1; }
+      .benchmark.event-primary { background: #eaf4fb; box-shadow: inset 0 3px 0 var(--blue); }
       .benchmark:last-child { border-right: 0; }
       .benchmark strong { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
       .benchmark span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
@@ -780,7 +781,7 @@
       <section class="section" id="event-section" aria-labelledby="event-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">EVENT LIVE BOARD</p><h2 id="event-title">イベント・ライブボード</h2></div>
-          <p>開催済みイベントの参加率をA〜Dで比較。開催予定回は暫定表示に分け、実績ランキングには含めません。</p>
+          <p>開催済みイベントの参加率をA〜Dで比較。イベント力は参加率70％を主軸、リピート30％を補助として算出します。</p>
         </div>
         <div class="event-board">
           <div class="event-upcoming-list" id="event-upcoming-list" aria-label="開催予定のイベント" hidden></div>
@@ -813,10 +814,10 @@
       <section class="section" aria-labelledby="profiles-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">TEAM PROFILES</p><h2 id="profiles-title">チーム・プロフィール</h2></div>
-          <p>赤側ほど強み、青側ほど改善余地。中央の50が比較上の平均水準です。</p>
+          <p>各指標を0〜100で表示。イベント力は参加率を主軸にした歴代MAX到達度です。</p>
         </div>
         <div class="scale-card" aria-label="スコアの読み方">
-          <div class="scale-title">PERCENTILE RANK</div>
+          <div class="scale-title">SCORE SCALE</div>
           <div class="scale-track" id="score-scale"></div>
         </div>
         <div class="team-tools" id="team-filters" aria-label="表示チームを選択"></div>
@@ -952,13 +953,14 @@
         const buildMovementItems = () => {
           const comparison = data.comparison;
           if (!comparison?.teams?.length) return [];
+          const scoreComparable = data.scoreVersion === comparison.scoreVersion;
           const items = [];
           const previousTeams = new Map(comparison.teams.map((team) => [team.id, team]));
 
           data.teams.forEach((team) => {
             const previous = previousTeams.get(team.id);
             if (!previous) return;
-            const overallDelta = team.overall - previous.overall;
+            const overallDelta = scoreComparable ? team.overall - previous.overall : 0;
             if (overallDelta) {
               items.push({
                 teamId: team.id,
@@ -973,6 +975,7 @@
             }
 
             metricKeys.forEach((key) => {
+              if (key === "event" && !scoreComparable) return;
               const delta = team.metrics[key] - previous.metrics[key];
               if (!delta) return;
               items.push({
@@ -1165,7 +1168,9 @@
           }).join("");
 
           const rateLeader = rankedTeams[0];
-          const participantLeader = [...rankedTeams].sort((a, b) => b.participants - a.participants || b.rate - a.rate)[0];
+          const eventScoreLeader = eventTeamIds()
+            .map((teamId) => ({ teamId, ...eventHistory.teams[teamId] }))
+            .sort((a, b) => b.score - a.score || b.averageRate - a.averageRate || a.teamId.localeCompare(b.teamId))[0];
           const improvementLeader = previous
             ? [...rankedTeams].sort((a, b) =>
               (b.rate - previous.teams[b.teamId].rate) - (a.rate - previous.teams[a.teamId].rate)
@@ -1178,7 +1183,7 @@
 
           document.getElementById("event-insights").innerHTML = `
             <article class="event-insight"><span>RATE LEADER</span><strong>${rateLeader.teamId} TEAM · ${rateLeader.rate.toFixed(1)}%</strong><p>この開催回の参加率トップ</p></article>
-            <article class="event-insight"><span>MOST PARTICIPANTS</span><strong>${participantLeader.teamId} TEAM · ${formatNumber.format(participantLeader.participants)}名</strong><p>実参加人数トップ</p></article>
+            <article class="event-insight"><span>EVENT POWER</span><strong>${eventScoreLeader.teamId} TEAM · ${eventScoreLeader.score}点</strong><p>平均参加率70%＋リピート30%</p></article>
             <article class="event-insight"><span>${improvementLeader ? "BEST CHANGE" : "ABOVE AVERAGE"}</span><strong>${improvementLeader ? `${improvementLeader.teamId} TEAM · ${formatRateDelta(improvementDelta)}` : `${aboveAverageCount} / 4 TEAM`}</strong><p>${improvementLeader ? "前回イベントからの伸び幅トップ" : "各チーム通算平均以上"}</p></article>`;
         };
 
@@ -1952,13 +1957,15 @@
         document.getElementById("team-grid").innerHTML = data.teams.map((team) => {
           const order = strongest(team);
           const previousTeam = data.comparison?.teams?.find((item) => item.id === team.id);
-          const overallChange = previousTeam ? team.overall - previousTeam.overall : 0;
+          const overallChange = data.scoreVersion === data.comparison?.scoreVersion && previousTeam ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
           const deltaClass = team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
-            const change = previousTeam ? score - previousTeam.metrics[key] : 0;
+            const change = previousTeam && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
+              ? score - previousTeam.metrics[key]
+              : 0;
             const changeMarkup = change
               ? `<small class="${deltaTone(change)}">${formatDelta(change)}</small>`
               : "";
@@ -1979,8 +1986,8 @@
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${team.benchmark.retention12mRate.toFixed(1)}%</strong><span>12か月継続率</span><div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
                 <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span><div class="benchmark-detail">前年 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
-                <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span></div>
-                <div class="benchmark"><strong>${team.benchmark.repeatRate.toFixed(1)}%</strong><span>イベント継続参加率</span></div>
+                <div class="benchmark event-primary"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span><div class="benchmark-detail">イベント力の70%</div></div>
+                <div class="benchmark"><strong>${team.benchmark.repeatRate.toFixed(1)}%</strong><span>イベント継続参加率</span><div class="benchmark-detail">イベント力の30%</div></div>
               </div>
               ${team.note ? `<p class="team-note">${team.note}</p>` : ""}
             </article>`;
