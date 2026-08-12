@@ -123,8 +123,8 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "id": "EV-2026-JOINT",
       "startDate": "2026-02-22",
       "endDate": "2026-02-22",
-      "name": "2026マヒマヒ練習会",
-      "shortName": "マヒマヒ練習",
+      "name": "2026合同練習会",
+      "shortName": "合同練習会",
       "total": {
         "participants": 117,
         "members": 932,
@@ -192,8 +192,8 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "id": "EV-2025-SUMMER",
       "startDate": "2025-08-03",
       "endDate": "2025-08-03",
-      "name": "2025夏マヒマヒ合同練習会",
-      "shortName": "夏マヒマヒ合同",
+      "name": "2025夏合同練習会",
+      "shortName": "夏合同",
       "total": {
         "participants": 201,
         "members": 886,
