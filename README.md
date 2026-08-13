@@ -33,3 +33,24 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 ## GitHub Pages
 
 リポジトリの `Settings > Pages` で、`Deploy from a branch`、`main`、`/(root)` を選択すると公開できます。
+
+## Atomic snapshot validation
+
+Public data updates are treated as one snapshot. Every update must change these files together in one branch and one reviewed commit:
+
+- `data.js`
+- `event-data.js`
+- `retention-data.js`
+- `school-age-data.js`
+- `snapshot-manifest.json`
+
+Before opening or merging a pull request, run:
+
+```bash
+npm test
+npm run validate:snapshot
+```
+
+`snapshot-manifest.json` records the snapshot ID, as-of date, score version, and Git blob hash of each public data file. CI rejects partial updates, cross-file score mismatches, event eligibility regressions, unreconciled participant totals, and prohibited private identifiers or URLs.
+
+The first manifest is a baseline for the existing public files. It does not reclassify the 2026-08-13 retention-only commit as an atomic update; the next generated snapshot must update all four files and the manifest together.
