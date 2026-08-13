@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "snapshotId": "2026-08-12-v6-baseline-63484cd",
+  "asOf": "2026-08-12",
+  "scoreVersion": "v6-event-eligibility-70-30",
+  "sourceCommit": "63484cd875f0b3f18badc89f019654303f733ba4",
+  "files": {
+    "data.js": "efd5db9ffe6d5a6be7d128b53107b4971305b03e",
+    "event-data.js": "7943746f5218fb5641a2329c1ea6bb6087e905e0",
+    "retention-data.js": "ec7951b5db0dae7e3ea3713deb671f1c0f1144ef",
+    "school-age-data.js": "d6ad03426be9de03eece65418e32a52e5d2e6db4"
+  },
+  "invariants": {
+    "expectedEligibleEventCount": 6,
+    "dTeamEvaluationStart": "2025-04-01",
+    "excludedEventNamePattern": "大会.*練習"
+  }
+}
+
