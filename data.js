@@ -1,8 +1,8 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "2026-08-14-v6-001",
+  "snapshotId": "2026-08-15-v6-001",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "asOf": "2026-08-14",
-  "asOfLabel": "2026年8月14日",
+  "asOf": "2026-08-15",
+  "asOfLabel": "2026年8月15日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1030,
@@ -14,8 +14,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "comparison": {
     "scoreVersion": "v6-event-eligibility-70-30",
-    "previousAsOf": "2026-08-12",
-    "previousAsOfLabel": "2026年8月12日",
+    "previousAsOf": "2026-08-14",
+    "previousAsOfLabel": "2026年8月14日",
     "headline": {
       "members": 1030,
       "monthlyDelta": 3,
@@ -210,7 +210,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "members": 188,
       "monthlyDelta": -3,
       "overall": 27,
-      "status": "参考値を含む",
+      "status": "算出済（参考）",
       "metrics": {
         "retention": 33,
         "admission": 13,
@@ -255,3 +255,4 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "note": "一般会員対象イベント6件を掲載（開催済み練習会の記録8件のうち、大会参加者限定練習2件を除外）。Dは2025年4月発足後のみ評価。会員個人情報・会場名・金額は公開データに含めていません。"
   }
 });
+
