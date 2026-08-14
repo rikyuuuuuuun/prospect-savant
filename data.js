@@ -1,7 +1,8 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
+  "snapshotId": "2026-08-14-v6-001",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "asOf": "2026-08-12",
-  "asOfLabel": "2026年8月12日",
+  "asOf": "2026-08-14",
+  "asOfLabel": "2026年8月14日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1030,
@@ -12,7 +13,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "latestEventParticipants": 124
   },
   "comparison": {
-    "scoreVersion": "v5-event-participation-70-30",
+    "scoreVersion": "v6-event-eligibility-70-30",
     "previousAsOf": "2026-08-12",
     "previousAsOfLabel": "2026年8月12日",
     "headline": {
@@ -32,9 +33,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "metrics": {
           "retention": 81,
           "admission": 88,
-          "event": 64,
+          "event": 66,
           "growth": 88,
-          "family": 68
+          "family": 63
         }
       },
       {
@@ -45,7 +46,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "metrics": {
           "retention": 48,
           "admission": 63,
-          "event": 72,
+          "event": 76,
           "growth": 63,
           "family": 63
         }
@@ -54,24 +55,24 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "id": "C",
         "rank": 3,
         "members": 208,
-        "overall": 31,
+        "overall": 33,
         "metrics": {
           "retention": 17,
           "admission": 38,
-          "event": 46,
+          "event": 50,
           "growth": 38,
-          "family": 29
+          "family": 34
         }
       },
       {
         "id": "D",
         "rank": 4,
         "members": 188,
-        "overall": 26,
+        "overall": 27,
         "metrics": {
           "retention": 33,
           "admission": 13,
-          "event": 39,
+          "event": 43,
           "growth": 13,
           "family": 38
         }
