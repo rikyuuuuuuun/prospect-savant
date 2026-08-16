@@ -1,6 +1,6 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "2026-08-16-v6-001",
-  "asOf": "2026-08-16",
+  "snapshotId": "2026-08-17-v6-001",
+  "asOf": "2026-08-17",
   "latestEventId": "EV-2026-HIGH",
   "scoringVersion": "v6-event-eligibility-70-30",
   "scoreWeights": {
@@ -264,5 +264,4 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
   ],
   "note": "一般会員が参加できる合同練習会などだけを掲載・評価します。大会参加者限定の大会用・大会特別練習は履歴を保持したまま非集計です。参加率は開催時点の推定会員数を分母に算出し、Dチームは2025年4月の発足後だけを評価します。イベント力は平均実参加率70％＋累積継続参加率30％を、それぞれ対象実績のMAX＝100点で換算します。開催前の回は予定・暫定として別表示し、点数・参加率・ランキング・開催回数には含めません。"
 });
-
 

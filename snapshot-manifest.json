@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "2026-08-16-v6-001",
-  "asOf": "2026-08-16",
+  "snapshotId": "2026-08-17-v6-001",
+  "asOf": "2026-08-17",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "sourceCommit": "42f041bc9d1d326f594b40e215f258d130ad6427",
+  "sourceCommit": "d0da9ede2618310c8cca437b419921dd94533137",
   "files": {
-    "data.js": "16b2849335de2f172d2bd073e01250357c1d5c03",
-    "event-data.js": "08076b0aa6c7875d8abf84685e49cb3d09821960",
-    "retention-data.js": "2a66b7baca3f94d460e63820d83afdde131bd2e6",
-    "school-age-data.js": "eb4bd421fb9418ab559fd33b67821e36ddafb1bb"
+    "data.js": "f32d890e854b5d4e92f82a8f1a0d7f5e2d88fe0b",
+    "event-data.js": "74af5a864270acaa9e7f030801895d49243a944b",
+    "retention-data.js": "12ddefc4fb29e24a89b3a3d08301a3e2d9d3c32c",
+    "school-age-data.js": "b8d7de4459cef86426021c15a87813b0c9c944d5"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
