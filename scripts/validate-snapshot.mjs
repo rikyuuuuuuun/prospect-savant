@@ -16,12 +16,14 @@ const PRIVATE_PATTERNS = [
   [/\.workers\.dev\b/i, 'Worker URL'],
   [/\bAKfycb[\w-]+/i, 'Apps Script deployment ID'],
   [/\bAIza[\w-]+/i, 'Google API key'],
+  [/\bPERS-\d+\b/i, 'internal person identifier'],
   [/Prospect(?:会員|人物)ID/i, 'internal person/member ID label'],
+  [/["']?(?:personKey|memberKey|prospectPersonId)["']?\s*:/i, 'person-key field'],
   [/LINE_(?:CHANNEL_)?SECRET/i, 'secret binding name'],
 ];
 
 function gitBlobSha(content) {
-  const bytes = Buffer.from(content, 'utf8');
+  const bytes = Buffer.from(content.replace(/\r\n/g, '\n'), 'utf8');
   return createHash('sha1')
     .update(`blob ${bytes.length}\0`)
     .update(bytes)
@@ -36,6 +38,12 @@ function parseFrozenJson(source, label) {
     throw new Error(`${label}: Object.freeze JSON payload not found`);
   }
   return JSON.parse(source.slice(start + marker.length, end));
+}
+
+function snapshotIdFromSource(source, label) {
+  const match = source.match(/["']?snapshotId["']?\s*:\s*["']([^"']+)["']/);
+  if (!match) throw new Error(`${label}: snapshotId not found`);
+  return match[1];
 }
 
 function add(errors, condition, message) {
@@ -69,8 +77,13 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   const events = parseFrozenJson(sources['event-data.js'], 'event-data.js');
 
   add(errors, data.asOf === manifest.asOf, 'data.js asOf must match manifest');
+  add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
   add(errors, data.scoreVersion === manifest.scoreVersion, 'data.js scoreVersion must match manifest');
   add(errors, events.scoringVersion === manifest.scoreVersion, 'event-data.js scoringVersion must match manifest');
+  for (const file of REQUIRED_FILES.slice(1)) {
+    add(errors, snapshotIdFromSource(sources[file], file) === manifest.snapshotId,
+      `${file}: snapshotId must match manifest`);
+  }
 
   const teamIds = ['A', 'B', 'C', 'D'];
   const dataTeams = new Map((data.teams || []).map((team) => [team.id, team]));
@@ -82,6 +95,9 @@ export async function validateSnapshot(rootDir = process.cwd()) {
         `team ${teamId}: event score differs between data.js and event-data.js`);
     }
   }
+  const operationalMemberTotal = teamIds.reduce((sum, teamId) => sum + (dataTeams.get(teamId)?.members || 0), 0);
+  add(errors, data.headline?.members === operationalMemberTotal,
+    'headline members must equal the sum of team members');
 
   add(errors,
     events.events?.length === manifest.invariants?.expectedEligibleEventCount,

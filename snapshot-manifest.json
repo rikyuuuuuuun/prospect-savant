@@ -1,18 +1,29 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "2026-08-20-v6-001",
+  "snapshotId": "2026-08-20-v6-002-operational-members",
   "asOf": "2026-08-20",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "sourceCommit": "5bde714235088b07c3cc1e789f3ad7da89fc2daa",
+  "sourceCommit": "private-roster-sha256:531f242f5e751cb42194c93a05abc0f16106e593db4c72a027799d8a036c1cd1",
   "files": {
-    "data.js": "30db9db086dedab70ec15f330884d33fd959befd",
-    "event-data.js": "0dee4e29a82c1680795b12e0dc88c1d710e25c0d",
-    "retention-data.js": "b906a502d6f95bdd4a4f00318cc452765ed66805",
-    "school-age-data.js": "d0bb7af02854c845fb2b777b5d8076f42b29de82"
+    "data.js": "49f430183f3718e75e763060ca7098a0b02b1449",
+    "event-data.js": "47189ed29daaccbfef098d20da03d4c49993e8f5",
+    "retention-data.js": "3cd0591e5e37308745d8af0c8ce64787fa28ecd6",
+    "school-age-data.js": "3454847923dd68154dfe80d6905ae467827c8238"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
     "dTeamEvaluationStart": "2025-04-01",
     "excludedEventNamePattern": "大会.*練習"
-  }
+  },
+  "operationalMemberDefinition": "operational-person-v1",
+  "sourceKind": "private-canonical-operational-roster",
+  "approvalReceipt": {
+    "teamOverrides": {
+      "B,C→B": 2
+    },
+    "exceptions": {
+      "B": 1
+    }
+  },
+  "overlayDigest": "private-overlay-sha256:1ba0aebdc73f77881becd16143cf165c91d77c5dba282b7a8f05874660dd9ae1"
 }

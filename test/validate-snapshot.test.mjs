@@ -7,13 +7,15 @@ import test from 'node:test';
 import { validateSnapshot } from '../scripts/validate-snapshot.mjs';
 
 const DATA = `window.PROSPECT_SAVANT_DATA = Object.freeze({
+  "snapshotId":"fixture-1",
   "scoreVersion":"v6-event-eligibility-70-30",
   "asOf":"2026-08-12",
+  "headline":{"members":100},
   "teams":[
-    {"id":"A","metrics":{"event":70}},
-    {"id":"B","metrics":{"event":60}},
-    {"id":"C","metrics":{"event":50}},
-    {"id":"D","metrics":{"event":40}}
+    {"id":"A","members":25,"metrics":{"event":70}},
+    {"id":"B","members":25,"metrics":{"event":60}},
+    {"id":"C","members":25,"metrics":{"event":50}},
+    {"id":"D","members":25,"metrics":{"event":40}}
   ]
 });`;
 
@@ -31,7 +33,7 @@ function event(id, values) {
 }
 
 const EVENTS = `window.PROSPECT_EVENT_HISTORY = Object.freeze(${JSON.stringify({
-  scoringVersion: 'v6-event-eligibility-70-30',
+  snapshotId: 'fixture-1', scoringVersion: 'v6-event-eligibility-70-30',
   teams: { A: { score: 70 }, B: { score: 60 }, C: { score: 50 }, D: { score: 40 } },
   upcomingEvents: [{ id: 'UPCOMING-1', status: 'provisional', aggregate: false }],
   events: [
@@ -42,7 +44,7 @@ const EVENTS = `window.PROSPECT_EVENT_HISTORY = Object.freeze(${JSON.stringify({
 })});`;
 
 function blobSha(content) {
-  const bytes = Buffer.from(content, 'utf8');
+  const bytes = Buffer.from(content.replace(/\r\n/g, '\n'), 'utf8');
   return createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
 }
 
@@ -51,8 +53,8 @@ async function fixture() {
   const files = {
     'data.js': DATA,
     'event-data.js': EVENTS,
-    'retention-data.js': 'window.PROSPECT_RETENTION_CURVE = Object.freeze({});',
-    'school-age-data.js': 'window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({});',
+    'retention-data.js': 'window.PROSPECT_RETENTION_CURVE = Object.freeze({snapshotId:"fixture-1"});',
+    'school-age-data.js': 'window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({snapshotId:"fixture-1"});',
   };
   for (const [name, content] of Object.entries(files)) await writeFile(join(root, name), content);
   const manifest = {
@@ -78,10 +80,41 @@ test('accepts one internally consistent public snapshot', async () => {
 test('rejects a partial file update when manifest is unchanged', async () => {
   const root = await fixture();
   try {
-    await writeFile(join(root, 'retention-data.js'), 'window.PROSPECT_RETENTION_CURVE = Object.freeze({changed:true});');
+    await writeFile(join(root, 'retention-data.js'), 'window.PROSPECT_RETENTION_CURVE = Object.freeze({snapshotId:"fixture-1",changed:true});');
     const result = await validateSnapshot(root);
     assert.equal(result.ok, false);
     assert(result.errors.some((message) => message.includes('retention-data.js: manifest blob hash mismatch')));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('accepts CRLF worktree files when the manifest records Git-normalized blobs', async () => {
+  const root = await fixture();
+  try {
+    const path = join(root, 'event-data.js');
+    const content = (await readFile(path, 'utf8')).replace(/\n/g, '\r\n');
+    await writeFile(path, content);
+    const manifestPath = join(root, 'snapshot-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['event-data.js'] = blobSha(content);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const result = await validateSnapshot(root);
+    assert.equal(result.ok, true, result.errors.join('\n'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('rejects a headline member total that differs from the team sum', async () => {
+  const root = await fixture();
+  try {
+    const path = join(root, 'data.js');
+    const content = (await readFile(path, 'utf8')).replace('"members":100', '"members":101');
+    await writeFile(path, content);
+    const manifestPath = join(root, 'snapshot-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['data.js'] = blobSha(content);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const result = await validateSnapshot(root);
+    assert.equal(result.ok, false);
+    assert(result.errors.some((message) => message.includes('headline members must equal the sum of team members')));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
@@ -98,6 +131,22 @@ test('rejects a privacy-sensitive URL even when its hash is refreshed', async ()
     const result = await validateSnapshot(root);
     assert.equal(result.ok, false);
     assert(result.errors.some((message) => message.includes('prohibited Google Workspace URL')));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('rejects an internal person identifier even when its hash is refreshed', async () => {
+  const root = await fixture();
+  try {
+    const path = join(root, 'school-age-data.js');
+    const content = `${await readFile(path, 'utf8')}\n// PERS-0000001`;
+    await writeFile(path, content);
+    const manifestPath = join(root, 'snapshot-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['school-age-data.js'] = blobSha(content);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const result = await validateSnapshot(root);
+    assert.equal(result.ok, false);
+    assert(result.errors.some((message) => message.includes('internal person identifier')));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
