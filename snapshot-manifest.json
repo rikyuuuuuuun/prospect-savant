@@ -3,7 +3,7 @@
   "snapshotId": "2026-08-20-v6-002-operational-members",
   "asOf": "2026-08-20",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "sourceCommit": "private-roster-sha256:66f1408717fb4eaece100c6547d7653d92cfa21329d84a01672bafc958c53bda",
+  "sourceCommit": "private-roster-sha256:531f242f5e751cb42194c93a05abc0f16106e593db4c72a027799d8a036c1cd1",
   "files": {
     "data.js": "49f430183f3718e75e763060ca7098a0b02b1449",
     "event-data.js": "47189ed29daaccbfef098d20da03d4c49993e8f5",
@@ -24,5 +24,6 @@
     "exceptions": {
       "B": 1
     }
-  }
+  },
+  "overlayDigest": "private-overlay-sha256:1ba0aebdc73f77881becd16143cf165c91d77c5dba282b7a8f05874660dd9ae1"
 }
