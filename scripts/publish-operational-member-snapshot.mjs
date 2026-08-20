@@ -6,6 +6,82 @@ import { MEMBER_DEFINITION, createCanonicalOperationalMemberOutput, japaneseDate
 
 const PUBLIC_FILES = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js'];
 
+function isValidIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day;
+}
+
+function clonePublicAggregate(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function validateTeamSnapshot(snapshot, teamIds, label) {
+  if (!Array.isArray(snapshot.teams)) throw new Error(`${label}: teams must be an array`);
+  const teams = new Map();
+  for (const team of snapshot.teams) {
+    if (!team || typeof team !== 'object' || !teamIds.includes(team.id) || teams.has(team.id)) {
+      throw new Error(`${label}: team composition is invalid`);
+    }
+    if (!Number.isSafeInteger(team.members) || team.members < 0) {
+      throw new Error(`${label}: ${team.id} members must be a non-negative integer`);
+    }
+    teams.set(team.id, team);
+  }
+  if (teams.size !== teamIds.length || teamIds.some((teamId) => !teams.has(teamId))) {
+    throw new Error(`${label}: team composition is invalid`);
+  }
+  return teams;
+}
+
+function validateCurrentSnapshot(data, teamIds) {
+  if (!isValidIsoDate(data.asOf)) throw new Error('data.js: current asOf is invalid');
+  if (!data.headline || !Number.isSafeInteger(data.headline.members) || data.headline.members < 0) {
+    throw new Error('data.js: current headline members must be a non-negative integer');
+  }
+  const teams = validateTeamSnapshot(data, teamIds, 'data.js: current');
+  const total = [...teams.values()].reduce((sum, team) => sum + team.members, 0);
+  if (data.headline.members !== total) throw new Error('data.js: current headline members do not match team total');
+  return teams;
+}
+
+function validateComparison(comparison, currentAsOf, teamIds) {
+  if (!comparison || typeof comparison !== 'object') throw new Error('data.js: comparison must be an object');
+  if (typeof comparison.scoreVersion !== 'string' || !comparison.scoreVersion) {
+    throw new Error('data.js: comparison scoreVersion is required');
+  }
+  if (!isValidIsoDate(comparison.previousAsOf) || comparison.previousAsOf >= currentAsOf) {
+    throw new Error('data.js: comparison must be older than current');
+  }
+  if (typeof comparison.previousAsOfLabel !== 'string' || !comparison.previousAsOfLabel) {
+    throw new Error('data.js: comparison previousAsOfLabel is required');
+  }
+  if (!comparison.memberDefinition?.id || typeof comparison.memberDefinition.id !== 'string') {
+    throw new Error('data.js: comparison memberDefinition is required');
+  }
+  if (!comparison.headline || !Number.isSafeInteger(comparison.headline.members) || comparison.headline.members < 0) {
+    throw new Error('data.js: comparison headline members must be a non-negative integer');
+  }
+  const teams = validateTeamSnapshot(comparison, teamIds, 'data.js: comparison');
+  const total = [...teams.values()].reduce((sum, team) => sum + team.members, 0);
+  if (comparison.headline.members !== total) throw new Error('data.js: comparison headline members do not match team total');
+  return teams;
+}
+
+function comparisonFromCurrent(data) {
+  return {
+    scoreVersion: data.scoreVersion,
+    previousAsOf: data.asOf,
+    previousAsOfLabel: data.asOfLabel,
+    headline: clonePublicAggregate(data.headline),
+    teams: clonePublicAggregate(data.teams),
+    memberDefinition: clonePublicAggregate(data.memberDefinition),
+  };
+}
+
 function gitBlobSha(content) {
   const bytes = Buffer.from(content.replace(/\r\n/g, '\n'), 'utf8');
   return createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
@@ -27,20 +103,50 @@ function replaceSnapshotId(source, file, snapshotId) {
 export async function publishOperationalMemberSnapshot({ rootDir, input }) {
   const root = resolve(rootDir);
   const canonical = createCanonicalOperationalMemberOutput(input);
+  if (!isValidIsoDate(canonical.snapshot.asOf)) throw new Error('new snapshot asOf is invalid');
   const dataPath = resolve(root, 'data.js');
   const data = frozenJson(await readFile(dataPath, 'utf8'), 'data.js');
+  const teamIds = Object.keys(canonical.finalCounts).sort();
+  validateCurrentSnapshot(data, teamIds);
+  if (data.comparison !== undefined && data.comparison !== null) {
+    validateComparison(data.comparison, data.asOf, teamIds);
+  }
+
+  if (canonical.snapshot.asOf < data.asOf) {
+    throw new Error(`new snapshot asOf ${canonical.snapshot.asOf} is older than current ${data.asOf}`);
+  }
+
+  let comparison = data.comparison;
+  if (data.asOf < canonical.snapshot.asOf && data.memberDefinition?.id === canonical.definitionId) {
+    if (typeof data.scoreVersion !== 'string' || !data.scoreVersion) {
+      throw new Error('data.js: current scoreVersion is required for comparison rollover');
+    }
+    if (typeof data.asOfLabel !== 'string' || !data.asOfLabel) {
+      throw new Error('data.js: current asOfLabel is required for comparison rollover');
+    }
+    comparison = comparisonFromCurrent(data);
+  }
+
   data.snapshotId = canonical.snapshot.id;
   data.asOf = canonical.snapshot.asOf;
   data.asOfLabel = japaneseDateLabel(canonical.snapshot.asOf);
   data.memberDefinition = MEMBER_DEFINITION;
   data.headline.members = canonical.total;
-  data.headline.monthlyDelta = null;
-  for (const team of data.teams || []) {
-    if (!(team.id in canonical.finalCounts)) throw new Error(`data.js contains unexpected team ${team.id}`);
+  for (const team of data.teams) {
     team.members = canonical.finalCounts[team.id];
-    team.monthlyDelta = null;
   }
-  if (!data.comparison?.memberDefinition) data.comparison.memberDefinition = { id: 'legacy-record-count-v0', label: '旧レコード件数' };
+
+  data.comparison = comparison;
+  const comparable = comparison?.memberDefinition?.id === canonical.definitionId;
+  if (comparable) {
+    const previousTeams = validateComparison(comparison, canonical.snapshot.asOf, teamIds);
+    data.headline.monthlyDelta = data.headline.members - comparison.headline.members;
+    for (const team of data.teams) team.monthlyDelta = team.members - previousTeams.get(team.id).members;
+  } else {
+    data.headline.monthlyDelta = null;
+    for (const team of data.teams) team.monthlyDelta = null;
+  }
+
   await writeFile(dataPath, `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(data, null, 2)});\n`, 'utf8');
   for (const file of PUBLIC_FILES.slice(1)) {
     const path = resolve(root, file);
