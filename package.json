@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "validate:snapshot": "node scripts/validate-snapshot.mjs"
+    "validate:snapshot": "node scripts/validate-snapshot.mjs && node scripts/validate-trial-data.mjs"
   }
 }
 

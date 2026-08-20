@@ -25,6 +25,7 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 - `event-data.js`: 対象イベント履歴、開催予定イベントの暫定情報、A〜Dの実参加率
 - `retention-data.js`: 入会後の定着曲線
 - `school-age-data.js`: 学齢節目別の継続率
+- `trial-data.js`: 当日の体験予約人数と年度入会率の分子・分母（A〜Dの匿名集計のみ）
 
 `event-data.js` のイベント名は、公開対象外の施設・会場名を除いた表示名を使用します。
 `events` は開催済みかつ一般会員対象の正式集計だけ、`upcomingEvents` は開催前の暫定情報だけを保持します。開催前の申込数を実参加人数として扱いません。
@@ -54,6 +55,24 @@ npm run validate:snapshot
 ```
 
 `snapshot-manifest.json` records the snapshot ID, as-of date, score version, and Git blob hash of each public data file. CI rejects partial updates, cross-file score mismatches, event eligibility regressions, unreconciled participant totals, and prohibited private identifiers or URLs.
+
+## 体験集計の更新
+
+`trial-data.js` は既存4ファイルのスナップショットとは独立した、当日性が必要な匿名集計です。公開ファイルに含めてよいのは A〜D の人数、合計、年度の入会数・体験数だけです。会場名、氏名、行情報、Google Sheets URL / ID、認証情報は入力・出力ともにリポジトリへ置きません。
+
+非公開の定期ジョブで各チームの体験管理シートを読み、`Asia/Tokyo` の当日について各会場タブの `体験予約日` を集計した後、次の最小入力だけを渡します。0人は `status: "ok"` と明示し、取得失敗は `status: "unavailable"` として `teams: null` にします。失敗時に 0 を出力してはいけません。
+
+```bash
+node scripts/publish-trial-data.mjs <private-aggregate.json>
+```
+
+年度の各チーム `admissions / trials` は、既存 `data.js` の年度入会率と小数1桁まで一致しなければ公開処理を停止します。生成後は `trial-manifest.json` のハッシュと、公開ファイルにURL・シートID・会場・個人情報がないことも `npm run validate:snapshot` で検証します。
+
+既存の人物単位運用会員スナップショットも同時に更新する非公開の定期ジョブは、次を使えます。両方の入力は最小の匿名集計だけに限定し、ジョブ設定・OAuth・Sheets ID はリポジトリ外の秘密管理に置きます。
+
+```bash
+node scripts/publish-daily-savant-snapshot.mjs <private-operational.json> <private-trial-aggregate.json>
+```
 
 The first manifest is a baseline for the existing public files. It does not reclassify the 2026-08-13 retention-only commit as an atomic update; the next generated snapshot must update all four files and the manifest together.
 
