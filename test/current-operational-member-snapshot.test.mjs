@@ -10,16 +10,22 @@ function parseFrozenJson(source) {
   return JSON.parse(source.slice(start + marker.length, end));
 }
 
-test('publishes the v7 operational-event-denominator snapshot', async () => {
+test('publishes a self-consistent v7 operational-event-denominator snapshot', async () => {
   const source = await readFile(resolve(process.cwd(), 'data.js'), 'utf8');
   const data = parseFrozenJson(source);
   const counts = Object.fromEntries(data.teams.map((team) => [team.id, team.members]));
 
   assert.equal(data.memberDefinition.id, 'operational-person-v1');
   assert.equal(data.scoreVersion, 'v7-operational-member-denominator');
-  assert.equal(data.comparison.scoreVersion, 'v6-event-eligibility-70-30');
-  assert.deepEqual(counts, { A: 333, B: 309, C: 224, D: 192 });
-  assert.equal(data.headline.members, 1058);
-  assert.equal(data.headline.monthlyDelta, null);
-  assert.equal(data.comparison.memberDefinition.id, 'legacy-record-count-v0');
+  assert.deepEqual(Object.keys(counts).sort(), ['A', 'B', 'C', 'D']);
+  assert.equal(data.headline.members, Object.values(counts).reduce((sum, members) => sum + members, 0));
+  assert.equal(data.comparison.scoreVersion, 'v7-operational-member-denominator');
+  assert.equal(data.comparison.memberDefinition.id, data.memberDefinition.id);
+  assert.ok(data.comparison.previousAsOf < data.asOf);
+  assert.equal(data.headline.monthlyDelta, data.headline.members - data.comparison.headline.members);
+  for (const team of data.teams) {
+    const previous = data.comparison.teams.find((candidate) => candidate.id === team.id);
+    assert.ok(previous, `missing previous team ${team.id}`);
+    assert.equal(team.monthlyDelta, team.members - previous.members);
+  }
 });

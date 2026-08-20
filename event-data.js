@@ -1,6 +1,6 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "2026-08-20-v7-001-operational-member-denominator",
-  "asOf": "2026-08-20",
+  "snapshotId": "savant-2026-08-21-0843",
+  "asOf": "2026-08-21",
   "latestEventId": "EV-2026-HIGH",
   "scoringVersion": "v7-operational-member-denominator",
   "memberDefinition": {
@@ -21,14 +21,14 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
   "teams": {
     "A": {
       "averageRate": 18.8,
-      "participationScore": 58.9,
+      "participationScore": 58.8,
       "repeatRate": 37.5,
       "repeatScore": 82.4,
       "score": 66
     },
     "B": {
       "averageRate": 20.8,
-      "participationScore": 65.2,
+      "participationScore": 65,
       "repeatRate": 45.5,
       "repeatScore": 100,
       "score": 76
@@ -37,14 +37,14 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "averageRate": 11.4,
       "participationScore": 35.7,
       "repeatRate": 38.3,
-      "repeatScore": 84.2,
+      "repeatScore": 84.1,
       "score": 50
     },
     "D": {
-      "averageRate": 10.4,
-      "participationScore": 32.6,
+      "averageRate": 10.3,
+      "participationScore": 32.4,
       "repeatRate": 31.1,
-      "repeatScore": 68.4,
+      "repeatScore": 68.5,
       "score": 43
     }
   },
@@ -70,7 +70,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "shortName": "高難度｜8/9",
       "total": {
         "participants": 124,
-      "members": 1054,
+        "members": 1054,
         "rate": 11.8
       },
       "teams": {
@@ -104,8 +104,8 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "shortName": "夏トランポリン",
       "total": {
         "participants": 133,
-      "members": 1036,
-      "rate": 12.8
+        "members": 1036,
+        "rate": 12.8
       },
       "teams": {
         "A": {
@@ -138,8 +138,8 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "shortName": "合同練習会",
       "total": {
         "participants": 117,
-      "members": 933,
-      "rate": 12.5
+        "members": 933,
+        "rate": 12.5
       },
       "teams": {
         "A": {
@@ -172,8 +172,8 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "shortName": "秋の合同",
       "total": {
         "participants": 173,
-      "members": 959,
-      "rate": 18,
+        "members": 959,
+        "rate": 18,
         "unassignedParticipants": 1
       },
       "teams": {
@@ -273,4 +273,3 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
   ],
   "note": "一般会員が参加できる合同練習会などだけを掲載・評価します。大会参加者限定の大会用・大会特別練習は履歴を保持したまま非集計です。参加率は開催日時点の人物単位運用会員を分母に算出し、休会・退会予定を含め、退会・削除を除外します。Dチームは2025年4月の発足後だけを評価します。イベント力は平均実参加率70％＋累積継続参加率30％を、それぞれ対象実績のMAX＝100点で換算します。開催前の回は予定・暫定として別表示し、点数・参加率・ランキング・開催回数には含めません。"
 });
-

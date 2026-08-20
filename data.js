@@ -1,25 +1,25 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "2026-08-20-v7-001-operational-member-denominator",
+  "snapshotId": "savant-2026-08-21-0843",
   "scoreVersion": "v7-operational-member-denominator",
-  "asOf": "2026-08-20",
-  "asOfLabel": "2026年8月20日",
+  "asOf": "2026-08-21",
+  "asOfLabel": "2026年8月21日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
-    "monthlyDelta": null,
-    "admissionRate": 73,
+    "monthlyDelta": 0,
+    "admissionRate": 72.8,
     "admissionPreviousRate": 68.5,
-    "admissionYoYDelta": 4.2,
+    "admissionYoYDelta": 4.3,
     "latestEventParticipants": 124
   },
   "comparison": {
-    "scoreVersion": "v6-event-eligibility-70-30",
-    "previousAsOf": "2026-08-17",
-    "previousAsOfLabel": "2026年8月17日",
+    "scoreVersion": "v7-operational-member-denominator",
+    "previousAsOf": "2026-08-20",
+    "previousAsOfLabel": "2026年8月20日",
     "headline": {
-      "members": 1030,
-      "monthlyDelta": 3,
-      "admissionRate": 72.7,
+      "members": 1058,
+      "monthlyDelta": null,
+      "admissionRate": 73,
       "admissionPreviousRate": 68.5,
       "admissionYoYDelta": 4.2,
       "latestEventParticipants": 124
@@ -28,20 +28,20 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       {
         "id": "A",
         "rank": 1,
-        "members": 326,
-        "overall": 79,
+        "members": 333,
+        "overall": 77,
         "metrics": {
           "retention": 81,
           "admission": 88,
           "event": 66,
           "growth": 88,
-          "family": 63
+          "family": 55
         }
       },
       {
         "id": "B",
         "rank": 2,
-        "members": 308,
+        "members": 309,
         "overall": 60,
         "metrics": {
           "retention": 48,
@@ -54,20 +54,20 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       {
         "id": "C",
         "rank": 3,
-        "members": 208,
-        "overall": 33,
+        "members": 224,
+        "overall": 34,
         "metrics": {
           "retention": 17,
           "admission": 38,
           "event": 50,
           "growth": 38,
-          "family": 34
+          "family": 42
         }
       },
       {
         "id": "D",
         "rank": 4,
-        "members": 188,
+        "members": 192,
         "overall": 27,
         "metrics": {
           "retention": 33,
@@ -79,8 +79,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       }
     ],
     "memberDefinition": {
-      "id": "legacy-record-count-v0",
-      "label": "旧レコード件数"
+      "id": "operational-person-v1",
+      "label": "人物単位運用会員"
     }
   },
   "scoreGuide": [
@@ -140,7 +140,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "A",
       "rank": 1,
       "members": 333,
-      "monthlyDelta": null,
+      "monthlyDelta": 0,
       "overall": 77,
       "status": "算出済",
       "metrics": {
@@ -152,10 +152,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "benchmark": {
         "retention12mRate": 82.4,
-        "retention12mSample": 493,
+        "retention12mSample": 494,
         "admissionRate": 86.9,
         "admissionPreviousRate": 82.7,
-        "admissionYoYDelta": 3.3,
+        "admissionYoYDelta": 4.2,
         "eventRate": 18.8,
         "repeatRate": 37.5
       }
@@ -164,7 +164,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "B",
       "rank": 2,
       "members": 309,
-      "monthlyDelta": null,
+      "monthlyDelta": 0,
       "overall": 60,
       "status": "算出済",
       "metrics": {
@@ -188,7 +188,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "C",
       "rank": 3,
       "members": 224,
-      "monthlyDelta": null,
+      "monthlyDelta": 0,
       "overall": 34,
       "status": "算出済",
       "metrics": {
@@ -201,9 +201,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "benchmark": {
         "retention12mRate": 69.4,
         "retention12mSample": 271,
-        "admissionRate": 63.8,
+        "admissionRate": 63,
         "admissionPreviousRate": 59.5,
-        "admissionYoYDelta": 4.2,
+        "admissionYoYDelta": 3.4,
         "eventRate": 11.4,
         "repeatRate": 38.3
       }
@@ -212,7 +212,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "D",
       "rank": 4,
       "members": 192,
-      "monthlyDelta": null,
+      "monthlyDelta": 0,
       "overall": 27,
       "status": "算出済（参考）",
       "metrics": {
@@ -228,7 +228,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "admissionRate": 57.9,
         "admissionPreviousRate": 63.6,
         "admissionYoYDelta": -5.7,
-        "eventRate": 10.4,
+        "eventRate": 10.3,
         "repeatRate": 31.1
       },
       "note": "家庭継続力は評価対象が十分に蓄積するまで暫定です。イベント力は2025年4月のチーム発足後だけを評価しています。"
