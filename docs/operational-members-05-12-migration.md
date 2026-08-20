@@ -6,7 +6,7 @@
 
 ## Production wiring
 
-Keep the legacy `05!A:M` record-level table unchanged. `05!N:Z` already contains separate retention calculations and remains untouched. The live audit found `05!A10:H18` empty; materialize the aggregate-only block there:
+Keep the legacy `05!A:M` record-level table unchanged. `05!N:Z` is currently blank but is intentionally left untouched. The live audit found `05!A10:H18` empty; materialize the aggregate-only block there:
 
 | Range | Meaning | Source |
 | --- | --- | --- |
