@@ -179,6 +179,14 @@
       .kpi-unit { margin-left: 3px; font-size: 13px; font-weight: 500; color: #d5e0e8; }
       .kpi-detail { min-height: 17px; margin-top: 4px; color: #b7c8d6; font-size: 10px; font-variant-numeric: tabular-nums; }
 
+      .trial-summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 12px; padding: 13px 16px; border: 1px solid rgba(125, 211, 252, 0.32); border-radius: 10px; background: rgba(14, 116, 144, 0.2); }
+      .trial-summary-label { color: #b7c8d6; font-size: 11px; letter-spacing: 0.04em; }
+      .trial-summary-total { margin-top: 2px; font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .trial-summary-breakdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      .trial-team { min-width: 0; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.18); color: #d5e0e8; font-size: 11px; }
+      .trial-team strong { display: block; margin-top: 1px; color: white; font-size: 17px; font-variant-numeric: tabular-nums; }
+      .trial-summary-unavailable { color: #fee2e2; font-size: 12px; }
+
       .main { padding: 34px 0 56px; }
 
       .section-heading {
@@ -316,6 +324,7 @@
       .benchmark strong { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
       .benchmark span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
       .benchmark-detail { min-height: 14px; margin-top: 4px; color: #526678; font-size: 9px; line-height: 1.35; font-variant-numeric: tabular-nums; }
+      .benchmark-sample { display: block; color: #294a62; font-size: 10px; font-weight: 700; }
       .team-note { margin: 0; padding: 10px 22px 14px; color: var(--muted); background: #f8fafc; font-size: 11px; }
 
       .section { margin-top: 42px; }
@@ -697,6 +706,10 @@
         .hero-inner { padding: 36px 0 30px; }
         .kpi-grid { gap: 8px; margin-top: 24px; }
         .kpi { padding: 14px; }
+        .trial-summary { grid-template-columns: 1fr; gap: 10px; padding: 12px 14px; }
+        .trial-summary-breakdown { gap: 5px; }
+        .trial-team { padding-left: 7px; font-size: 10px; }
+        .trial-team strong { font-size: 15px; }
         .section-heading { align-items: start; flex-direction: column; gap: 6px; }
         .section-heading p { text-align: left; }
         .scale-card { grid-template-columns: 1fr; gap: 25px; }
@@ -764,6 +777,7 @@
         <h1>数字で見る、<br />チームの現在地。</h1>
         <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・家庭継続の5指標で比較します。</p>
         <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
+        <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
       </div>
     </section>
 
@@ -897,6 +911,7 @@
     <script src="./event-data.js"></script>
     <script src="./retention-data.js"></script>
     <script src="./school-age-data.js"></script>
+    <script src="./trial-data.js"></script>
     <script>
       (() => {
         "use strict";
@@ -907,6 +922,7 @@
         const eventHistory = window.PROSPECT_EVENT_HISTORY;
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
+        const trialData = window.PROSPECT_TRIAL_DATA;
         const formatNumber = new Intl.NumberFormat("ja-JP");
         const formatDelta = (value) => Number.isFinite(value) ? (value > 0 ? `+${value}` : `${value}`) : "比較対象外";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
@@ -1066,6 +1082,31 @@
           if (event.startDate === event.endDate) return `${startYear}年${startMonth}月${startDay}日`;
           if (startYear === endYear) return `${startYear}年${startMonth}月${startDay}日〜${endMonth}月${endDay}日`;
           return `${startYear}年${startMonth}月${startDay}日〜${endYear}年${endMonth}月${endDay}日`;
+        };
+        const tokyoDate = () => {
+          const parts = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+          }).formatToParts(new Date());
+          const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+          return `${byType.year}-${byType.month}-${byType.day}`;
+        };
+        const annualAdmissionSample = (team) => {
+          const annual = trialData?.annual;
+          const entry = annual?.status === "ok" ? annual.teams?.[team.id] : null;
+          if (!entry || !Number.isSafeInteger(entry.admissions) || !Number.isSafeInteger(entry.trials) || entry.trials <= 0) return "母数未取得";
+          const calculatedRate = Math.round(entry.admissions * 1000 / entry.trials) / 10;
+          if (calculatedRate !== team.benchmark.admissionRate) return "母数不整合";
+          return `${formatNumber.format(entry.admissions)}人入会 / ${formatNumber.format(entry.trials)}人体験`;
+        };
+        const renderTrialSummary = () => {
+          const target = document.getElementById("trial-summary");
+          const today = trialData?.today;
+          const current = today?.status === "ok" && today.date === tokyoDate();
+          if (!current) {
+            target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">取得失敗</div></div><div class="trial-summary-unavailable">当日データを取得できないため、人数は表示していません。</div>`;
+            return;
+          }
+          target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">${formatNumber.format(today.total)}名</div></div><div class="trial-summary-breakdown">${["A", "B", "C", "D"].map((id) => `<div class="trial-team">${id} TEAM<strong>${formatNumber.format(today.teams[id])}名</strong></div>`).join("")}</div>`;
         };
         const eventChipDate = (event) => {
           const [year, month, day] = isoParts(event.startDate);
@@ -1977,6 +2018,7 @@
         document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail]) => `
           <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-detail">${detail}</div></article>
         `).join("");
+        renderTrialSummary();
 
         document.getElementById("score-scale").innerHTML = data.scoreGuide.map((item) => `
           <span class="scale-tick" style="left:${item.value}%">${item.value}<br>${item.label}</span>
@@ -2018,7 +2060,7 @@
               <div class="metric-list">${metrics}</div>
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${team.benchmark.retention12mRate.toFixed(1)}%</strong><span>12か月継続率</span><div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
-                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span><div class="benchmark-detail">前年 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
+                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span><div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span>前年 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
                 <div class="benchmark event-primary"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span><div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${team.benchmark.repeatRate.toFixed(1)}%</strong><span>イベント継続参加率</span><div class="benchmark-detail">イベント力の30%</div></div>
               </div>
