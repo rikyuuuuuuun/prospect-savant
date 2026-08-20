@@ -7,6 +7,7 @@ export const OPERATIONAL_MEMBER_SHEET05_LAYOUT = Object.freeze({
   firstTeamRow: 14,
   totalRow: 18,
   columns: Object.freeze({ team: 'A', operationalMembers: 'B', effectiveSourcePersons: 'C', approvedExceptions: 'D', conflictExclusions: 'E' }),
+  metadata: Object.freeze({ labelColumn: 'G', valueColumn: 'H', firstRow: 12, lastRow: 16 }),
 });
 
 export function proposed12CurrentMemberFormula(rowNumber) {

@@ -37,6 +37,7 @@ test('projects the same canonical aggregate to 05 and 12 equivalents without tar
   ]);
   assert.equal(projection.sheet05Layout.firstTeamRow, 14);
   assert.equal(projection.sheet05Layout.totalRow, 18);
+  assert.deepEqual(projection.sheet05Layout.metadata, { labelColumn: 'G', valueColumn: 'H', firstRow: 12, lastRow: 16 });
   assert.throws(() => proposed12CurrentMemberFormula(9), /5 through 8/);
   const reordered = {
     ...input,
