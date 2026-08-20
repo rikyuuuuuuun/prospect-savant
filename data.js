@@ -1,21 +1,21 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "2026-08-17-v6-001",
+  "snapshotId": "2026-08-20-v6-001",
   "scoreVersion": "v6-event-eligibility-70-30",
-  "asOf": "2026-08-17",
-  "asOfLabel": "2026年8月17日",
+  "asOf": "2026-08-20",
+  "asOfLabel": "2026年8月20日",
   "periodLabel": "2026年度累計",
   "headline": {
-    "members": 1030,
-    "monthlyDelta": 3,
-    "admissionRate": 72.7,
+    "members": 1032,
+    "monthlyDelta": 7,
+    "admissionRate": 73.0,
     "admissionPreviousRate": 68.5,
     "admissionYoYDelta": 4.2,
     "latestEventParticipants": 124
   },
   "comparison": {
     "scoreVersion": "v6-event-eligibility-70-30",
-    "previousAsOf": "2026-08-16",
-    "previousAsOfLabel": "2026年8月16日",
+    "previousAsOf": "2026-08-17",
+    "previousAsOfLabel": "2026年8月17日",
     "headline": {
       "members": 1030,
       "monthlyDelta": 3,
@@ -135,21 +135,21 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "A",
       "rank": 1,
-      "members": 326,
-      "monthlyDelta": 16,
-      "overall": 79,
+      "members": 327,
+      "monthlyDelta": 17,
+      "overall": 77,
       "status": "算出済",
       "metrics": {
         "retention": 81,
         "admission": 88,
         "event": 66,
         "growth": 88,
-        "family": 63
+        "family": 55
       },
       "benchmark": {
         "retention12mRate": 82.4,
         "retention12mSample": 493,
-        "admissionRate": 86,
+        "admissionRate": 86.9,
         "admissionPreviousRate": 82.7,
         "admissionYoYDelta": 3.3,
         "eventRate": 18.8,
@@ -183,16 +183,16 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "C",
       "rank": 3,
-      "members": 208,
-      "monthlyDelta": -14,
-      "overall": 33,
+      "members": 209,
+      "monthlyDelta": -13,
+      "overall": 34,
       "status": "算出済",
       "metrics": {
         "retention": 17,
         "admission": 38,
         "event": 50,
         "growth": 38,
-        "family": 34
+        "family": 42
       },
       "benchmark": {
         "retention12mRate": 69.4,

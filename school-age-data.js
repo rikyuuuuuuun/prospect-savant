@@ -1,11 +1,11 @@
 window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
-  snapshotId: "2026-08-17-v6-001",
-  asOf: "2026-08-17",
+  snapshotId: "2026-08-20-v6-001",
+  asOf: "2026-08-20",
   minimumSample: 20,
   milestones: ["年長→小1", "小3→小4", "小6→中1", "中3→高1"],
   overall: {
     label: "全体",
-    rates: [77.1, 72.3, 32.8, 4.2],
+    rates: [77.1, 72.3, 33.1, 4.2],
     samples: [179, 573, 290, 24],
   },
   teams: {
@@ -18,7 +18,7 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
       samples: [58, 167, 75, 1],
     },
     C: {
-      rates: [68.9, 64.2, 48.6, null],
+      rates: [68.9, 64.2, 51.4, null],
       samples: [45, 109, 37, 0],
     },
     D: {
