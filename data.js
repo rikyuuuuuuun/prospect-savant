@@ -1,6 +1,6 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "2026-08-20-v6-002-operational-members",
-  "scoreVersion": "v6-event-eligibility-70-30",
+  "snapshotId": "2026-08-20-v7-001-operational-member-denominator",
+  "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-08-20",
   "asOfLabel": "2026年8月20日",
   "periodLabel": "2026年度累計",
@@ -204,7 +204,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "admissionRate": 63.8,
         "admissionPreviousRate": 59.5,
         "admissionYoYDelta": 4.2,
-        "eventRate": 11.3,
+        "eventRate": 11.4,
         "repeatRate": 38.3
       }
     },
@@ -241,7 +241,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     },
     {
       "title": "イベント力は一般会員対象のみ",
-      "body": "合同練習会など一般会員が参加できる開催回の平均実参加率70％＋継続参加率30％。大会参加者限定の練習は除外します。"
+      "body": "合同練習会など一般会員が参加できる開催回の平均実参加率70％＋継続参加率30％。参加率の分母は開催日時点の人物単位運用会員です。大会参加者限定の練習は除外します。"
     },
     {
       "title": "発足前・欠損は推測しない",

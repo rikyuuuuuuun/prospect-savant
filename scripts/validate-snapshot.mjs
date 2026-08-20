@@ -89,6 +89,10 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
   add(errors, data.scoreVersion === manifest.scoreVersion, 'data.js scoreVersion must match manifest');
   add(errors, events.scoringVersion === manifest.scoreVersion, 'event-data.js scoringVersion must match manifest');
+  if (events.memberDefinition !== undefined) {
+    add(errors, events.memberDefinition?.id === data.memberDefinition?.id,
+      'event-data.js memberDefinition must match data.js');
+  }
   for (const file of REQUIRED_FILES.slice(1)) {
     add(errors, snapshotIdFromSource(sources[file], file) === manifest.snapshotId,
       `${file}: snapshotId must match manifest`);
@@ -109,6 +113,15 @@ export async function validateSnapshot(rootDir = process.cwd()) {
     'headline members must equal the sum of team members');
   add(errors, data.teams?.length === teamIds.length && dataTeams.size === teamIds.length,
     'data.js must contain exactly teams A, B, C, D');
+  const weights = new Map((data.weights || []).map((weight) => [weight.key, weight.value]));
+  if (data.scoreVersion === 'v7-operational-member-denominator' && weights.size) {
+    for (const team of data.teams || []) {
+      const overall = [...weights].reduce((sum, [key, weight]) => sum + (team.metrics?.[key] || 0) * weight / 100, 0);
+      add(errors, team.overall === Math.floor(overall), `team ${team.id}: overall must equal weighted metrics`);
+    }
+    const ranks = [...(data.teams || [])].sort((left, right) => right.overall - left.overall).map((team) => team.id);
+    for (const [index, id] of ranks.entries()) add(errors, dataTeams.get(id)?.rank === index + 1, `team ${id}: rank must match overall`);
+  }
 
   const comparison = data.comparison;
   if (comparison !== undefined && comparison !== null) {
@@ -161,6 +174,18 @@ export async function validateSnapshot(rootDir = process.cwd()) {
     const unassigned = event.total?.unassignedParticipants || 0;
     add(errors, participants + unassigned === event.total?.participants,
       `${event.id}: team participants do not reconcile to total`);
+    if (events.scoringVersion === 'v7-operational-member-denominator') {
+      const eligibleTeams = teamIds.filter((id) => event.teams?.[id]?.eligible !== false);
+      const denominator = eligibleTeams.reduce((sum, id) => sum + (event.teams?.[id]?.members || 0), 0);
+      add(errors, denominator === event.total?.members, `${event.id}: team denominators do not reconcile to total`);
+      if (denominator > 0) add(errors, event.total?.rate === Number((event.total.participants / denominator * 100).toFixed(1)), `${event.id}: total rate must match denominator`);
+      for (const id of eligibleTeams) {
+        const team = event.teams[id];
+        add(errors, Number.isSafeInteger(team?.members) && team.members > 0, `${event.id} ${id}: operational denominator is required`);
+        add(errors, team?.participants <= team?.members, `${event.id} ${id}: participants exceed denominator`);
+        add(errors, team?.rate === Number((team.participants / team.members * 100).toFixed(1)), `${event.id} ${id}: rate must match denominator`);
+      }
+    }
   }
 
   for (const upcoming of events.upcomingEvents || []) {

@@ -8,7 +8,7 @@ import { validateSnapshot } from '../scripts/validate-snapshot.mjs';
 
 const DATA = `window.PROSPECT_SAVANT_DATA = Object.freeze({
   "snapshotId":"fixture-1",
-  "scoreVersion":"v6-event-eligibility-70-30",
+  "scoreVersion":"v7-operational-member-denominator",
   "asOf":"2026-08-12",
   "headline":{"members":100},
   "teams":[
@@ -20,10 +20,13 @@ const DATA = `window.PROSPECT_SAVANT_DATA = Object.freeze({
 });`;
 
 function event(id, values) {
+  const eligibleValues = values.filter((value) => value !== null);
+  const members = eligibleValues.length * 25;
+  const participants = eligibleValues.reduce((a, b) => a + b, 0);
   return {
     id,
     name: id === 'EV-2024-SUMMER' ? '2024夏合同練習会' : '合同練習会',
-    total: { participants: values.reduce((a, b) => a + (b || 0), 0), members: 100, rate: 10 },
+    total: { participants, members, rate: Number((participants / members * 100).toFixed(1)) },
     teams: Object.fromEntries(['A', 'B', 'C', 'D'].map((key, index) => [key, {
       participants: values[index], members: values[index] === null ? null : 25,
       rate: values[index] === null ? null : values[index] * 4,
@@ -33,7 +36,7 @@ function event(id, values) {
 }
 
 const EVENTS = `window.PROSPECT_EVENT_HISTORY = Object.freeze(${JSON.stringify({
-  snapshotId: 'fixture-1', scoringVersion: 'v6-event-eligibility-70-30',
+  snapshotId: 'fixture-1', scoringVersion: 'v7-operational-member-denominator',
   teams: { A: { score: 70 }, B: { score: 60 }, C: { score: 50 }, D: { score: 40 } },
   upcomingEvents: [{ id: 'UPCOMING-1', status: 'provisional', aggregate: false }],
   events: [
@@ -61,7 +64,7 @@ async function fixture() {
     schemaVersion: 1,
     snapshotId: 'fixture-1',
     asOf: '2026-08-12',
-    scoreVersion: 'v6-event-eligibility-70-30',
+    scoreVersion: 'v7-operational-member-denominator',
     files: Object.fromEntries(Object.entries(files).map(([name, content]) => [name, blobSha(content)])),
     invariants: { expectedEligibleEventCount: 6, excludedEventNamePattern: '大会.*練習' }
   };
@@ -147,6 +150,22 @@ test('rejects an internal person identifier even when its hash is refreshed', as
     const result = await validateSnapshot(root);
     assert.equal(result.ok, false);
     assert(result.errors.some((message) => message.includes('internal person identifier')));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('rejects an event rate or denominator that does not reconcile', async () => {
+  const root = await fixture();
+  try {
+    const path = join(root, 'event-data.js');
+    const content = (await readFile(path, 'utf8')).replace('"participants":1,"members":25', '"participants":26,"members":25');
+    await writeFile(path, content);
+    const manifestPath = join(root, 'snapshot-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['event-data.js'] = blobSha(content);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const result = await validateSnapshot(root);
+    assert.equal(result.ok, false);
+    assert(result.errors.some((message) => message.includes('participants exceed denominator')));
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
