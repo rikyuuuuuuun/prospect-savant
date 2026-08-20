@@ -908,7 +908,7 @@
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
         const formatNumber = new Intl.NumberFormat("ja-JP");
-        const formatDelta = (value) => value > 0 ? `+${value}` : `${value}`;
+        const formatDelta = (value) => Number.isFinite(value) ? (value > 0 ? `+${value}` : `${value}`) : "比較対象外";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
         const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
         const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
@@ -954,6 +954,7 @@
           const comparison = data.comparison;
           if (!comparison?.teams?.length) return [];
           const scoreComparable = data.scoreVersion === comparison.scoreVersion;
+          const memberComparable = data.memberDefinition?.id === comparison.memberDefinition?.id;
           const items = [];
           const previousTeams = new Map(comparison.teams.map((team) => [team.id, team]));
 
@@ -991,7 +992,7 @@
             });
 
             const memberDelta = team.members - previous.members;
-            if (memberDelta) {
+            if (memberComparable && memberDelta) {
               items.push({
                 teamId: team.id,
                 kicker: `${team.id} TEAM · MEMBERS`,
@@ -1006,7 +1007,7 @@
           });
 
           const headlineDelta = data.headline.members - comparison.headline.members;
-          if (headlineDelta) {
+          if (memberComparable && headlineDelta) {
             items.push({
               teamId: "ALL",
               kicker: "ALL TEAM · MEMBERS",
@@ -1956,9 +1957,10 @@
 
         const latestEvent = eventHistory?.events?.find((event) => event.id === eventHistory.latestEventId)
           || eventHistory?.events?.[0];
+        const headlineMemberDeltaComparable = Number.isFinite(data.headline.monthlyDelta);
         const kpis = [
           ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
-          ["前月差（参考）", formatDelta(data.headline.monthlyDelta), "名", ""],
+          [headlineMemberDeltaComparable ? "前月差（参考）" : "前月差（比較対象外）", formatDelta(data.headline.monthlyDelta), headlineMemberDeltaComparable ? "名" : "", ""],
           [
             "年度入会率",
             data.headline.admissionRate.toFixed(1),
@@ -1991,7 +1993,7 @@
           const overallChange = data.scoreVersion === data.comparison?.scoreVersion && previousTeam ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
-          const deltaClass = team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative";
+          const deltaClass = Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
             const change = previousTeam && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
@@ -2009,7 +2011,7 @@
                 <div>
                   <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
-                  <p class="team-meta">前月差 <span class="${deltaClass}">${formatDelta(team.monthlyDelta)}名</span></p>
+                  <p class="team-meta">前月差 <span class="${deltaClass}">${formatDelta(team.monthlyDelta)}${Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
                   <div class="focus-row"><span class="focus-badge strong">強み：${strengthLabels}</span><span class="focus-badge watch">改善：${priorityLabel}</span></div>
                 </div>
               </div>

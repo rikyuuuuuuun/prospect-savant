@@ -1,5 +1,5 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  snapshotId: "2026-08-20-v6-001",
+  snapshotId: "2026-08-20-v6-002-operational-members",
   asOf: "2026-08-20",
   minimumSample: 20,
   months: [1, 3, 6, 9, 12, 18, 24, 36, 48],

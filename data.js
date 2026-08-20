@@ -1,13 +1,13 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "2026-08-20-v6-001",
+  "snapshotId": "2026-08-20-v6-002-operational-members",
   "scoreVersion": "v6-event-eligibility-70-30",
   "asOf": "2026-08-20",
   "asOfLabel": "2026年8月20日",
   "periodLabel": "2026年度累計",
   "headline": {
-    "members": 1032,
-    "monthlyDelta": 7,
-    "admissionRate": 73.0,
+    "members": 1058,
+    "monthlyDelta": null,
+    "admissionRate": 73,
     "admissionPreviousRate": 68.5,
     "admissionYoYDelta": 4.2,
     "latestEventParticipants": 124
@@ -77,7 +77,11 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "family": 38
         }
       }
-    ]
+    ],
+    "memberDefinition": {
+      "id": "legacy-record-count-v0",
+      "label": "旧レコード件数"
+    }
   },
   "scoreGuide": [
     {
@@ -135,8 +139,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "A",
       "rank": 1,
-      "members": 327,
-      "monthlyDelta": 17,
+      "members": 333,
+      "monthlyDelta": null,
       "overall": 77,
       "status": "算出済",
       "metrics": {
@@ -159,8 +163,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "B",
       "rank": 2,
-      "members": 308,
-      "monthlyDelta": 4,
+      "members": 309,
+      "monthlyDelta": null,
       "overall": 60,
       "status": "算出済",
       "metrics": {
@@ -183,8 +187,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "C",
       "rank": 3,
-      "members": 209,
-      "monthlyDelta": -13,
+      "members": 224,
+      "monthlyDelta": null,
       "overall": 34,
       "status": "算出済",
       "metrics": {
@@ -207,8 +211,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "D",
       "rank": 4,
-      "members": 188,
-      "monthlyDelta": -3,
+      "members": 192,
+      "monthlyDelta": null,
       "overall": 27,
       "status": "算出済（参考）",
       "metrics": {
@@ -253,6 +257,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "competitionCount": 2,
     "competitionRows": 1068,
     "note": "一般会員対象イベント6件を掲載（開催済み練習会の記録8件のうち、大会参加者限定練習2件を除外）。Dは2025年4月発足後のみ評価。会員個人情報・会場名・金額は公開データに含めていません。"
+  },
+  "memberDefinition": {
+    "id": "operational-person-v1",
+    "label": "人物単位運用会員"
   }
 });
-

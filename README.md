@@ -54,3 +54,15 @@ npm run validate:snapshot
 `snapshot-manifest.json` records the snapshot ID, as-of date, score version, and Git blob hash of each public data file. CI rejects partial updates, cross-file score mismatches, event eligibility regressions, unreconciled participant totals, and prohibited private identifiers or URLs.
 
 The first manifest is a baseline for the existing public files. It does not reclassify the 2026-08-13 retention-only commit as an atomic update; the next generated snapshot must update all four files and the manifest together.
+
+## Operational-member snapshot generation
+
+The public operational-member count is generated from a private, normalized canonical roster. The private input is not committed and contains opaque person keys only; names, contact details, Workspace URLs, and membership-source credentials are never accepted by this repository.
+
+The generator enforces one person per final team, includes only `在籍` / `休会` / `退会予定`, excludes `退会` / `削除`, requires an explicit active approval for team conflicts and non-source exceptions, and fails closed on unknown states or ambiguous teams.
+
+```bash
+node scripts/publish-operational-member-snapshot.mjs <private-input.json>
+```
+
+It updates the public aggregate in `data.js`, stamps all four public data files with one snapshot ID, and refreshes `snapshot-manifest.json`. A definition change deliberately marks member deltas as not comparable until a prior snapshot generated under the same definition is available.
