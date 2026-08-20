@@ -1,10 +1,18 @@
 import { createCanonicalOperationalMemberOutput } from './operational-member-canonical.mjs';
 
 const TEAM_IDS = ['A', 'B', 'C', 'D'];
+export const OPERATIONAL_MEMBER_SHEET05_LAYOUT = Object.freeze({
+  titleRow: 12,
+  headerRow: 13,
+  firstTeamRow: 14,
+  totalRow: 18,
+  columns: Object.freeze({ team: 'A', operationalMembers: 'B', effectiveSourcePersons: 'C', approvedExceptions: 'D', conflictExclusions: 'E' }),
+});
 
 export function proposed12CurrentMemberFormula(rowNumber) {
   if (!Number.isInteger(rowNumber) || rowNumber < 5 || rowNumber > 8) throw new Error('12 current-member row must be 5 through 8');
-  return `='05_会員数集計'!N${rowNumber}`;
+  const sourceRow = OPERATIONAL_MEMBER_SHEET05_LAYOUT.firstTeamRow + (rowNumber - 5);
+  return `='05_会員数集計'!${OPERATIONAL_MEMBER_SHEET05_LAYOUT.columns.operationalMembers}${sourceRow}`;
 }
 
 /**
@@ -44,6 +52,7 @@ export function projectOperationalMembersForSheets(input) {
       })),
     },
     sheet05: { ...common, rows },
+    sheet05Layout: OPERATIONAL_MEMBER_SHEET05_LAYOUT,
     sheet12: {
       ...common,
       rows: rows.map((row, index) => ({

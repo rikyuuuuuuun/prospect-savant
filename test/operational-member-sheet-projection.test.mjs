@@ -33,8 +33,10 @@ test('projects the same canonical aggregate to 05 and 12 equivalents without tar
   assert.equal(projection.sheet05.rows.find((row) => row.team === 'C').conflictExclusions, 1);
   assert.equal(projection.sheet05.rows.find((row) => row.team === 'B').approvedExceptions, 1);
   assert.deepEqual(projection.sheet12.rows.map((row) => row.proposedCurrentMemberFormula), [
-    "='05_会員数集計'!N5", "='05_会員数集計'!N6", "='05_会員数集計'!N7", "='05_会員数集計'!N8",
+    "='05_会員数集計'!B14", "='05_会員数集計'!B15", "='05_会員数集計'!B16", "='05_会員数集計'!B17",
   ]);
+  assert.equal(projection.sheet05Layout.firstTeamRow, 14);
+  assert.equal(projection.sheet05Layout.totalRow, 18);
   assert.throws(() => proposed12CurrentMemberFormula(9), /5 through 8/);
   const reordered = {
     ...input,
