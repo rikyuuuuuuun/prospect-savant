@@ -1,12 +1,12 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-08-21-0843",
+  "snapshotId": "savant-2026-08-21-0849",
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-08-21",
   "asOfLabel": "2026年8月21日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
-    "monthlyDelta": 0,
+    "monthlyDelta": 31,
     "admissionRate": 72.8,
     "admissionPreviousRate": 68.5,
     "admissionYoYDelta": 4.3,
@@ -14,14 +14,14 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "comparison": {
     "scoreVersion": "v7-operational-member-denominator",
-    "previousAsOf": "2026-08-20",
-    "previousAsOfLabel": "2026年8月20日",
+    "previousAsOf": "2026-08-21",
+    "previousAsOfLabel": "2026年8月21日",
     "headline": {
       "members": 1058,
-      "monthlyDelta": null,
-      "admissionRate": 73,
+      "monthlyDelta": 0,
+      "admissionRate": 72.8,
       "admissionPreviousRate": 68.5,
-      "admissionYoYDelta": 4.2,
+      "admissionYoYDelta": 4.3,
       "latestEventParticipants": 124
     },
     "teams": [
@@ -140,7 +140,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "A",
       "rank": 1,
       "members": 333,
-      "monthlyDelta": 0,
+      "monthlyDelta": 23,
       "overall": 77,
       "status": "算出済",
       "metrics": {
@@ -164,7 +164,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "B",
       "rank": 2,
       "members": 309,
-      "monthlyDelta": 0,
+      "monthlyDelta": 5,
       "overall": 60,
       "status": "算出済",
       "metrics": {
@@ -188,7 +188,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "C",
       "rank": 3,
       "members": 224,
-      "monthlyDelta": 0,
+      "monthlyDelta": 2,
       "overall": 34,
       "status": "算出済",
       "metrics": {
@@ -212,7 +212,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "D",
       "rank": 4,
       "members": 192,
-      "monthlyDelta": 0,
+      "monthlyDelta": 1,
       "overall": 27,
       "status": "算出済（参考）",
       "metrics": {

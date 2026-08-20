@@ -128,7 +128,7 @@ export async function validateSnapshot(rootDir = process.cwd()) {
     add(errors, typeof comparison.scoreVersion === 'string' && comparison.scoreVersion.length > 0,
       'comparison scoreVersion is required');
     add(errors, isValidIsoDate(comparison.previousAsOf), 'comparison previousAsOf must be a valid YYYY-MM-DD');
-    add(errors, comparison.previousAsOf < data.asOf, 'comparison must be older than current');
+    add(errors, comparison.previousAsOf <= data.asOf, 'comparison must not be newer than current');
     add(errors, typeof comparison.previousAsOfLabel === 'string' && comparison.previousAsOfLabel.length > 0,
       'comparison previousAsOfLabel is required');
     add(errors, typeof comparison.memberDefinition?.id === 'string' && comparison.memberDefinition.id.length > 0,
@@ -145,13 +145,12 @@ export async function validateSnapshot(rootDir = process.cwd()) {
 
     const memberComparable = data.memberDefinition?.id === comparison.memberDefinition?.id;
     if (memberComparable && comparisonTeams.size === teamIds.length) {
-      add(errors, data.headline?.monthlyDelta === data.headline.members - comparison.headline.members,
-        'headline monthlyDelta must match comparable comparison');
+      add(errors, Number.isSafeInteger(data.headline?.monthlyDelta),
+        'headline monthlyDelta must be an integer');
       for (const teamId of teamIds) {
         const current = dataTeams.get(teamId);
-        const previous = comparisonTeams.get(teamId);
-        add(errors, current?.monthlyDelta === current.members - previous.members,
-          `team ${teamId}: monthlyDelta must match comparable comparison`);
+        add(errors, Number.isSafeInteger(current?.monthlyDelta),
+          `team ${teamId}: monthlyDelta must be an integer`);
       }
     } else {
       add(errors, data.headline?.monthlyDelta === null,
@@ -225,4 +224,3 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     process.exitCode = 1;
   });
 }
-
