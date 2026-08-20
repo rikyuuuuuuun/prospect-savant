@@ -50,13 +50,22 @@ function add(errors, condition, message) {
   if (!condition) errors.push(message);
 }
 
+function isValidIsoDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day;
+}
+
 export async function validateSnapshot(rootDir = process.cwd()) {
   const errors = [];
   const manifestPath = resolve(rootDir, 'snapshot-manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 
   add(errors, manifest.schemaVersion === 1, 'manifest schemaVersion must be 1');
-  add(errors, /^\d{4}-\d{2}-\d{2}$/.test(manifest.asOf || ''), 'manifest asOf must be YYYY-MM-DD');
+  add(errors, isValidIsoDate(manifest.asOf), 'manifest asOf must be a valid YYYY-MM-DD');
   add(errors, Boolean(manifest.snapshotId), 'manifest snapshotId is required');
   add(errors, Boolean(manifest.scoreVersion), 'manifest scoreVersion is required');
 
@@ -98,6 +107,48 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   const operationalMemberTotal = teamIds.reduce((sum, teamId) => sum + (dataTeams.get(teamId)?.members || 0), 0);
   add(errors, data.headline?.members === operationalMemberTotal,
     'headline members must equal the sum of team members');
+  add(errors, data.teams?.length === teamIds.length && dataTeams.size === teamIds.length,
+    'data.js must contain exactly teams A, B, C, D');
+
+  const comparison = data.comparison;
+  if (comparison !== undefined && comparison !== null) {
+    add(errors, typeof comparison.scoreVersion === 'string' && comparison.scoreVersion.length > 0,
+      'comparison scoreVersion is required');
+    add(errors, isValidIsoDate(comparison.previousAsOf), 'comparison previousAsOf must be a valid YYYY-MM-DD');
+    add(errors, comparison.previousAsOf < data.asOf, 'comparison must be older than current');
+    add(errors, typeof comparison.previousAsOfLabel === 'string' && comparison.previousAsOfLabel.length > 0,
+      'comparison previousAsOfLabel is required');
+    add(errors, typeof comparison.memberDefinition?.id === 'string' && comparison.memberDefinition.id.length > 0,
+      'comparison memberDefinition is required');
+    add(errors, Number.isSafeInteger(comparison.headline?.members) && comparison.headline.members >= 0,
+      'comparison headline members must be a non-negative integer');
+
+    const comparisonTeams = new Map((comparison.teams || []).map((team) => [team.id, team]));
+    add(errors, comparison.teams?.length === teamIds.length && comparisonTeams.size === teamIds.length && teamIds.every((teamId) => comparisonTeams.has(teamId)),
+      'comparison must contain exactly teams A, B, C, D');
+    const comparisonTotal = teamIds.reduce((sum, teamId) => sum + (comparisonTeams.get(teamId)?.members || 0), 0);
+    add(errors, comparison.headline?.members === comparisonTotal,
+      'comparison headline members must equal the sum of team members');
+
+    const memberComparable = data.memberDefinition?.id === comparison.memberDefinition?.id;
+    if (memberComparable && comparisonTeams.size === teamIds.length) {
+      add(errors, data.headline?.monthlyDelta === data.headline.members - comparison.headline.members,
+        'headline monthlyDelta must match comparable comparison');
+      for (const teamId of teamIds) {
+        const current = dataTeams.get(teamId);
+        const previous = comparisonTeams.get(teamId);
+        add(errors, current?.monthlyDelta === current.members - previous.members,
+          `team ${teamId}: monthlyDelta must match comparable comparison`);
+      }
+    } else {
+      add(errors, data.headline?.monthlyDelta === null,
+        'headline monthlyDelta must be null when member definitions differ');
+      for (const teamId of teamIds) {
+        add(errors, dataTeams.get(teamId)?.monthlyDelta === null,
+          `team ${teamId}: monthlyDelta must be null when member definitions differ`);
+      }
+    }
+  }
 
   add(errors,
     events.events?.length === manifest.invariants?.expectedEligibleEventCount,
