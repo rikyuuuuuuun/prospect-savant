@@ -1,8 +1,8 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-08-21-0849",
+  "snapshotId": "savant-2026-08-22-0732",
   "scoreVersion": "v7-operational-member-denominator",
-  "asOf": "2026-08-21",
-  "asOfLabel": "2026年8月21日",
+  "asOf": "2026-08-22",
+  "asOfLabel": "2026年8月22日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
@@ -18,7 +18,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "previousAsOfLabel": "2026年8月21日",
     "headline": {
       "members": 1058,
-      "monthlyDelta": 0,
+      "monthlyDelta": 31,
       "admissionRate": 72.8,
       "admissionPreviousRate": 68.5,
       "admissionYoYDelta": 4.3,
