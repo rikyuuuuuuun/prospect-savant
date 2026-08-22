@@ -65,9 +65,9 @@ function percentage(value, label = 'SOURCE_RATE') {
   return round(requiredNumber(value, label) * 100);
 }
 
-function teamRows(rows, headerRow) {
+function teamRows(rows, headerRow, teamColumn = 0) {
   const result = new Map();
-  for (const row of rows.slice(headerRow + 1)) if (TEAM_IDS.includes(row?.[0])) result.set(row[0], row);
+  for (const row of rows.slice(headerRow + 1)) if (TEAM_IDS.includes(row?.[teamColumn])) result.set(row[teamColumn], row);
   assert(TEAM_IDS.every((team) => result.has(team)), 'SOURCE_TEAM_ROWS_INCOMPLETE');
   return result;
 }
@@ -78,7 +78,7 @@ function formatJapaneseDate(asOf) {
 }
 
 function sourceAsOf(monthly) {
-  const rows = teamRows(monthly, 3);
+  const rows = teamRows(monthly, 3, 1);
   const dates = new Set(TEAM_IDS.map((team) => serialToIsoDate(rows.get(team)[21])));
   assert(dates.size === 1 && !dates.has(null), 'SOURCE_ASOF_INVALID');
   return [...dates][0];
