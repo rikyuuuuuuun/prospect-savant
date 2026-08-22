@@ -51,11 +51,8 @@ jobs:
       - name: Generate and validate a complete candidate snapshot
         shell: bash
         run: |
-          if [[ '${{ github.event_name }}' == 'schedule' || '${{ inputs.publish }}' == 'true' ]]; then
-            node scripts/publish-private-savant-source.mjs .private/savant-source.json .
-          else
-            node scripts/publish-private-savant-source.mjs .private/savant-source.json . --dry-run
-          fi
+          # dry-runも同じ候補を生成する。コミット・Pages配備の有無だけを後段で分ける。
+          node scripts/publish-private-savant-source.mjs .private/savant-source.json .
           npm test
           npm run validate:snapshot
           node --check data.js
@@ -73,6 +70,24 @@ jobs:
           else
             echo 'changed=true' >> "$GITHUB_OUTPUT"
           fi
+      - name: Record the anonymous trial candidate summary
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import { readFile } from 'node:fs/promises';
+          import { parseFrozenJson } from './scripts/trial-publication.mjs';
+          const trial = parseFrozenJson(await readFile('trial-data.js', 'utf8'), 'trial-data.js');
+          const daily = trial?.today;
+          const annualC = trial?.annual?.teams?.C;
+          const ids = ['A', 'B', 'C', 'D'];
+          if (daily?.status !== 'ok' || !annualC || !ids.every((id) => Number.isSafeInteger(daily?.teams?.[id]))) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
+          const total = ids.reduce((sum, id) => sum + daily.teams[id], 0);
+          if (daily.total !== total || !Number.isSafeInteger(annualC.admissions) || !Number.isSafeInteger(annualC.trials)) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
+          console.log('## 匿名体験候補の確認');
+          console.log(`status: ok / A: ${daily.teams.A} / B: ${daily.teams.B} / C: ${daily.teams.C} / D: ${daily.teams.D} / 合計: ${total}`);
+          console.log(`C年度: ${annualC.admissions} / ${annualC.trials}`);
+          NODE
       - name: Upload only the verified public files
         if: steps.changes.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
@@ -93,14 +108,15 @@ jobs:
         run: rm -rf .private
 
   publish-and-deploy:
-    name: Commit verified snapshot and deploy Pages
+    name: Commit verified snapshot and deploy Pages with recovery
     needs: prepare
     if: >-
       needs.prepare.outputs.changed == 'true' &&
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'schedule' || inputs.publish == true)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 初回配備失敗後の復旧配備まで完了させる時間を確保する。
+    timeout-minutes: 35
     permissions:
       contents: write
       pages: write
@@ -128,24 +144,64 @@ jobs:
           allowed=$'data.js\nevent-data.js\nretention-data.js\nschool-age-data.js\nsnapshot-manifest.json\ntrial-data.js\ntrial-manifest.json'
           unexpected="$(git diff --name-only | grep -vxF -f <(printf '%s\n' "$allowed") || true)"
           test -z "$unexpected" || { echo 'Unexpected changed path'; exit 1; }
-      - name: Commit only changed public files
+      - name: Configure GitHub Pages deployment
+        uses: actions/configure-pages@v5
+      - name: Upload the verified Pages artifact before changing main
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-candidate
+          path: .
+      - id: commit
+        name: Commit only changed public files
         if: needs.prepare.outputs.changed == 'true'
         shell: bash
         run: |
           files=(data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json)
           git add -- "${files[@]}"
           git diff --cached --check
-          if git diff --cached --quiet; then exit 0; fi
+          if git diff --cached --quiet; then
+            echo 'committed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git config user.name 'prospect-savant-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'chore: refresh anonymous Savant snapshot'
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           git push origin HEAD:main
-      - name: Configure GitHub Pages deployment
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: .
+          echo 'committed=true' >> "$GITHUB_OUTPUT"
       - name: Deploy GitHub Pages
         id: deployment
+        if: steps.commit.outputs.committed == 'true'
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-candidate
+        continue-on-error: true
+      - id: rollback
+        name: Restore the prior public snapshot after a failed deployment
+        if: steps.deployment.outcome == 'failure' && steps.commit.outputs.committed == 'true'
+        shell: bash
+        run: |
+          git revert --no-edit "${{ steps.commit.outputs.commit_sha }}"
+          git push origin HEAD:main
+          echo 'reverted=true' >> "$GITHUB_OUTPUT"
+      - name: Upload restored Pages artifact
+        if: steps.rollback.outputs.reverted == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-restored
+          path: .
+      - id: restored-deployment
+        name: Restore the prior GitHub Pages deployment
+        if: steps.rollback.outputs.reverted == 'true'
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-restored
+        continue-on-error: true
+      - name: Fail after recovery from a Pages deployment error
+        if: steps.deployment.outcome == 'failure'
+        shell: bash
+        run: |
+          test '${{ steps.rollback.outputs.reverted }}' = 'true' || { echo 'Pages deployment failed before recovery'; exit 1; }
+          test '${{ steps.restored-deployment.outcome }}' = 'success' || { echo 'Prior Pages deployment could not be restored'; exit 1; }
+          echo 'Pages deployment failed; the public snapshot commit and Pages deployment were restored.'
+          exit 1
