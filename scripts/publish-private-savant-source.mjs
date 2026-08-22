@@ -109,10 +109,11 @@ function updateData(data, ranges, asOf) {
   data.snapshotId = `savant-${asOf}-0730`;
   data.asOf = asOf;
   data.asOfLabel = formatJapaneseDate(asOf);
-  data.headline.members = requiredNumber(dashboard[3]?.[0], 'DASHBOARD_MEMBERS');
-  data.headline.monthlyDelta = requiredNumber(dashboard[3]?.[1], 'DASHBOARD_MONTHLY_DELTA');
-  data.headline.admissionRate = percentage(dashboard[3]?.[2], 'DASHBOARD_ADMISSION_RATE');
-  data.headline.latestEventParticipants = requiredNumber(dashboard[3]?.[3], 'DASHBOARD_LATEST_EVENT_PARTICIPANTS');
+  // 4行目は見出し、5行目がダッシュボードの集計値。見出しを数値として扱わない。
+  data.headline.members = requiredNumber(dashboard[4]?.[0], 'DASHBOARD_MEMBERS');
+  data.headline.monthlyDelta = requiredNumber(dashboard[4]?.[1], 'DASHBOARD_MONTHLY_DELTA');
+  data.headline.admissionRate = percentage(dashboard[4]?.[2], 'DASHBOARD_ADMISSION_RATE');
+  data.headline.latestEventParticipants = requiredNumber(dashboard[4]?.[3], 'DASHBOARD_LATEST_EVENT_PARTICIPANTS');
 
   const currentTeams = new Map(data.teams.map((team) => [team.id, team]));
   for (const id of TEAM_IDS) {
