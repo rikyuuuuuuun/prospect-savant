@@ -2,7 +2,7 @@ import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { aggregateTeam, discoverTrialSchema, fiscalYearFor, parseSheetIds, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
+import { aggregateTeam, discoverTrialSchema, fiscalYearFor, normalise, parseSheetIds, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
 
 const RANGES = [
   "'00_ダッシュボード'!A1:H23",
@@ -86,21 +86,39 @@ function safeTrialFailureCode(error) {
   return match ? match[1] : 'UNKNOWN';
 }
 
+function dateHeaderRow(values) {
+  const matches = (values || []).flatMap((row, index) => ['体験予約日', '体験日'].includes(normalise(row?.[0])) ? [index + 1] : []);
+  if (matches.length > 1) throw new Error('SOURCE_SCHEMA_INVALID');
+  return matches[0] || null;
+}
+
 async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, requestJson) {
   const metadata = await requestJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`, token);
   const sheets = metadata.sheets || [];
   if (!sheets.length) throw new Error('SOURCE_SCHEMA_INVALID');
-  const headerRanges = sheets.flatMap((sheet) => {
-    const title = sheet.properties?.title;
-    return [quotedRange(title, 'A', 5), `'${String(title).replaceAll("'", "''")}'!E1:H5`];
-  });
+  // A列は予約日だけで、後段の当日集計でも全行を読む。全体を検査して重複見出しをfail-closedにする。
+  const headerRanges = sheets.map((sheet) => quotedRange(sheet.properties?.title, 'A', Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1)));
   const headerUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
   headerUrl.searchParams.set('majorDimension', 'ROWS');
   for (const range of headerRanges) headerUrl.searchParams.append('ranges', range);
-  const headers = (await requestJson(headerUrl, token)).valueRanges || [];
-  if (headers.length !== headerRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
-  const schemas = sheets.map((_, index) => discoverTrialSchema(headers[index * 2]?.values, headers[index * 2 + 1]?.values));
-  const ranges = sheets.map((sheet) => {
+  const headerColumns = (await requestJson(headerUrl, token)).valueRanges || [];
+  if (headerColumns.length !== headerRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
+  const candidates = sheets.flatMap((sheet, index) => {
+    const headerRow = dateHeaderRow(headerColumns[index]?.values);
+    return headerRow ? [{ sheet, headerRow }] : [];
+  });
+  if (!candidates.length) throw new Error('SOURCE_SCHEMA_INVALID');
+  const candidateRanges = candidates.map(({ sheet, headerRow }) => `'${String(sheet.properties?.title).replaceAll("'", "''")}'!E${headerRow}:H${headerRow}`);
+  const candidateUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
+  candidateUrl.searchParams.set('majorDimension', 'ROWS');
+  for (const range of candidateRanges) candidateUrl.searchParams.append('ranges', range);
+  const candidateHeaders = (await requestJson(candidateUrl, token)).valueRanges || [];
+  if (candidateHeaders.length !== candidateRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
+  const schemas = candidates.map((candidate, index) => ({
+    ...discoverTrialSchema([['体験予約日']], [candidateHeaders[index]?.values?.[0] || []]),
+    ...candidate,
+  }));
+  const ranges = schemas.map(({ sheet }) => {
     const title = sheet.properties?.title;
     const rowCount = Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1);
     return quotedRange(title, 'A', rowCount);
@@ -112,9 +130,9 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
   for (const range of ranges) url.searchParams.append('ranges', range);
   const values = (await requestJson(url, token)).valueRanges || [];
   if (values.length !== ranges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
-  const privateColumns = sheets.map((_, index) => ({
+  const privateColumns = schemas.map((schema, index) => ({
     dateColumn: firstColumn(values[index]?.values),
-    headerRow: schemas[index].headerRow,
+    headerRow: schema.headerRow,
   }));
   return [team, aggregateTeam({ sheets: privateColumns, targetDate })];
 }

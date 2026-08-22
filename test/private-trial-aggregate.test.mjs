@@ -84,9 +84,13 @@ test('reads only date columns and fails closed when any of four team sources fai
   const requestJson = async (rawUrl) => {
     const url = new URL(rawUrl);
     requests.push(url);
-    if (!url.pathname.endsWith('/values:batchGet')) return { sheets: [{ properties: { title: '予約', gridProperties: { rowCount: 4 } } }] };
+    if (!url.pathname.endsWith('/values:batchGet')) return { sheets: [
+      { properties: { title: '予約', gridProperties: { rowCount: 4 } } },
+      { properties: { title: '補助', gridProperties: { rowCount: 4 } } },
+    ] };
     const ranges = url.searchParams.getAll('ranges');
-    if (ranges.length === 2) return { valueRanges: [{ values: [['体験予約日']] }, { values: [['出席確認', '入会']] }] };
+    if (ranges.every((range) => range.endsWith('A1:A4'))) return { valueRanges: ranges.map((_, index) => ({ values: index === 0 ? [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] : [[]] })) };
+    if (ranges.every((range) => range.endsWith('E1:H1'))) return { valueRanges: [{ values: [['出席確認', '入会']] }] };
     return { valueRanges: [{ values: [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] }] };
   };
   const options = {
@@ -96,12 +100,21 @@ test('reads only date columns and fails closed when any of four team sources fai
   };
   const result = await fetchPrivateTrialAggregate(options);
   assert.deepEqual(result.aggregates, { A: { today: 1 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
-  const dataReads = requests.filter((url) => url.pathname.endsWith('/values:batchGet') && url.searchParams.getAll('ranges').length === 1);
-  assert.equal(dataReads.length, 4);
+  const dataReads = requests.filter((url) => url.pathname.endsWith('/values:batchGet') && url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4");
+  assert.equal(dataReads.length, 8);
   assert(dataReads.every((url) => url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4"));
 
   await assert.rejects(() => fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
     if (String(url).includes('/spreadsheets/c?')) throw new Error('GOOGLE_SHEETS_403');
     return requestJson(url, token);
   } }), /TRIAL_SOURCE_UNAVAILABLE_C_GOOGLE_SHEETS_403/);
+
+  await assert.rejects(() => fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
+    const text = String(url);
+    if (text.includes('/spreadsheets/a?')) return { sheets: [{ properties: { title: '予約', gridProperties: { rowCount: 40 } } }] };
+    if (text.includes('/spreadsheets/a/') && text.includes('values:batchGet') && text.includes('A1%3AA40')) {
+      return { valueRanges: [{ values: [['体験予約日'], ...Array.from({ length: 29 }, () => []), ['体験予約日']] }] };
+    }
+    return requestJson(url, token);
+  } }), /TRIAL_SOURCE_UNAVAILABLE_A_SOURCE_SCHEMA_INVALID/);
 });
