@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-08-22-0732",
+  "snapshotId": "savant-2026-08-22-0730",
   "asOf": "2026-08-22",
   "scoreVersion": "v7-operational-member-denominator",
-  "sourceCommit": "e313621d889165a780171accaecf01717ff25b45",
+  "sourceCommit": "sheets-readonly-source-v1",
   "files": {
-    "data.js": "1c6b53fa4a710ce98fbdd1b69532476777946807",
-    "event-data.js": "98b879cb939134deb4f3b892470c1449536f249f",
-    "retention-data.js": "813dd4868daffc351c75077b0806d7744bdab9ed",
-    "school-age-data.js": "964ad71dc90fe7b53c71c6ac557684bc7cd8ec10"
+    "data.js": "833a63cfd516ce920a519ebe3828d42de83dc44a",
+    "event-data.js": "aa07c2ee2f7e1c045ae1b5b694405d15799224ab",
+    "retention-data.js": "4e5028d4cb3a012189ef41f6e514ab3b8134ff10",
+    "school-age-data.js": "30308136434051dfc5fed35ef650e4bff6dc70a3"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
@@ -16,7 +16,7 @@
     "excludedEventNamePattern": "大会.*練習"
   },
   "operationalMemberDefinition": "operational-person-v1",
-  "sourceKind": "private-canonical-operational-roster-and-event-history",
+  "sourceKind": "private-sheets-readonly-anonymous-aggregate-v1",
   "eventDenominatorDefinition": {
     "id": "operational-person-at-event-v1",
     "memberDefinition": "operational-person-v1",

@@ -1,5 +1,5 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-08-22-0732",
+  "snapshotId": "savant-2026-08-22-0730",
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-08-22",
   "asOfLabel": "2026年8月22日",
