@@ -32,15 +32,6 @@ export function serialToIsoDate(value) {
   return Number.isNaN(date.valueOf()) ? null : date.toISOString().slice(0, 10);
 }
 
-function trueValue(value) {
-  const text = normalise(value).toUpperCase();
-  return value === true || value === 1 || text === 'TRUE' || text === '1' || text === '○';
-}
-
-function isFiscalDate(date, fiscalYear) {
-  return date >= `${fiscalYear}-04-01` && date < `${Number(fiscalYear) + 1}-04-01`;
-}
-
 export function discoverTrialSchema(dateHeaderValues, candidateHeaderValues) {
   const dates = Array.from({ length: dateHeaderValues?.length || 0 }, (_, index) => dateHeaderValues[index]?.[0]);
   for (let row = 0; row < dates.length; row += 1) {
@@ -55,40 +46,22 @@ export function discoverTrialSchema(dateHeaderValues, candidateHeaderValues) {
   throw new Error('SOURCE_SCHEMA_INVALID');
 }
 
-/** 入力は日付・出席・入会の3列のみ。個人情報列は受け取らない。 */
-export function aggregateTeam({ sheets, targetDate, fiscalYear }) {
+/** 入力は日付列だけ。ヘッダー検証は取得時に完了しており、個人情報列は受け取らない。 */
+export function aggregateTeam({ sheets, targetDate }) {
   let today = 0;
-  let trials = 0;
-  let admissions = 0;
   let recognisedSheets = 0;
   for (const sheet of sheets) {
-    const dates = sheet.dateColumn || [];
-    const attendance = sheet.attendanceColumn || [];
-    const admission = sheet.admissionColumn || [];
-    const length = Math.max(dates.length, attendance.length, admission.length);
-    let inTable = false;
-    let recognised = false;
-    for (let index = 0; index < length; index += 1) {
-      if (DATE_HEADERS.has(normalise(dates[index]))
-        && ATTENDANCE_HEADERS.has(normalise(attendance[index]))
-        && normalise(admission[index]) === '入会') {
-        inTable = true;
-        recognised = true;
-        continue;
-      }
-      if (!inTable) continue;
+    if (!Array.isArray(sheet.dateColumn) || !Number.isSafeInteger(sheet.headerRow) || sheet.headerRow < 1) continue;
+    const dates = sheet.dateColumn;
+    recognisedSheets += 1;
+    for (let index = sheet.headerRow; index < dates.length; index += 1) {
       const date = serialToIsoDate(dates[index]);
       if (!date) continue;
       if (date === targetDate) today += 1;
-      if (!isFiscalDate(date, fiscalYear) || !trueValue(attendance[index])) continue;
-      trials += 1;
-      if (trueValue(admission[index])) admissions += 1;
     }
-    if (recognised) recognisedSheets += 1;
   }
   if (!recognisedSheets) throw new Error('SOURCE_SCHEMA_INVALID');
-  if (admissions > trials) throw new Error('SOURCE_COUNT_INVALID');
-  return { today, trials, admissions };
+  return { today };
 }
 
 export function parseSheetIds(secret) {
@@ -99,13 +72,16 @@ export function parseSheetIds(secret) {
   return ids;
 }
 
-export function trialPublicInput({ aggregates, targetDate, fiscalYear }) {
+export function trialPublicInput({ aggregates, annualTeams, targetDate, fiscalYear }) {
   const teams = Object.fromEntries(TEAM_IDS.map((team) => [team, aggregates[team].today]));
-  const annualTeams = Object.fromEntries(TEAM_IDS.map((team) => [team, { admissions: aggregates[team].admissions, trials: aggregates[team].trials }]));
+  const annual = Object.fromEntries(TEAM_IDS.map((team) => [team, {
+    admissions: annualTeams[team].admissions,
+    trials: annualTeams[team].trials,
+  }]));
   return {
     snapshot: { asOf: targetDate, id: `${targetDate}-trial-001` },
     timezone: 'Asia/Tokyo',
     today: { status: 'ok', date: targetDate, teams },
-    annual: { status: 'ok', fiscalYear, teams: annualTeams },
+    annual: { status: 'ok', fiscalYear, teams: annual },
   };
 }

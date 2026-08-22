@@ -43,9 +43,9 @@ Repository Secretsには値を出力・commitせず、次だけを設定しま�
 - `GOOGLE_SERVICE_ACCOUNT_JSON`：Sheets APIのread-only Service Account JSON
 - `PROSPECT_TRIAL_SHEET_IDS_JSON`：A〜D体験管理シートIDだけを持つJSON
 
-Service Accountは上記5シートに閲覧者として共有し、Sheets APIのread-only scopeだけを利用します。体験シートから読むのは日付・出席・入会の3列だけで、取得直後にA〜Dの匿名件数へ集約します。行データ、ID、URL、認証情報は`.private/`以外に保存せず、`.private/`は常に削除します。
+Service Accountは上記5シートに閲覧者として共有し、Sheets APIのread-only scopeだけを利用します。A〜D体験シートはヘッダーを確認した後、当日人数のための日付列だけを読み、取得直後に匿名件数へ集約します。年度の入会数・体験数は中央ダッシュボードの`06_入会力（年度）`を正本として読みます。行データ、ID、URL、認証情報は`.private/`以外に保存せず、`.private/`は常に削除します。
 
-公開前には、体験4シートの年度 `admissions / trials` と中央ダッシュボードのA〜D年度値が完全一致することを必須にしています。不一致、未知イベント、列構成変更、検証失敗時はmainを変更しません。相対スコアを勝手に部分更新しないためです。
+公開前には、中央ダッシュボードの年度値・年度入会率・相対スコアがA〜Dで完全に整合することを必須にしています。A〜D体験シートの用途は当日人数だけです。中央ダッシュボード内の不整合、未知イベント、列構成変更、検証失敗時はmainを変更しません。相対スコアを勝手に部分更新しないためです。
 
 GitHub Pagesは、最初の本番手動実行直前に `Settings > Pages` のSourceを `GitHub Actions` へ切り替えます。`GITHUB_TOKEN`で作成したcommitは従来のブランチ公開を起動しないため、同workflowの`deploy-pages`で配備します。失敗時は直前のPages配備が残り、mainを強制更新しません。
 

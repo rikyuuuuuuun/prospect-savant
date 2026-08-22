@@ -80,8 +80,8 @@ function firstColumn(values) {
   return Array.isArray(values?.[0]) ? values[0] : [];
 }
 
-async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, fiscalYear) {
-  const metadata = await googleJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`, token);
+async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, requestJson) {
+  const metadata = await requestJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`, token);
   const sheets = metadata.sheets || [];
   if (!sheets.length) throw new Error('SOURCE_SCHEMA_INVALID');
   const headerRanges = sheets.flatMap((sheet) => {
@@ -91,36 +91,34 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, fiscal
   const headerUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
   headerUrl.searchParams.set('majorDimension', 'ROWS');
   for (const range of headerRanges) headerUrl.searchParams.append('ranges', range);
-  const headers = (await googleJson(headerUrl, token)).valueRanges || [];
+  const headers = (await requestJson(headerUrl, token)).valueRanges || [];
   if (headers.length !== headerRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
   const schemas = sheets.map((_, index) => discoverTrialSchema(headers[index * 2]?.values, headers[index * 2 + 1]?.values));
-  const ranges = sheets.flatMap((sheet, index) => {
+  const ranges = sheets.map((sheet) => {
     const title = sheet.properties?.title;
     const rowCount = Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1);
-    const schema = schemas[index];
-    return ['A', schema.attendanceColumn, schema.admissionColumn].map((column) => quotedRange(title, column, rowCount));
+    return quotedRange(title, 'A', rowCount);
   });
   const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
   url.searchParams.set('majorDimension', 'COLUMNS');
   url.searchParams.set('valueRenderOption', 'UNFORMATTED_VALUE');
   url.searchParams.set('dateTimeRenderOption', 'SERIAL_NUMBER');
   for (const range of ranges) url.searchParams.append('ranges', range);
-  const values = (await googleJson(url, token)).valueRanges || [];
+  const values = (await requestJson(url, token)).valueRanges || [];
   if (values.length !== ranges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
   const privateColumns = sheets.map((_, index) => ({
-    dateColumn: firstColumn(values[index * 3]?.values),
-    attendanceColumn: firstColumn(values[index * 3 + 1]?.values),
-    admissionColumn: firstColumn(values[index * 3 + 2]?.values),
+    dateColumn: firstColumn(values[index]?.values),
+    headerRow: schemas[index].headerRow,
   }));
-  return [team, aggregateTeam({ sheets: privateColumns, targetDate, fiscalYear })];
+  return [team, aggregateTeam({ sheets: privateColumns, targetDate })];
 }
 
-export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate() }) {
+export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
   const fiscalYear = fiscalYearFor(targetDate);
-  const token = await getAccessToken(serviceAccount);
-  const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, fiscalYear)));
+  const token = await getToken(serviceAccount);
+  const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, requestJson)));
   if (settled.some((result) => result.status !== 'fulfilled')) throw new Error('TRIAL_SOURCE_UNAVAILABLE');
   const aggregates = Object.fromEntries(settled.map((result) => result.value));
   return { targetDate, fiscalYear, aggregates };

@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { gitBlobSha, parseFrozenJson, publishTrialData, validatePublishedTrialData } from './trial-publication.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
-import { serialToIsoDate, trialPublicInput } from './private-trial-aggregate.mjs';
+import { fiscalYearFor, serialToIsoDate, trialPublicInput } from './private-trial-aggregate.mjs';
 
 const MAIN_FILES = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js'];
 const PUBLIC_FILES = [...MAIN_FILES, 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
@@ -51,6 +51,12 @@ function requiredNumber(value, label) {
   return Number(value);
 }
 
+function requiredCount(value, label) {
+  const count = requiredNumber(value, label);
+  assert(Number.isSafeInteger(count) && count >= 0, `${label}_INVALID`);
+  return count;
+}
+
 function round(value, digits = 1) {
   return Number((requiredNumber(value, 'SOURCE_VALUE') * (10 ** digits)).toFixed(0)) / (10 ** digits);
 }
@@ -80,19 +86,15 @@ function sourceAsOf(monthly) {
 
 function annualFromSource(admission) {
   const rows = teamRows(admission, 3);
-  return Object.fromEntries(TEAM_IDS.map((team) => [team, {
-    trials: requiredNumber(rows.get(team)[1], `ANNUAL_TRIALS_${team}`), admissions: requiredNumber(rows.get(team)[2], `ANNUAL_ADMISSIONS_${team}`), rate: percentage(rows.get(team)[3], `ANNUAL_RATE_${team}`),
-    previousRate: percentage(rows.get(team)[4], `ANNUAL_PREVIOUS_RATE_${team}`), yoyDelta: percentage(rows.get(team)[5], `ANNUAL_DELTA_${team}`), score: round(rows.get(team)[6], 0),
-  }]));
-}
-
-function assertAnnualReconciliation(trialAggregate, annual) {
-  for (const team of TEAM_IDS) {
-    const direct = trialAggregate.aggregates?.[team];
-    const dashboard = annual[team];
-    assert(direct && dashboard && direct.trials === dashboard.trials && direct.admissions === dashboard.admissions,
-      `ANNUAL_RECONCILIATION_REQUIRED_${team}`);
-  }
+  return Object.fromEntries(TEAM_IDS.map((team) => {
+    const trials = requiredCount(rows.get(team)[1], `ANNUAL_TRIALS_${team}`);
+    const admissions = requiredCount(rows.get(team)[2], `ANNUAL_ADMISSIONS_${team}`);
+    assert(admissions <= trials, `ANNUAL_COUNTS_INVALID_${team}`);
+    return [team, {
+      trials, admissions, rate: percentage(rows.get(team)[3], `ANNUAL_RATE_${team}`),
+      previousRate: percentage(rows.get(team)[4], `ANNUAL_PREVIOUS_RATE_${team}`), yoyDelta: percentage(rows.get(team)[5], `ANNUAL_DELTA_${team}`), score: round(rows.get(team)[6], 0),
+    }];
+  }));
 }
 
 function updateData(data, ranges, asOf) {
@@ -101,8 +103,6 @@ function updateData(data, ranges, asOf) {
   const retention = teamRows(ranges.retention, 3);
   const annual = annualFromSource(ranges.admission);
   const eventSummary = teamRows(ranges.events, 3);
-  const annualDirect = ranges.trialAggregate;
-  assertAnnualReconciliation(annualDirect, annual);
   const oldData = structuredClone(data);
   assert(asOf >= oldData.asOf, 'SOURCE_ASOF_OLDER_THAN_PUBLIC');
 
@@ -271,6 +271,8 @@ async function publishInto(root, snapshot) {
   const retention = parsePublicSource(await readFile(join(root, 'retention-data.js'), 'utf8'), 'retention-data.js');
   const schoolAge = parsePublicSource(await readFile(join(root, 'school-age-data.js'), 'utf8'), 'school-age-data.js');
   const asOf = sourceAsOf(ranges.monthly);
+  assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
+  assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
   updateEventHistory(events, ranges.events, data.snapshotId, asOf);
   updateRetentionCurve(retention, ranges.curve, data.snapshotId, asOf);
@@ -293,7 +295,12 @@ async function publishInto(root, snapshot) {
     files: Object.fromEntries(Object.entries(output).map(([file, content]) => [file, gitBlobSha(content)])),
   };
   await writeFile(join(root, 'snapshot-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
-  const trial = trialPublicInput({ aggregates: ranges.trialAggregate.aggregates, targetDate: ranges.trialAggregate.targetDate, fiscalYear: ranges.trialAggregate.fiscalYear });
+  const trial = trialPublicInput({
+    aggregates: ranges.trialAggregate.aggregates,
+    annualTeams: annualFromSource(ranges.admission),
+    targetDate: ranges.trialAggregate.targetDate,
+    fiscalYear: ranges.trialAggregate.fiscalYear,
+  });
   await publishTrialData({ rootDir: root, input: trial });
   const mainValidation = await validateSnapshot(root);
   const trialValidation = await validatePublishedTrialData(root);

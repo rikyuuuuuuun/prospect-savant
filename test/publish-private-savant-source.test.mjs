@@ -55,21 +55,38 @@ test('dry-run transforms only a complete reconciled anonymous source snapshot', 
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } }), 'utf8');
+    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
     const result = await publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true });
     assert.deepEqual(result, { ok: true, changedFiles: ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'], dryRun: true });
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('refuses an annual source mismatch before touching public files', async () => {
+test('uses the central annual source even when a direct daily aggregate carries unrelated annual fields', async () => {
   const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } };
-    snapshot.trialAggregate.aggregates.C.trials += 1;
+    const files = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
+    await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    snapshot.trialAggregate.aggregates.C = { today: 3, trials: 999, admissions: 999 };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
-    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /ANNUAL_RECONCILIATION_REQUIRED_C/);
+    await publishPrivateSavantSource({ rootDir: dir, sourcePath });
+    const published = parsePublicSource(await readFile(join(dir, 'trial-data.js'), 'utf8'), 'trial-data.js');
+    assert.equal(published.today.teams.C, 3);
+    assert.deepEqual(published.annual.teams.C, trial.annual.teams.C);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('rejects an invalid central annual count before touching public files', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
+  try {
+    const sourcePath = join(dir, 'source.json');
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    snapshot.ranges[RANGES.admission][6][1] = -1;
+    await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
+    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /ANNUAL_TRIALS_C_INVALID/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -78,7 +95,7 @@ test('refuses a dashboard relative-score input that disagrees with the annual so
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.teams][6][5] = 0.5;
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /ANNUAL_RATE_RECONCILIATION_REQUIRED_C/);
@@ -90,7 +107,7 @@ test('refuses an explicitly unhealthy source quality state', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.quality][4][5] = '異常';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_QUALITY_BLOCKED/);
@@ -102,10 +119,33 @@ test('refuses a source snapshot older than the current public snapshot', async (
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     for (const row of snapshot.ranges[RANGES.monthly].slice(4)) row[21] = serial('2026-08-21');
+    snapshot.trialAggregate.targetDate = '2026-08-21';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_ASOF_OLDER_THAN_PUBLIC/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('refuses a trial date that does not match the central source as-of date', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
+  try {
+    const sourcePath = join(dir, 'source.json');
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: '2026-08-23', fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
+    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /TRIAL_DATE_SOURCE_ASOF_MISMATCH/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('refuses a trial fiscal year that does not match the central source as-of date', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
+  try {
+    const sourcePath = join(dir, 'source.json');
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: '2025', aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
+    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -114,7 +154,7 @@ test('refuses a quality table with an unspecified status', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.quality][4][5] = '';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_QUALITY_STATUS_MISSING/);
@@ -128,7 +168,7 @@ test('same source creates byte-identical output on a second run', async () => {
   try {
     await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0, ...trial.annual.teams[team] }])) } }), 'utf8');
+    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const first = await Promise.all(files.map((file) => readFile(join(dir, file), 'utf8')));
     const manifest = JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'), 'utf8'));
