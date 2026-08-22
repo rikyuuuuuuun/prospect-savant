@@ -33,9 +33,21 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 
 イベント力は `scoringVersion: v7-operational-member-denominator` を使用し、`data.js` と `event-data.js` の版を一致させます。前回が別スコア版の場合、前回差・総合点差は比較対象外です。
 
-## GitHub Pages
+## GitHub Actionsによる自動更新
 
-リポジトリの `Settings > Pages` で、`Deploy from a branch`、`main`、`/(root)` を選択すると公開できます。
+`.github/workflows/daily-savant-publish.yml` が毎日 **07:30 JST** に実行されます。手動実行は既定でdry-runです。`publish=true` は `main` 上で実行した場合だけ、検証済みの公開7ファイルを単一commitで反映し、GitHub Pagesへ配備します。変更がない日はcommitしません。並行実行は待機させ、二重更新や強制pushはしません。
+
+Repository Secretsには値を出力・commitせず、次だけを設定します。
+
+- `SAVANT_SPREADSHEET_ID`：中央Savantダッシュボード
+- `GOOGLE_SERVICE_ACCOUNT_JSON`：Sheets APIのread-only Service Account JSON
+- `PROSPECT_TRIAL_SHEET_IDS_JSON`：A〜D体験管理シートIDだけを持つJSON
+
+Service Accountは上記5シートに閲覧者として共有し、Sheets APIのread-only scopeだけを利用します。体験シートから読むのは日付・出席・入会の3列だけで、取得直後にA〜Dの匿名件数へ集約します。行データ、ID、URL、認証情報は`.private/`以外に保存せず、`.private/`は常に削除します。
+
+公開前には、体験4シートの年度 `admissions / trials` と中央ダッシュボードのA〜D年度値が完全一致することを必須にしています。不一致、未知イベント、列構成変更、検証失敗時はmainを変更しません。相対スコアを勝手に部分更新しないためです。
+
+GitHub Pagesは、最初の本番手動実行直前に `Settings > Pages` のSourceを `GitHub Actions` へ切り替えます。`GITHUB_TOKEN`で作成したcommitは従来のブランチ公開を起動しないため、同workflowの`deploy-pages`で配備します。失敗時は直前のPages配備が残り、mainを強制更新しません。
 
 ## Atomic snapshot validation
 
