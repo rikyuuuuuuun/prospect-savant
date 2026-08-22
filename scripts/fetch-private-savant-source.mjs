@@ -80,6 +80,12 @@ function firstColumn(values) {
   return Array.isArray(values?.[0]) ? values[0] : [];
 }
 
+function safeTrialFailureCode(error) {
+  const message = String(error?.message || '');
+  const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID)$/);
+  return match ? match[1] : 'UNKNOWN';
+}
+
 async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, requestJson) {
   const metadata = await requestJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`, token);
   const sheets = metadata.sheets || [];
@@ -119,7 +125,8 @@ export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialShee
   const fiscalYear = fiscalYearFor(targetDate);
   const token = await getToken(serviceAccount);
   const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, requestJson)));
-  if (settled.some((result) => result.status !== 'fulfilled')) throw new Error('TRIAL_SOURCE_UNAVAILABLE');
+  const failures = settled.flatMap((result, index) => result.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(result.reason)}`] : []);
+  if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
   const aggregates = Object.fromEntries(settled.map((result) => result.value));
   return { targetDate, fiscalYear, aggregates };
 }
