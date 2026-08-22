@@ -17,7 +17,7 @@ const RANGES = {
 
 function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   const source = {};
-  source[RANGES.dashboard] = [[], [], [], [data.headline.members, data.headline.monthlyDelta, data.headline.admissionRate / 100, data.headline.latestEventParticipants]];
+  source[RANGES.dashboard] = [[], [], [], ['運用会員数', '前月差（参考）', '年度入会率', '直近イベント実参加'], [data.headline.members, data.headline.monthlyDelta, data.headline.admissionRate / 100, data.headline.latestEventParticipants]];
   source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, team.rank, team.status])];
   source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
   source[RANGES.retention] = [[], [], [], [], ...data.teams.map((team) => [team.id, '', '', '', '', team.benchmark.retention12mRate / 100, team.benchmark.retention12mSample])];
