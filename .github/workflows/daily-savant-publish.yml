@@ -115,7 +115,8 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'schedule' || inputs.publish == true)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 初回配備失敗後の復旧配備まで完了させる時間を確保する。
+    timeout-minutes: 35
     permissions:
       contents: write
       pages: write
@@ -148,6 +149,7 @@ jobs:
       - name: Upload the verified Pages artifact before changing main
         uses: actions/upload-pages-artifact@v4
         with:
+          name: github-pages-candidate
           path: .
       - id: commit
         name: Commit only changed public files
@@ -171,6 +173,8 @@ jobs:
         id: deployment
         if: steps.commit.outputs.committed == 'true'
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-candidate
         continue-on-error: true
       - id: rollback
         name: Restore the prior public snapshot after a failed deployment
@@ -184,11 +188,14 @@ jobs:
         if: steps.rollback.outputs.reverted == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
+          name: github-pages-restored
           path: .
       - id: restored-deployment
         name: Restore the prior GitHub Pages deployment
         if: steps.rollback.outputs.reverted == 'true'
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-restored
         continue-on-error: true
       - name: Fail after recovery from a Pages deployment error
         if: steps.deployment.outcome == 'failure'
