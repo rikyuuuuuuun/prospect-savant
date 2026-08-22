@@ -1,0 +1,151 @@
+name: Publish Prospect Savant
+
+on:
+  schedule:
+    # GitHub Actions supports timezone-aware schedules. 07:30 JST every day.
+    - cron: '30 7 * * *'
+      timezone: Asia/Tokyo
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'mainへcommitし、Pagesへ配備する（既定はdry-run）'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: prospect-savant-daily-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Read-only source to verified public artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate required secrets without displaying values
+        shell: bash
+        env:
+          SAVANT_SPREADSHEET_ID: ${{ secrets.SAVANT_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          PROSPECT_TRIAL_SHEET_IDS_JSON: ${{ secrets.PROSPECT_TRIAL_SHEET_IDS_JSON }}
+        run: |
+          test -n "$SAVANT_SPREADSHEET_ID" || { echo 'Missing SAVANT_SPREADSHEET_ID'; exit 1; }
+          test -n "$GOOGLE_SERVICE_ACCOUNT_JSON" || { echo 'Missing GOOGLE_SERVICE_ACCOUNT_JSON'; exit 1; }
+          test -n "$PROSPECT_TRIAL_SHEET_IDS_JSON" || { echo 'Missing PROSPECT_TRIAL_SHEET_IDS_JSON'; exit 1; }
+      - name: Fetch source and reduce team records to anonymous aggregates
+        env:
+          SAVANT_SPREADSHEET_ID: ${{ secrets.SAVANT_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          PROSPECT_TRIAL_SHEET_IDS_JSON: ${{ secrets.PROSPECT_TRIAL_SHEET_IDS_JSON }}
+        run: node scripts/fetch-private-savant-source.mjs .private/savant-source.json
+      - name: Generate and validate a complete candidate snapshot
+        shell: bash
+        run: |
+          if [[ '${{ github.event_name }}' == 'schedule' || '${{ inputs.publish }}' == 'true' ]]; then
+            node scripts/publish-private-savant-source.mjs .private/savant-source.json .
+          else
+            node scripts/publish-private-savant-source.mjs .private/savant-source.json . --dry-run
+          fi
+          npm test
+          npm run validate:snapshot
+          node --check data.js
+          node --check event-data.js
+          node --check retention-data.js
+          node --check school-age-data.js
+          node --check trial-data.js
+      - id: changes
+        name: Detect a changed public snapshot only
+        shell: bash
+        run: |
+          files=(data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json)
+          if git diff --quiet -- "${files[@]}"; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload only the verified public files
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: savant-public-snapshot
+          if-no-files-found: error
+          path: |
+            data.js
+            event-data.js
+            retention-data.js
+            school-age-data.js
+            snapshot-manifest.json
+            trial-data.js
+            trial-manifest.json
+      - name: Destroy private source files
+        if: always()
+        shell: bash
+        run: rm -rf .private
+
+  publish-and-deploy:
+    name: Commit verified snapshot and deploy Pages
+    needs: prepare
+    if: >-
+      needs.prepare.outputs.changed == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || inputs.publish == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download the verified public snapshot
+        if: needs.prepare.outputs.changed == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: savant-public-snapshot
+          path: .
+      - name: Revalidate exactly what will be committed
+        if: needs.prepare.outputs.changed == 'true'
+        shell: bash
+        run: |
+          npm test
+          npm run validate:snapshot
+          for file in data.js event-data.js retention-data.js school-age-data.js trial-data.js; do node --check "$file"; done
+          allowed=$'data.js\nevent-data.js\nretention-data.js\nschool-age-data.js\nsnapshot-manifest.json\ntrial-data.js\ntrial-manifest.json'
+          unexpected="$(git diff --name-only | grep -vxF -f <(printf '%s\n' "$allowed") || true)"
+          test -z "$unexpected" || { echo 'Unexpected changed path'; exit 1; }
+      - name: Commit only changed public files
+        if: needs.prepare.outputs.changed == 'true'
+        shell: bash
+        run: |
+          files=(data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json)
+          git add -- "${files[@]}"
+          git diff --cached --check
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'prospect-savant-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: refresh anonymous Savant snapshot'
+          git push origin HEAD:main
+      - name: Configure GitHub Pages deployment
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

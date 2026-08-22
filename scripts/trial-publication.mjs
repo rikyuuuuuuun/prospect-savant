@@ -95,7 +95,7 @@ function publicTrialData(input) {
     schemaVersion: 1,
     snapshotId: input.snapshot.id,
     timezone: input.timezone,
-    sourceKind: 'private-team-trial-sheet-aggregate-v1',
+    sourceKind: 'private-sheets-readonly-anonymous-aggregate-v2',
     today,
     annual: input.annual.status === 'ok'
       ? { status: 'ok', fiscalYear: input.annual.fiscalYear, teams: input.annual.teams }
@@ -149,7 +149,7 @@ export async function validatePublishedTrialData(rootDir = process.cwd()) {
     exact(data, ['annual', 'schemaVersion', 'snapshotId', 'sourceKind', 'today', 'timezone'], 'public trial data');
     add(data.schemaVersion === 1, 'trial-data.js schemaVersion must be 1');
     add(data.timezone === 'Asia/Tokyo', 'trial-data.js timezone must be Asia/Tokyo');
-    add(data.sourceKind === 'private-team-trial-sheet-aggregate-v1', 'trial-data.js sourceKind is invalid');
+    add(['private-team-trial-sheet-aggregate-v1', 'private-sheets-readonly-anonymous-aggregate-v2'].includes(data.sourceKind), 'trial-data.js sourceKind is invalid');
     exact(data.today, ['date', 'status', 'teams', 'total'], 'public today');
     add(isIsoDate(data.today.date), 'trial-data.js today.date must be a valid YYYY-MM-DD');
     if (data.today.status === 'ok') {
