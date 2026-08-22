@@ -113,12 +113,17 @@ test('reads only date columns and fails closed when any of four team sources fai
     return requestJson(url, token);
   } }), /TRIAL_SOURCE_UNAVAILABLE_C_GOOGLE_SHEETS_403/);
 
-  await assert.rejects(() => fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
+  const multipleTables = await fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
     const text = String(url);
     if (text.includes('/spreadsheets/a?')) return { sheets: [{ properties: { title: '予約', gridProperties: { rowCount: 40 } } }] };
     if (text.includes('/spreadsheets/a/') && text.includes('values:batchGet') && text.includes('A1%3AA40')) {
-      return { valueRanges: [{ values: [['体験予約日'], ...Array.from({ length: 29 }, () => []), ['体験予約日']] }] };
+      const values = [['体験予約日'], ['2026-08-22'], ...Array.from({ length: 28 }, () => []), ['体験予約日'], ['2026-08-22']];
+      return { valueRanges: [{ values: new URL(url).searchParams.get('majorDimension') === 'ROWS' ? values : [[...values.map((row) => row[0])]] }] };
+    }
+    if (text.includes('/spreadsheets/a/') && text.includes('values:batchGet') && text.includes('E1%3AH1') && text.includes('E31%3AH31')) {
+      return { valueRanges: [{ values: [['出席確認']] }, { values: [['出席確認']] }] };
     }
     return requestJson(url, token);
-  } }), /TRIAL_SOURCE_UNAVAILABLE_A_SOURCE_SCHEMA_INVALID/);
+  } });
+  assert.deepEqual(multipleTables.aggregates, { A: { today: 2 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
 });
