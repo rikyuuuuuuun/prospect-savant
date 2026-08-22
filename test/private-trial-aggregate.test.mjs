@@ -103,5 +103,5 @@ test('reads only date columns and fails closed when any of four team sources fai
   await assert.rejects(() => fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
     if (String(url).includes('/spreadsheets/c?')) throw new Error('GOOGLE_SHEETS_403');
     return requestJson(url, token);
-  } }), /TRIAL_SOURCE_UNAVAILABLE/);
+  } }), /TRIAL_SOURCE_UNAVAILABLE_C_GOOGLE_SHEETS_403/);
 });
