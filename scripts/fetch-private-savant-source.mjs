@@ -86,10 +86,8 @@ function safeTrialFailureCode(error) {
   return match ? match[1] : 'UNKNOWN';
 }
 
-function dateHeaderRow(values) {
-  const matches = (values || []).flatMap((row, index) => ['体験予約日', '体験日'].includes(normalise(row?.[0])) ? [index + 1] : []);
-  if (matches.length > 1) throw new Error('SOURCE_SCHEMA_INVALID');
-  return matches[0] || null;
+function dateHeaderRows(values) {
+  return (values || []).flatMap((row, index) => ['体験予約日', '体験日'].includes(normalise(row?.[0])) ? [index + 1] : []);
 }
 
 async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, requestJson) {
@@ -103,10 +101,7 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
   for (const range of headerRanges) headerUrl.searchParams.append('ranges', range);
   const headerColumns = (await requestJson(headerUrl, token)).valueRanges || [];
   if (headerColumns.length !== headerRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
-  const candidates = sheets.flatMap((sheet, index) => {
-    const headerRow = dateHeaderRow(headerColumns[index]?.values);
-    return headerRow ? [{ sheet, headerRow }] : [];
-  });
+  const candidates = sheets.flatMap((sheet, index) => dateHeaderRows(headerColumns[index]?.values).map((headerRow) => ({ sheet, headerRow })));
   if (!candidates.length) throw new Error('SOURCE_SCHEMA_INVALID');
   const candidateRanges = candidates.map(({ sheet, headerRow }) => `'${String(sheet.properties?.title).replaceAll("'", "''")}'!E${headerRow}:H${headerRow}`);
   const candidateUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
@@ -114,10 +109,17 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
   for (const range of candidateRanges) candidateUrl.searchParams.append('ranges', range);
   const candidateHeaders = (await requestJson(candidateUrl, token)).valueRanges || [];
   if (candidateHeaders.length !== candidateRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
-  const schemas = candidates.map((candidate, index) => ({
+  const verifiedCandidates = candidates.map((candidate, index) => ({
     ...discoverDailyTrialSchema([['体験予約日']], [candidateHeaders[index]?.values?.[0] || []]),
     ...candidate,
   }));
+  const seenSheets = new Set();
+  const schemas = verifiedCandidates.filter((candidate) => {
+    const key = candidate.sheet.properties?.sheetId ?? candidate.sheet.properties?.title;
+    if (seenSheets.has(key)) return false;
+    seenSheets.add(key);
+    return true;
+  });
   const ranges = schemas.map(({ sheet }) => {
     const title = sheet.properties?.title;
     const rowCount = Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1);
