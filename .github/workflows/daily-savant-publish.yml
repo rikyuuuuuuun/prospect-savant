@@ -1,0 +1,45 @@
+name: Prospect Savant daily publish migration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-read-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SAVANT_SPREADSHEET_ID: ${{ secrets.SAVANT_SPREADSHEET_ID }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          test -n "$SAVANT_SPREADSHEET_ID" || { echo "Missing SAVANT_SPREADSHEET_ID"; exit 1; }
+          test -n "$GOOGLE_SERVICE_ACCOUNT_JSON" || { echo "Missing GOOGLE_SERVICE_ACCOUNT_JSON"; exit 1; }
+      - name: Fetch private Savant source snapshot
+        run: node scripts/fetch-private-savant-source.mjs .private/savant-source.json
+      - name: Validate existing public snapshot
+        run: |
+          npm test
+          npm run validate:snapshot
+          node --check data.js
+          node --check event-data.js
+          node --check retention-data.js
+          node --check school-age-data.js
+          node --check trial-data.js
+      - name: Destroy private source snapshot
+        if: always()
+        shell: bash
+        run: rm -rf .private
+
+# Migration safety note:
+# Keep this workflow manual until Google authentication and source-to-public
+# transformation pass a dry run. After that, add the 07:30 JST schedule and
+# contents: write only in the commit/publish job, not in the source-read job.
