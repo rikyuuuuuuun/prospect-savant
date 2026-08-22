@@ -47,7 +47,7 @@ Service Accountは上記5シートに閲覧者として共有し、Sheets APIの
 
 公開前には、中央ダッシュボードの年度値・年度入会率・相対スコアがA〜Dで完全に整合することを必須にしています。A〜D体験シートの用途は当日人数だけです。中央ダッシュボード内の不整合、未知イベント、列構成変更、検証失敗時はmainを変更しません。相対スコアを勝手に部分更新しないためです。
 
-GitHub Pagesは、最初の本番手動実行直前に `Settings > Pages` のSourceを `GitHub Actions` へ切り替えます。`GITHUB_TOKEN`で作成したcommitは従来のブランチ公開を起動しないため、同workflowの`deploy-pages`で配備します。失敗時は直前のPages配備が残り、mainを強制更新しません。
+GitHub Pagesは、最初の本番手動実行直前に `Settings > Pages` のSourceを `GitHub Actions` へ切り替えます。`GITHUB_TOKEN`で作成したcommitは従来のブランチ公開を起動しないため、同workflowの`deploy-pages`で配備します。Pages配備に失敗した場合は、強制pushを使わず公開7ファイルだけを通常のrevert commitで直前の値へ戻し、その直前版を再配備します。復旧できない場合はworkflowを失敗として停止します。
 
 ## Atomic snapshot validation
 
