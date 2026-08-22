@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { aggregateTeam, discoverTrialSchema, fiscalYearFor, parseSheetIds, serialToIsoDate, trialPublicInput } from '../scripts/private-trial-aggregate.mjs';
+import { aggregateTeam, discoverDailyTrialSchema, discoverTrialSchema, fiscalYearFor, parseSheetIds, serialToIsoDate, trialPublicInput } from '../scripts/private-trial-aggregate.mjs';
 import { fetchPrivateTrialAggregate } from '../scripts/fetch-private-savant-source.mjs';
 
 const serial = (iso) => Math.floor((Date.parse(`${iso}T00:00:00Z`) - Date.UTC(1899, 11, 30)) / 86_400_000);
@@ -55,6 +55,10 @@ test('accepts the known shifted C/D attendance header and keeps IDs private', ()
     [[''], [''], [''], [''], ['体験予約日']],
     [[], [], [], [], ['備考', '出席、フォーム確認', '入会']],
   ), { headerRow: 5, attendanceColumn: 'F', admissionColumn: 'G' });
+  assert.deepEqual(discoverDailyTrialSchema(
+    [['体験予約日']],
+    [['出席確認']],
+  ), { headerRow: 1, attendanceColumn: 'E' });
   assert.deepEqual(parseSheetIds('{"A":"a","B":"b","C":"c","D":"d"}'), { A: 'a', B: 'b', C: 'c', D: 'd' });
   assert.throws(() => parseSheetIds('{"A":"a"}'), /TRIAL_SHEET_IDS_SECRET_INVALID/);
 });

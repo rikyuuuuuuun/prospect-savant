@@ -2,7 +2,7 @@ import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { aggregateTeam, discoverTrialSchema, fiscalYearFor, normalise, parseSheetIds, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
+import { aggregateTeam, discoverDailyTrialSchema, fiscalYearFor, normalise, parseSheetIds, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
 
 const RANGES = [
   "'00_ダッシュボード'!A1:H23",
@@ -115,7 +115,7 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
   const candidateHeaders = (await requestJson(candidateUrl, token)).valueRanges || [];
   if (candidateHeaders.length !== candidateRanges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
   const schemas = candidates.map((candidate, index) => ({
-    ...discoverTrialSchema([['体験予約日']], [candidateHeaders[index]?.values?.[0] || []]),
+    ...discoverDailyTrialSchema([['体験予約日']], [candidateHeaders[index]?.values?.[0] || []]),
     ...candidate,
   }));
   const ranges = schemas.map(({ sheet }) => {

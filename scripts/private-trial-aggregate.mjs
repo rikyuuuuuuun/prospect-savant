@@ -46,6 +46,20 @@ export function discoverTrialSchema(dateHeaderValues, candidateHeaderValues) {
   throw new Error('SOURCE_SCHEMA_INVALID');
 }
 
+/** 年度入会数を使わない当日集計用。日付・出席見出しだけで体験タブを識別する。 */
+export function discoverDailyTrialSchema(dateHeaderValues, candidateHeaderValues) {
+  const dates = Array.from({ length: dateHeaderValues?.length || 0 }, (_, index) => dateHeaderValues[index]?.[0]);
+  for (let row = 0; row < dates.length; row += 1) {
+    if (!DATE_HEADERS.has(normalise(dates[row]))) continue;
+    const values = candidateHeaderValues?.[row] || [];
+    const attendanceIndex = values.findIndex((value) => ATTENDANCE_HEADERS.has(normalise(value)));
+    if (attendanceIndex >= 0) {
+      return { headerRow: row + 1, attendanceColumn: String.fromCharCode('E'.charCodeAt(0) + attendanceIndex) };
+    }
+  }
+  throw new Error('SOURCE_SCHEMA_INVALID');
+}
+
 /** 入力は日付列だけ。ヘッダー検証は取得時に完了しており、個人情報列は受け取らない。 */
 export function aggregateTeam({ sheets, targetDate }) {
   let today = 0;
