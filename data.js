@@ -1,21 +1,21 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-08-22-0730",
+  "snapshotId": "savant-2026-08-24-0730",
   "scoreVersion": "v7-operational-member-denominator",
-  "asOf": "2026-08-22",
-  "asOfLabel": "2026年8月22日",
+  "asOf": "2026-08-24",
+  "asOfLabel": "2026年8月24日",
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
     "monthlyDelta": 31,
-    "admissionRate": 72.8,
+    "admissionRate": 72.6,
     "admissionPreviousRate": 68.5,
     "admissionYoYDelta": 4.3,
     "latestEventParticipants": 124
   },
   "comparison": {
     "scoreVersion": "v7-operational-member-denominator",
-    "previousAsOf": "2026-08-21",
-    "previousAsOfLabel": "2026年8月21日",
+    "previousAsOf": "2026-08-22",
+    "previousAsOfLabel": "2026年8月22日",
     "headline": {
       "members": 1058,
       "monthlyDelta": 31,
@@ -225,9 +225,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "benchmark": {
         "retention12mRate": 77.8,
         "retention12mSample": 144,
-        "admissionRate": 57.9,
+        "admissionRate": 57.1,
         "admissionPreviousRate": 63.6,
-        "admissionYoYDelta": -5.7,
+        "admissionYoYDelta": -6.5,
         "eventRate": 10.3,
         "repeatRate": 31.1
       },
