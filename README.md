@@ -59,6 +59,12 @@ Public data updates are treated as one snapshot. Every update must change these 
 - `school-age-data.js`
 - `snapshot-manifest.json`
 
+### 新規入会の匿名通知
+
+日次取得では`98_会員マスター連携`の`年度実入会`（会費ペイ由来の`入会日`集計）を、A〜D別の匿名累積値として`data.js`へ保持します。表示判定は`monthlyDelta`・運用会員数差・当月入会を使わず、同一年度・同一定義の前回公開値との差分だけを使います。
+
+再入会を初回入会から分離できること、未来の入会日が0件であることを匿名ソースで確認できない間は、累積値を保存しても通知・カード強調を出しません。確認後に`initial-only`と未来日0の証跡を供給できる場合だけ、前回公開より増えたチームを表示します。公開するのはA〜D、匿名件数、基準日だけです。
+
 Before opening or merging a pull request, run:
 
 ```bash

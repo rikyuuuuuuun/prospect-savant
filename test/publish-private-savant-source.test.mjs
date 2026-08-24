@@ -12,6 +12,7 @@ const RANGES = {
   dashboard: "'00_ダッシュボード'!A1:H23", teams: "'01_チーム比較'!A1:P12", monthly: "'03_月次集計'!A1:V12",
   events: "'04_イベント力'!A1:S100", retention: "'05_定着力'!A1:R10", admission: "'06_入会力（年度）'!A1:H12",
   schoolAge: "'09_学齢継続'!A1:J12", curve: "'10_定着曲線'!A1:K17",
+  memberMaster: "'98_会員マスター連携'!A4:AE9",
   quality: "'99_データ品質'!A1:F20",
 };
 
@@ -46,6 +47,10 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
     (retentionCurve.overall.rates[index] || 0) / 100,
     retentionCurve.teams.A.samples[index], retentionCurve.teams.B.samples[index], retentionCurve.teams.C.samples[index], retentionCurve.teams.D.samples[index], retentionCurve.overall.samples[index],
   ])];
+  source[RANGES.memberMaster] = [
+    ['チーム', '現在会員数', '在籍', '退会予定', '休会', '入会日登録済', '年度累計体験', '年度体験→入会', '年度実入会'],
+    ...data.teams.map((team) => ['A', 'B', 'C', 'D'].includes(team.id) && [team.id, team.members, '', '', '', team.members, 0, 0, trial.annual.teams[team.id].admissions]),
+  ];
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
   return source;
 }
@@ -75,6 +80,25 @@ test('uses the central annual source even when a direct daily aggregate carries 
     const published = parsePublicSource(await readFile(join(dir, 'trial-data.js'), 'utf8'), 'trial-data.js');
     assert.equal(published.today.teams.C, 3);
     assert.deepEqual(published.annual.teams.C, trial.annual.teams.C);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('stores only anonymous member-master admission counters and keeps notices fail-closed until re-enrollment and future-date provenance is confirmed', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
+  try {
+    const sourcePath = join(dir, 'source.json');
+    const files = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
+    await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
+    await publishPrivateSavantSource({ rootDir: dir, sourcePath });
+    const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
+    assert.deepEqual(Object.keys(published.admissions).sort(), ['asOf', 'definition', 'fiscalYear', 'futureAdmissionCount', 'reEnrollmentPolicy', 'teams']);
+    assert.equal(published.admissions.reEnrollmentPolicy, 'unconfirmed');
+    assert.equal(published.admissions.futureAdmissionCount, null);
+    assert.deepEqual(published.admissions.teams.A, { cumulative: trial.annual.teams.A.admissions });
+    assert.doesNotMatch(await readFile(join(dir, 'data.js'), 'utf8'), /(?:氏名|メール|電話|住所|Prospect人物ID|会費ペイ会員ID|docs\.google\.com)/i);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

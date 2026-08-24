@@ -27,3 +27,16 @@ test('includes responsive rules for the upper trial summary', async () => {
   assert.match(source, /\.trial-summary \{ grid-template-columns: 1fr; gap: 10px/);
   assert.match(source, /\.trial-summary-breakdown \{ gap: 5px/);
 });
+
+test('renders admission-date notices only from a verified cumulative comparison, never monthlyDelta', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.match(source, /id="admission-notice"/);
+  assert.match(source, /const newAdmissionItems/);
+  assert.match(source, /reEnrollmentPolicy !== "initial-only"/);
+  assert.match(source, /futureAdmissionCount !== 0/);
+  assert.match(source, /current\.asOf > previous\.asOf/);
+  assert.match(source, /team-card-new/);
+  assert.match(source, /新規入会 \+\$\{newAdmissionCount\}/);
+  const admissionFunction = source.slice(source.indexOf('const newAdmissionItems'), source.indexOf('const renderAdmissionNotice'));
+  assert.doesNotMatch(admissionFunction, /monthlyDelta|\.members/);
+});

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { validateAdmissions } from './admission-notices.mjs';
 
 const REQUIRED_FILES = [
   'data.js',
@@ -87,6 +88,12 @@ export async function validateSnapshot(rootDir = process.cwd()) {
 
   add(errors, data.asOf === manifest.asOf, 'data.js asOf must match manifest');
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
+  if (data.admissions !== undefined) {
+    try { validateAdmissions(data.admissions); } catch (error) { add(errors, false, error.message); }
+  }
+  if (data.comparison?.admissions !== undefined) {
+    try { validateAdmissions(data.comparison.admissions, 'COMPARISON_ADMISSIONS'); } catch (error) { add(errors, false, error.message); }
+  }
   add(errors, data.scoreVersion === manifest.scoreVersion, 'data.js scoreVersion must match manifest');
   add(errors, events.scoringVersion === manifest.scoreVersion, 'event-data.js scoringVersion must match manifest');
   if (events.memberDefinition !== undefined) {
