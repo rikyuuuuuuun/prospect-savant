@@ -1,19 +1,27 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-08-24-0730",
+  "snapshotId": "savant-2026-08-25-0730",
   "scoreVersion": "v7-operational-member-denominator",
-  "asOf": "2026-08-24",
-  "asOfLabel": "2026年8月24日",
+  "asOf": "2026-08-25",
+  "asOfLabel": "2026年8月25日",
   "admissions": {
-    "asOf": "2026-08-24",
+    "asOf": "2026-08-25",
     "definition": "member-master-admission-date-annual-v1",
     "fiscalYear": "2026",
     "futureAdmissionCount": 0,
     "reEnrollmentPolicy": "including-reenrollment",
     "teams": {
-      "A": { "cumulative": 101 },
-      "B": { "cumulative": 83 },
-      "C": { "cumulative": 67 },
-      "D": { "cumulative": 53 }
+      "A": {
+        "cumulative": 101
+      },
+      "B": {
+        "cumulative": 83
+      },
+      "C": {
+        "cumulative": 67
+      },
+      "D": {
+        "cumulative": 53
+      }
     }
   },
   "periodLabel": "2026年度累計",
@@ -27,12 +35,12 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "comparison": {
     "scoreVersion": "v7-operational-member-denominator",
-    "previousAsOf": "2026-08-22",
-    "previousAsOfLabel": "2026年8月22日",
+    "previousAsOf": "2026-08-24",
+    "previousAsOfLabel": "2026年8月24日",
     "headline": {
       "members": 1058,
       "monthlyDelta": 31,
-      "admissionRate": 72.8,
+      "admissionRate": 72.6,
       "admissionPreviousRate": 68.5,
       "admissionYoYDelta": 4.3,
       "latestEventParticipants": 124
@@ -94,6 +102,27 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "memberDefinition": {
       "id": "operational-person-v1",
       "label": "人物単位運用会員"
+    },
+    "admissions": {
+      "asOf": "2026-08-24",
+      "definition": "member-master-admission-date-annual-v1",
+      "fiscalYear": "2026",
+      "futureAdmissionCount": 0,
+      "reEnrollmentPolicy": "including-reenrollment",
+      "teams": {
+        "A": {
+          "cumulative": 101
+        },
+        "B": {
+          "cumulative": 83
+        },
+        "C": {
+          "cumulative": 67
+        },
+        "D": {
+          "cumulative": 53
+        }
+      }
     }
   },
   "scoreGuide": [
@@ -154,14 +183,14 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "rank": 1,
       "members": 333,
       "monthlyDelta": 23,
-      "overall": 77,
+      "overall": 73,
       "status": "算出済",
       "metrics": {
-        "retention": 81,
+        "retention": 72,
         "admission": 88,
         "event": 66,
         "growth": 88,
-        "family": 55
+        "family": 47
       },
       "benchmark": {
         "retention12mRate": 82.4,
@@ -178,14 +207,14 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "rank": 2,
       "members": 309,
       "monthlyDelta": 5,
-      "overall": 60,
+      "overall": 64,
       "status": "算出済",
       "metrics": {
-        "retention": 48,
+        "retention": 57,
         "admission": 63,
         "event": 76,
         "growth": 63,
-        "family": 63
+        "family": 71
       },
       "benchmark": {
         "retention12mRate": 79.3,
