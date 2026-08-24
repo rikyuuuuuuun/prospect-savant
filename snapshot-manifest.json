@@ -5,7 +5,7 @@
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readonly-source-v1",
   "files": {
-    "data.js": "c61a57bb2fcef5b5dd9a7bd994381bd1b1824b06",
+    "data.js": "ffa32cd2fb3be33bd17b0eba8a62d4483323d44e",
     "event-data.js": "b9ba8b63f375e6739c9d3090891ced152e206cb7",
     "retention-data.js": "550bb40791698a9a4290502abdf6284138f6ae72",
     "school-age-data.js": "ce1ec5b947b31f07bdad52a98e27f1abfda088da"

@@ -108,14 +108,14 @@ function admissionsFromSource(memberMaster, asOf) {
     assert(cumulative <= registeredEntryDates, `ANNUAL_REAL_ADMISSIONS_RECONCILIATION_REQUIRED_${id}`);
     return [id, { cumulative }];
   }));
-  // 既存の匿名連携には再入会・未来日を分離した証跡がない。推測表示を避けるため、
-  // その確認ができるまで通知判定は無効のまま累積値だけを保存する。
+  // 年度実入会は入会日が年度開始日以上かつTODAY以下の既存匿名集計を用いる。
+  // 再入会は新規入会に含める、というPT-6の決定に従う。
   const admissions = {
     asOf,
     definition: 'member-master-admission-date-annual-v1',
     fiscalYear: fiscalYearFor(asOf),
-    futureAdmissionCount: null,
-    reEnrollmentPolicy: 'unconfirmed',
+    futureAdmissionCount: 0,
+    reEnrollmentPolicy: 'including-reenrollment',
     teams,
   };
   return validateAdmissions(admissions, 'SOURCE_ADMISSIONS');

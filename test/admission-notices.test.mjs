@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { admissionNoticeItems } from '../scripts/admission-notices.mjs';
 
-const aggregate = ({ asOf = '2026-08-24', fiscalYear = '2026', counts = { A: 10, B: 20, C: 30, D: 40 }, futureAdmissionCount = 0, reEnrollmentPolicy = 'initial-only' } = {}) => ({
+const aggregate = ({ asOf = '2026-08-24', fiscalYear = '2026', counts = { A: 10, B: 20, C: 30, D: 40 }, futureAdmissionCount = 0, reEnrollmentPolicy = 'including-reenrollment' } = {}) => ({
   asOf,
   definition: 'member-master-admission-date-annual-v1',
   fiscalYear,

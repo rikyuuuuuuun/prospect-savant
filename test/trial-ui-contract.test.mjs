@@ -32,7 +32,7 @@ test('renders admission-date notices only from a verified cumulative comparison,
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.match(source, /id="admission-notice"/);
   assert.match(source, /const newAdmissionItems/);
-  assert.match(source, /reEnrollmentPolicy !== "initial-only"/);
+  assert.match(source, /reEnrollmentPolicy !== "including-reenrollment"/);
   assert.match(source, /futureAdmissionCount !== 0/);
   assert.match(source, /current\.asOf > previous\.asOf/);
   assert.match(source, /team-card-new/);

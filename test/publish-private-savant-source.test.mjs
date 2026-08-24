@@ -83,7 +83,7 @@ test('uses the central annual source even when a direct daily aggregate carries 
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test('stores only anonymous member-master admission counters and keeps notices fail-closed until re-enrollment and future-date provenance is confirmed', async () => {
+test('stores only anonymous member-master admission counters with the approved re-enrollment and future-date policy', async () => {
   const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
@@ -95,8 +95,8 @@ test('stores only anonymous member-master admission counters and keeps notices f
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
     assert.deepEqual(Object.keys(published.admissions).sort(), ['asOf', 'definition', 'fiscalYear', 'futureAdmissionCount', 'reEnrollmentPolicy', 'teams']);
-    assert.equal(published.admissions.reEnrollmentPolicy, 'unconfirmed');
-    assert.equal(published.admissions.futureAdmissionCount, null);
+    assert.equal(published.admissions.reEnrollmentPolicy, 'including-reenrollment');
+    assert.equal(published.admissions.futureAdmissionCount, 0);
     assert.deepEqual(published.admissions.teams.A, { cumulative: trial.annual.teams.A.admissions });
     assert.doesNotMatch(await readFile(join(dir, 'data.js'), 'utf8'), /(?:氏名|メール|電話|住所|Prospect人物ID|会費ペイ会員ID|docs\.google\.com)/i);
   } finally { await rm(dir, { recursive: true, force: true }); }

@@ -1123,7 +1123,7 @@
           const previous = data.comparison?.admissions;
           const ids = ["A", "B", "C", "D"];
           if (!current || !previous || current.definition !== "member-master-admission-date-annual-v1" || current.definition !== previous.definition) return [];
-          if (current.fiscalYear !== previous.fiscalYear || current.reEnrollmentPolicy !== "initial-only" || previous.reEnrollmentPolicy !== "initial-only") return [];
+          if (current.fiscalYear !== previous.fiscalYear || current.reEnrollmentPolicy !== "including-reenrollment" || previous.reEnrollmentPolicy !== "including-reenrollment") return [];
           if (current.futureAdmissionCount !== 0 || previous.futureAdmissionCount !== 0 || !(current.asOf > previous.asOf)) return [];
           const items = ids.map((id) => {
             const after = current.teams?.[id]?.cumulative;

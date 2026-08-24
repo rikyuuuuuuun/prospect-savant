@@ -1,5 +1,5 @@
 const TEAM_IDS = Object.freeze(['A', 'B', 'C', 'D']);
-const POLICIES = new Set(['unconfirmed', 'initial-only']);
+const POLICIES = new Set(['unconfirmed', 'including-reenrollment']);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -30,7 +30,7 @@ export function validateAdmissions(admissions, label = 'ADMISSIONS') {
 }
 
 /**
- * Returns only safely comparable initial-admission deltas.  Any missing
+ * Returns only safely comparable admission-date deltas. Any missing
  * provenance, definition change, rollback, self-comparison, future-date risk,
  * or negative delta deliberately suppresses every notification.
  */
@@ -40,7 +40,7 @@ export function admissionNoticeItems(current, previous) {
     validateAdmissions(previous, 'PREVIOUS_ADMISSIONS');
     assert(current.definition === previous.definition, 'ADMISSIONS_DEFINITION_MISMATCH');
     assert(current.fiscalYear === previous.fiscalYear, 'ADMISSIONS_FISCAL_YEAR_MISMATCH');
-    assert(current.reEnrollmentPolicy === 'initial-only' && previous.reEnrollmentPolicy === 'initial-only', 'ADMISSIONS_REENROLLMENT_UNCONFIRMED');
+    assert(current.reEnrollmentPolicy === 'including-reenrollment' && previous.reEnrollmentPolicy === 'including-reenrollment', 'ADMISSIONS_REENROLLMENT_UNCONFIRMED');
     assert(current.futureAdmissionCount === 0 && previous.futureAdmissionCount === 0, 'ADMISSIONS_FUTURE_DATE_UNCONFIRMED');
     assert(current.asOf > previous.asOf, 'ADMISSIONS_NOT_FORWARD');
     const deltas = TEAM_IDS.map((id) => ({ id, count: current.teams[id].cumulative - previous.teams[id].cumulative }));

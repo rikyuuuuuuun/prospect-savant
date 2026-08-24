@@ -3,6 +3,19 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-08-24",
   "asOfLabel": "2026年8月24日",
+  "admissions": {
+    "asOf": "2026-08-24",
+    "definition": "member-master-admission-date-annual-v1",
+    "fiscalYear": "2026",
+    "futureAdmissionCount": 0,
+    "reEnrollmentPolicy": "including-reenrollment",
+    "teams": {
+      "A": { "cumulative": 101 },
+      "B": { "cumulative": 83 },
+      "C": { "cumulative": 67 },
+      "D": { "cumulative": 53 }
+    }
+  },
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
