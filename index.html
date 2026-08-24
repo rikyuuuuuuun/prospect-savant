@@ -187,6 +187,11 @@
       .trial-team strong { display: block; margin-top: 1px; color: white; font-size: 17px; font-variant-numeric: tabular-nums; }
       .trial-summary-unavailable { color: #fee2e2; font-size: 12px; }
 
+      .admission-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; padding: 13px 16px; color: #fff7d6; border: 1px solid rgba(251, 191, 36, 0.62); border-radius: 10px; background: rgba(146, 64, 14, 0.34); }
+      .admission-notice-title { font-size: 14px; font-weight: 800; }
+      .admission-notice-teams { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .admission-notice-asof { margin-left: auto; color: #fde68a; font-size: 11px; }
+
       .main { padding: 34px 0 56px; }
 
       .section-heading {
@@ -256,6 +261,8 @@
       }
 
       .team-card[hidden] { display: none; }
+      .team-card-new { border-color: rgba(217, 119, 6, 0.82); box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.18), var(--shadow); }
+      .admission-badge { display: inline-flex; align-items: center; margin: 0 0 7px; padding: 4px 7px; color: #78350f; border-radius: 999px; background: #fef3c7; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
       .team-card-head {
         display: grid;
@@ -710,6 +717,8 @@
         .trial-summary-breakdown { gap: 5px; }
         .trial-team { padding-left: 7px; font-size: 10px; }
         .trial-team strong { font-size: 15px; }
+        .admission-notice { align-items: flex-start; padding: 12px 14px; }
+        .admission-notice-asof { width: 100%; margin-left: 0; }
         .section-heading { align-items: start; flex-direction: column; gap: 6px; }
         .section-heading p { text-align: left; }
         .scale-card { grid-template-columns: 1fr; gap: 25px; }
@@ -778,6 +787,7 @@
         <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・家庭継続の5指標で比較します。</p>
         <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
         <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
+        <section class="admission-notice" id="admission-notice" aria-live="polite" hidden></section>
       </div>
     </section>
 
@@ -1107,6 +1117,30 @@
             return;
           }
           target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">${formatNumber.format(today.total)}名</div></div><div class="trial-summary-breakdown">${["A", "B", "C", "D"].map((id) => `<div class="trial-team">${id} TEAM<strong>${formatNumber.format(today.teams[id])}名</strong></div>`).join("")}</div>`;
+        };
+        const newAdmissionItems = () => {
+          const current = data.admissions;
+          const previous = data.comparison?.admissions;
+          const ids = ["A", "B", "C", "D"];
+          if (!current || !previous || current.definition !== "member-master-admission-date-annual-v1" || current.definition !== previous.definition) return [];
+          if (current.fiscalYear !== previous.fiscalYear || current.reEnrollmentPolicy !== "including-reenrollment" || previous.reEnrollmentPolicy !== "including-reenrollment") return [];
+          if (current.futureAdmissionCount !== 0 || previous.futureAdmissionCount !== 0 || !(current.asOf > previous.asOf)) return [];
+          const items = ids.map((id) => {
+            const after = current.teams?.[id]?.cumulative;
+            const before = previous.teams?.[id]?.cumulative;
+            return { id, count: after - before, valid: Number.isSafeInteger(after) && after >= 0 && Number.isSafeInteger(before) && before >= 0 };
+          });
+          return items.every((item) => item.valid && item.count >= 0) ? items.filter((item) => item.count > 0) : [];
+        };
+        const renderAdmissionNotice = (items) => {
+          const target = document.getElementById("admission-notice");
+          if (!items.length) {
+            target.hidden = true;
+            target.textContent = "";
+            return;
+          }
+          target.hidden = false;
+          target.innerHTML = `<span class="admission-notice-title">🎉 新規入会</span><span class="admission-notice-teams">${items.map((item) => `${item.id} TEAM +${item.count}`).join(" ・ ")}</span><span class="admission-notice-asof">基準日 ${data.admissions.asOf}</span>`;
         };
         const eventChipDate = (event) => {
           const [year, month, day] = isoParts(event.startDate);
@@ -2019,6 +2053,9 @@
           <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-detail">${detail}</div></article>
         `).join("");
         renderTrialSummary();
+        const newAdmissions = newAdmissionItems();
+        const newAdmissionsByTeam = new Map(newAdmissions.map((item) => [item.id, item.count]));
+        renderAdmissionNotice(newAdmissions);
 
         document.getElementById("score-scale").innerHTML = data.scoreGuide.map((item) => `
           <span class="scale-tick" style="left:${item.value}%">${item.value}<br>${item.label}</span>
@@ -2030,6 +2067,7 @@
         `).join("");
 
         document.getElementById("team-grid").innerHTML = data.teams.map((team) => {
+          const newAdmissionCount = newAdmissionsByTeam.get(team.id);
           const order = strongest(team);
           const previousTeam = data.comparison?.teams?.find((item) => item.id === team.id);
           const overallChange = data.scoreVersion === data.comparison?.scoreVersion && previousTeam ? team.overall - previousTeam.overall : 0;
@@ -2047,12 +2085,13 @@
             return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
           }).join("");
           return `
-            <article class="team-card" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点">
+            <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">
               <div class="team-card-head">
                 <div class="score-ring" style="--score:${team.overall};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${team.overall}</strong><span>OVERALL</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
                 <div>
                   <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
+                  ${newAdmissionCount ? `<span class="admission-badge">新規入会 +${newAdmissionCount}</span>` : ""}
                   <p class="team-meta">前月差 <span class="${deltaClass}">${formatDelta(team.monthlyDelta)}${Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
                   <div class="focus-row"><span class="focus-badge strong">強み：${strengthLabels}</span><span class="focus-badge watch">改善：${priorityLabel}</span></div>
                 </div>

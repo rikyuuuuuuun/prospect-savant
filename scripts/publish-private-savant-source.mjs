@@ -4,6 +4,7 @@ import { resolve, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { gitBlobSha, parseFrozenJson, publishTrialData, validatePublishedTrialData } from './trial-publication.mjs';
+import { validateAdmissions } from './admission-notices.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { fiscalYearFor, serialToIsoDate, trialPublicInput } from './private-trial-aggregate.mjs';
 
@@ -19,6 +20,7 @@ const RANGES = Object.freeze({
   admission: "'06_入会力（年度）'!A1:H12",
   schoolAge: "'09_学齢継続'!A1:J12",
   curve: "'10_定着曲線'!A1:K17",
+  memberMaster: "'98_会員マスター連携'!A4:AE9",
   quality: "'99_データ品質'!A1:F20",
 });
 
@@ -97,11 +99,34 @@ function annualFromSource(admission) {
   }));
 }
 
+function admissionsFromSource(memberMaster, asOf) {
+  const rows = teamRows(memberMaster, 0);
+  const teams = Object.fromEntries(TEAM_IDS.map((id) => {
+    const row = rows.get(id);
+    const registeredEntryDates = requiredCount(row[5], `ADMISSION_DATE_REGISTERED_${id}`);
+    const cumulative = requiredCount(row[8], `ANNUAL_REAL_ADMISSIONS_${id}`);
+    assert(cumulative <= registeredEntryDates, `ANNUAL_REAL_ADMISSIONS_RECONCILIATION_REQUIRED_${id}`);
+    return [id, { cumulative }];
+  }));
+  // 年度実入会は入会日が年度開始日以上かつTODAY以下の既存匿名集計を用いる。
+  // 再入会は新規入会に含める、というPT-6の決定に従う。
+  const admissions = {
+    asOf,
+    definition: 'member-master-admission-date-annual-v1',
+    fiscalYear: fiscalYearFor(asOf),
+    futureAdmissionCount: 0,
+    reEnrollmentPolicy: 'including-reenrollment',
+    teams,
+  };
+  return validateAdmissions(admissions, 'SOURCE_ADMISSIONS');
+}
+
 function updateData(data, ranges, asOf) {
   const dashboard = ranges.dashboard;
   const teamComparison = teamRows(ranges.teams, 3);
   const retention = teamRows(ranges.retention, 3);
   const annual = annualFromSource(ranges.admission);
+  const admissions = admissionsFromSource(ranges.memberMaster, asOf);
   const eventSummary = teamRows(ranges.events, 3);
   const oldData = structuredClone(data);
   assert(asOf >= oldData.asOf, 'SOURCE_ASOF_OLDER_THAN_PUBLIC');
@@ -109,6 +134,7 @@ function updateData(data, ranges, asOf) {
   data.snapshotId = `savant-${asOf}-0730`;
   data.asOf = asOf;
   data.asOfLabel = formatJapaneseDate(asOf);
+  data.admissions = admissions;
   // 4行目は見出し、5行目がダッシュボードの集計値。見出しを数値として扱わない。
   data.headline.members = requiredNumber(dashboard[4]?.[0], 'DASHBOARD_MEMBERS');
   data.headline.monthlyDelta = requiredNumber(dashboard[4]?.[1], 'DASHBOARD_MONTHLY_DELTA');
@@ -159,6 +185,7 @@ function updateData(data, ranges, asOf) {
       headline: oldData.headline,
       teams: oldData.teams.map((team) => ({ id: team.id, rank: team.rank, members: team.members, overall: team.overall, metrics: team.metrics })),
       memberDefinition: oldData.memberDefinition,
+      ...(oldData.admissions ? { admissions: oldData.admissions } : {}),
     };
   }
   return annual;
