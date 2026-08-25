@@ -77,9 +77,10 @@ function buildFamilyEvidence(rows, configRows, teams) {
     const components = {};
     for (const component of FAMILY_COMPONENTS) {
       const denominator = count(row[component.denominatorIndex]);
-      const rate = pctFromFraction(row[component.rateIndex]);
+      const rawRate = rawPctFromFraction(row[component.rateIndex]);
+      const rate = rawRate === null ? null : round1(rawRate);
       let numerator = component.numeratorIndex === undefined ? null : count(row[component.numeratorIndex]);
-      if (component.key === 'retention2y' && denominator !== null && rate !== null) numerator = retainedFromRate(denominator, rate);
+      if (component.key === 'retention2y' && denominator !== null && rawRate !== null) numerator = retainedFromRate(denominator, rawRate);
       components[component.key] = {
         key: component.key, label: component.label, numerator, denominator, rate,
         relativeScore: componentScores[id][component.key], weight: weights[component.key],
