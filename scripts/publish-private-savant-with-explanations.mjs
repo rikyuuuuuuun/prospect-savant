@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { spawnSync } from 'node:child_process';
 import { gitBlobSha } from './trial-publication.mjs';
 import { parsePublicSource, publishPrivateSavantSource } from './publish-private-savant-source.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
@@ -29,6 +30,29 @@ function metricRanges(snapshot) {
   for (const [key, rows] of Object.entries(ranges)) assert(Array.isArray(rows) && rows.length, `METRIC_EVIDENCE_RANGE_MISSING_${key}`);
   return ranges;
 }
+function git(root, args) {
+  const result = spawnSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
+  if (result.status !== 0) return null;
+  return result.stdout;
+}
+function gitPublic(root, revision, file) {
+  const source = git(root, ['show', `${revision}:${file}`]);
+  if (!source) return null;
+  try { return parsePublicSource(source, file); } catch { return null; }
+}
+function historicalSnapshot(root, targetAsOf) {
+  if (!targetAsOf) return null;
+  const revisions = String(git(root, ['rev-list', '--max-count=50', 'HEAD']) || '').trim().split('\n').filter(Boolean);
+  for (const revision of revisions) {
+    const data = gitPublic(root, revision, 'data.js');
+    if (data?.asOf !== targetAsOf) continue;
+    const retentionCurve = gitPublic(root, revision, 'retention-data.js');
+    const eventHistory = gitPublic(root, revision, 'event-data.js');
+    const trialData = gitPublic(root, revision, 'trial-data.js');
+    if (retentionCurve && eventHistory && trialData) return { data, retentionCurve, eventHistory, trialData, revision };
+  }
+  return null;
+}
 function carryPreviousMetricEvidence(data, previousData) {
   if (!data?.comparison?.teams?.length || data.comparison.previousAsOf !== previousData?.asOf || data.comparison.scoreVersion !== previousData?.scoreVersion) return;
   const previousTeams = new Map((previousData.teams || []).map((team) => [team.id, team]));
@@ -43,7 +67,7 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
   const root = resolve(rootDir);
   const snapshot = JSON.parse(await readFile(resolve(sourcePath), 'utf8'));
   const ranges = metricRanges(snapshot);
-  const [previousData, previousRetentionCurve, previousEventHistory, previousTrialData] = await Promise.all([
+  const [currentPublicData, currentPublicRetention, currentPublicEvents, currentPublicTrial] = await Promise.all([
     readPublic(root, 'data.js'),
     readPublic(root, 'retention-data.js'),
     readPublic(root, 'event-data.js'),
@@ -56,10 +80,17 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
     readPublic(root, 'retention-data.js'),
     readPublic(root, 'event-data.js'),
   ]);
-  carryPreviousMetricEvidence(data, previousData);
+
+  const previousAsOf = data.comparison?.previousAsOf;
+  const previousSnapshot = currentPublicData.asOf === previousAsOf
+    ? { data: currentPublicData, retentionCurve: currentPublicRetention, eventHistory: currentPublicEvents, trialData: currentPublicTrial }
+    : historicalSnapshot(root, previousAsOf);
+  carryPreviousMetricEvidence(data, previousSnapshot?.data);
   applyMetricEvidenceAndExplanations({
     data, ranges, retentionCurve, eventHistory,
-    previousRetentionCurve, previousEventHistory, previousTrialData,
+    previousRetentionCurve: previousSnapshot?.retentionCurve,
+    previousEventHistory: previousSnapshot?.eventHistory,
+    previousTrialData: previousSnapshot?.trialData,
   });
 
   const dataSource = jsonSource('PROSPECT_SAVANT_DATA', data);
@@ -71,12 +102,7 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
   const validation = await validateSnapshot(root);
   assert(validation.ok, `METRIC_EXPLANATION_SNAPSHOT_INVALID:${validation.errors.join(',')}`);
 
-  if (dryRun) {
-    // Underlying publisher writes the verified candidate into root. Restore behavior expected by callers by signaling dry-run only;
-    // workflow uses a disposable checkout, while unit tests should call the pure explanation helpers.
-    return { ...result, dryRun: true, metricExplanations: true };
-  }
-  return { ...result, metricExplanations: true };
+  return { ...result, dryRun, metricExplanations: true, previousEvidenceAsOf: previousSnapshot?.data?.asOf || null };
 }
 
 async function main() {
