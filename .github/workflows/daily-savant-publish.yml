@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           # dry-runも同じ候補を生成する。コミット・Pages配備の有無だけを後段で分ける。
-          node scripts/publish-private-savant-source.mjs .private/savant-source.json .
+          node scripts/publish-private-savant-with-explanations.mjs .private/savant-source.json .
           npm test
           npm run validate:snapshot
           node --check data.js
