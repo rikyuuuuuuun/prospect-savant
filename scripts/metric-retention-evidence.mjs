@@ -85,7 +85,7 @@ export function buildRetentionEvidenceFromSource(rows, minimumSample = 20) {
     });
     const rates = candidates.filter((entry) => entry.eligible).map((entry) => entry.rawRate);
     for (const entry of candidates) {
-      const retained = entry.eligible ? retainedFromRate(entry.sample, entry.rate) : null;
+      const retained = entry.eligible ? retainedFromRate(entry.sample, entry.rawRate) : null;
       periodsByTeam[entry.id].push({
         key: period.key, label: period.label, months: period.months, weight: period.weight,
         sample: entry.sample, retained,
