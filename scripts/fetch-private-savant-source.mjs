@@ -20,6 +20,13 @@ const RANGES = [
   "'99_データ品質'!A1:F20",
 ];
 
+const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
+const GOOGLE_SHEETS_TIMEOUT_MS = 15_000;
+const GOOGLE_SHEETS_MAX_RETRY_DELAY_MS = 30_000;
+const GOOGLE_SHEETS_RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+
+const wait = (milliseconds) => new Promise((resolveWait) => setTimeout(resolveWait, milliseconds));
+
 function base64url(input) {
   return Buffer.from(input).toString('base64url');
 }
@@ -68,10 +75,72 @@ export async function getAccessToken(serviceAccount) {
   return body.access_token;
 }
 
-async function googleJson(url, token) {
-  const response = await fetch(url, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15_000) });
-  if (!response.ok) throw new Error(`GOOGLE_SHEETS_${response.status}`);
-  return response.json();
+function retryAfterMilliseconds(headers, now = Date.now()) {
+  const raw = headers?.get?.('retry-after');
+  if (!raw) return null;
+  const seconds = Number(raw);
+  const milliseconds = Number.isFinite(seconds) ? seconds * 1_000 : Date.parse(raw) - now;
+  if (!Number.isFinite(milliseconds)) return null;
+  return Math.min(GOOGLE_SHEETS_MAX_RETRY_DELAY_MS, Math.max(0, milliseconds));
+}
+
+function sheetsError(code, { retryAfterMs } = {}) {
+  const error = new Error(code);
+  if (Number.isFinite(retryAfterMs)) error.retryAfterMs = retryAfterMs;
+  return error;
+}
+
+function transientSheetsFailure(error) {
+  const code = String(error?.message || '');
+  const status = Number(code.match(/^GOOGLE_SHEETS_(\d{3})$/)?.[1]);
+  if (GOOGLE_SHEETS_RETRYABLE_STATUS_CODES.has(status)) return { code, status, retryAfterMs: error.retryAfterMs };
+  if (code === 'GOOGLE_SHEETS_TIMEOUT' || code === 'GOOGLE_SHEETS_NETWORK') return { code, status: null, retryAfterMs: null };
+  return null;
+}
+
+function retryDelayMilliseconds(failure, attempt, random) {
+  const initialDelay = failure.status === 429 ? 2_000 : 1_000;
+  const exponentialDelay = initialDelay * (2 ** (attempt - 1));
+  const jitter = Math.floor(random() * 1_001);
+  return Math.min(
+    GOOGLE_SHEETS_MAX_RETRY_DELAY_MS,
+    Math.max(exponentialDelay + jitter, failure.retryAfterMs || 0),
+  );
+}
+
+export async function googleJson(url, token, { fetchImpl = fetch, timeoutMs = GOOGLE_SHEETS_TIMEOUT_MS } = {}) {
+  const signal = AbortSignal.timeout(timeoutMs);
+  try {
+    // AbortSignalはattemptごとに生成する。retry後のreadを最初のtimeoutで中断させない。
+    const response = await fetchImpl(url, { headers: { authorization: `Bearer ${token}` }, signal });
+    if (!response.ok) {
+      throw sheetsError(`GOOGLE_SHEETS_${response.status}`, { retryAfterMs: retryAfterMilliseconds(response.headers) });
+    }
+    return await response.json();
+  } catch (error) {
+    if (String(error?.message || '').startsWith('GOOGLE_SHEETS_')) throw error;
+    if (signal.aborted || error?.name === 'TimeoutError' || error?.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') throw sheetsError('GOOGLE_SHEETS_TIMEOUT');
+    if (error instanceof TypeError || error?.name === 'TypeError') throw sheetsError('GOOGLE_SHEETS_NETWORK');
+    // JSON本文の破損は、URLや本文断片を出さず非retryで停止する。
+    throw sheetsError('GOOGLE_SHEETS_RESPONSE_INVALID');
+  }
+}
+
+export function createRetriableGoogleJson({ requestJson = googleJson, sleep = wait, random = Math.random, logger = console.warn, maxAttempts = GOOGLE_SHEETS_MAX_ATTEMPTS } = {}) {
+  return async (url, token) => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        return await requestJson(url, token);
+      } catch (error) {
+        const failure = transientSheetsFailure(error);
+        if (!failure || attempt === maxAttempts) throw error;
+        const diagnostic = failure.status === null ? `code=${failure.code}` : `status=${failure.status}`;
+        logger(`Google Sheets transient read failure: ${diagnostic} attempt=${attempt}/${maxAttempts}; retrying`);
+        await sleep(retryDelayMilliseconds(failure, attempt, random));
+      }
+    }
+    throw new Error('GOOGLE_SHEETS_RETRY_EXHAUSTED');
+  };
 }
 
 function quotedRange(title, column, endRow) {
@@ -84,7 +153,7 @@ function firstColumn(values) {
 
 function safeTrialFailureCode(error) {
   const message = String(error?.message || '');
-  const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID)$/);
+  const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_TIMEOUT|GOOGLE_SHEETS_NETWORK|GOOGLE_SHEETS_RESPONSE_INVALID|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID)$/);
   return match ? match[1] : 'UNKNOWN';
 }
 
@@ -141,35 +210,34 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
   return [team, aggregateTeam({ sheets: privateColumns, targetDate })];
 }
 
-export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson }) {
+export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
   const fiscalYear = fiscalYearFor(targetDate);
   const token = await getToken(serviceAccount);
-  const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, requestJson)));
+  const retriableRequestJson = createRetriableGoogleJson({ requestJson, ...retryOptions });
+  const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, retriableRequestJson)));
   const failures = settled.flatMap((result, index) => result.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(result.reason)}`] : []);
   if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
   const aggregates = Object.fromEntries(settled.map((result) => result.value));
   return { targetDate, fiscalYear, aggregates };
 }
 
-export async function fetchPrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath }) {
+export async function fetchPrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath, getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
   if (!spreadsheetId) throw new Error('SAVANT_SPREADSHEET_ID is required');
   if (!serviceAccountJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is required');
   const serviceAccount = parseServiceAccount(serviceAccountJson);
-  const token = await getAccessToken(serviceAccount);
+  const token = await getToken(serviceAccount);
   const params = new URLSearchParams({ majorDimension: 'ROWS', valueRenderOption: 'UNFORMATTED_VALUE' });
   for (const range of RANGES) params.append('ranges', range);
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet?${params}`;
-  const response = await fetch(url, { headers: { authorization: `Bearer ${token}` } });
-  if (!response.ok) throw new Error(`Google Sheets batchGet failed: HTTP ${response.status}`);
-  const payload = await response.json();
+  const payload = await createRetriableGoogleJson({ requestJson, ...retryOptions })(url, token);
   const valueRanges = Array.isArray(payload.valueRanges) ? payload.valueRanges : [];
   if (valueRanges.length !== RANGES.length) {
     throw new Error(`expected ${RANGES.length} ranges, received ${valueRanges.length}`);
   }
   if (!trialSheetIdsJson) throw new Error('PROSPECT_TRIAL_SHEET_IDS_JSON is required');
-  const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson });
+  const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, getToken, requestJson, retryOptions });
   const privateSnapshot = {
     fetchedAt: new Date().toISOString(),
     ranges: Object.fromEntries(valueRanges.map((entry, index) => [RANGES[index], entry.values || []])),
