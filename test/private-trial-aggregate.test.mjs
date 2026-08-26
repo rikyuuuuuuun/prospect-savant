@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { access, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { aggregateTeam, discoverDailyTrialSchema, discoverTrialSchema, fiscalYearFor, parseSheetIds, serialToIsoDate, trialPublicInput } from '../scripts/private-trial-aggregate.mjs';
-import { fetchPrivateTrialAggregate } from '../scripts/fetch-private-savant-source.mjs';
+import { createRetriableGoogleJson, fetchPrivateSavantSource, fetchPrivateTrialAggregate, googleJson } from '../scripts/fetch-private-savant-source.mjs';
 
 const serial = (iso) => Math.floor((Date.parse(`${iso}T00:00:00Z`) - Date.UTC(1899, 11, 30)) / 86_400_000);
 
@@ -13,6 +16,32 @@ function sheet(rows) {
     admissionColumn: ['入会', ...rows.map((row) => row.admission)],
   };
 }
+
+function successfulTrialRequest(rawUrl) {
+  const url = new URL(rawUrl);
+  if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
+    return { valueRanges: Array.from({ length: 13 }, () => ({ values: [] })) };
+  }
+  if (!url.pathname.endsWith('/values:batchGet')) return { sheets: [
+    { properties: { title: '予約', gridProperties: { rowCount: 4 } } },
+    { properties: { title: '補助', gridProperties: { rowCount: 4 } } },
+  ] };
+  const ranges = url.searchParams.getAll('ranges');
+  if (ranges.every((range) => range.endsWith('A1:A4'))) {
+    return { valueRanges: ranges.map((_, index) => ({ values: index === 0 ? [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] : [[]] })) };
+  }
+  if (ranges.every((range) => range.endsWith('E1:H1'))) return { valueRanges: [{ values: [['出席確認', '入会']] }] };
+  return { valueRanges: [{ values: [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] }] };
+}
+
+const testSourceOptions = (requestJson, retryOptions = {}) => ({
+  serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+  trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}',
+  targetDate: '2026-08-22',
+  getToken: async () => 'test-token',
+  requestJson,
+  retryOptions: { sleep: async () => {}, random: () => 0, logger: () => {}, ...retryOptions },
+});
 
 test('valid zero remains ok rather than unavailable', () => {
   const result = aggregateTeam({
@@ -126,4 +155,117 @@ test('reads only date columns and fails closed when any of four team sources fai
     return requestJson(url, token);
   } });
   assert.deepEqual(multipleTables.aggregates, { A: { today: 2 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
+});
+
+test('recovers all four trial aggregates after one B-team Sheets 503 without real waiting', async () => {
+  let bAttempts = 0;
+  const delays = [];
+  const logs = [];
+  const result = await fetchPrivateTrialAggregate(testSourceOptions(async (url) => {
+    if (String(url).includes('/spreadsheets/b?') && bAttempts++ === 0) throw new Error('GOOGLE_SHEETS_503');
+    return successfulTrialRequest(url);
+  }, { sleep: async (delay) => delays.push(delay), logger: (message) => logs.push(message) }));
+
+  assert.deepEqual(result.aggregates, { A: { today: 1 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
+  assert.equal(bAttempts, 2);
+  assert.deepEqual(delays, [1_000]);
+  assert.deepEqual(logs, ['Google Sheets transient read failure: status=503 attempt=1/4; retrying']);
+});
+
+test('uses all retry attempts for a repeated B-team 503, then fails closed before writing a snapshot', async () => {
+  let bAttempts = 0;
+  const delays = [];
+  const tempDir = await mkdtemp(join(tmpdir(), 'prospect-savant-retry-'));
+  const outputPath = join(tempDir, 'savant-source.json');
+  try {
+    await assert.rejects(
+      () => fetchPrivateSavantSource({
+        spreadsheetId: 'savant', outputPath,
+        ...testSourceOptions(async (url) => {
+          if (String(url).includes('/spreadsheets/b?')) {
+            bAttempts += 1;
+            throw new Error('GOOGLE_SHEETS_503');
+          }
+          return successfulTrialRequest(url);
+        }, { sleep: async (delay) => delays.push(delay) }),
+      }),
+      /^Error: TRIAL_SOURCE_UNAVAILABLE_B_GOOGLE_SHEETS_503$/,
+    );
+    assert.equal(bAttempts, 4);
+    assert.deepEqual(delays, [1_000, 2_000, 4_000]);
+    await assert.rejects(() => access(outputPath));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('does not retry a B-team 403', async () => {
+  let bAttempts = 0;
+  const delays = [];
+  await assert.rejects(
+    () => fetchPrivateTrialAggregate(testSourceOptions(async (url) => {
+      if (String(url).includes('/spreadsheets/b?')) {
+        bAttempts += 1;
+        throw new Error('GOOGLE_SHEETS_403');
+      }
+      return successfulTrialRequest(url);
+    }, { sleep: async (delay) => delays.push(delay) })),
+    /^Error: TRIAL_SOURCE_UNAVAILABLE_B_GOOGLE_SHEETS_403$/,
+  );
+  assert.equal(bAttempts, 1);
+  assert.deepEqual(delays, []);
+});
+
+test('retries attempt-local timeout and network failures without exposing a request URL', async () => {
+  const signals = [];
+  let attempts = 0;
+  const requestJson = (url, token) => googleJson(url, token, {
+    fetchImpl: async (_url, options) => {
+      signals.push(options.signal);
+      attempts += 1;
+      if (attempts === 1) {
+        const error = new Error('timed out');
+        error.name = 'TimeoutError';
+        throw error;
+      }
+      if (attempts === 2) return { ok: true, json: async () => { throw new TypeError('body connection lost'); }, headers: new Headers() };
+      return { ok: true, json: async () => ({ ok: true }), headers: new Headers() };
+    },
+  });
+  const delays = [];
+  const result = await createRetriableGoogleJson({ requestJson, sleep: async (delay) => delays.push(delay), random: () => 0, logger: () => {} })('https://sheets.invalid/private-id', 'token');
+  assert.deepEqual(result, { ok: true });
+  assert.equal(attempts, 3);
+  assert.deepEqual(delays, [1_000, 2_000]);
+  assert.notEqual(signals[0], signals[1]);
+
+  let quotaAttempts = 0;
+  const quotaDelays = [];
+  await createRetriableGoogleJson({
+    requestJson: (url, token) => googleJson(url, token, {
+      fetchImpl: async () => {
+        quotaAttempts += 1;
+        if (quotaAttempts === 1) return { ok: false, status: 429, headers: new Headers({ 'retry-after': '4' }) };
+        return { ok: true, json: async () => ({ ok: true }), headers: new Headers() };
+      },
+    }),
+    sleep: async (delay) => quotaDelays.push(delay), random: () => 0, logger: () => {},
+  })('https://sheets.invalid/private-id', 'token');
+  assert.equal(quotaAttempts, 2);
+  assert.deepEqual(quotaDelays, [4_000]);
+
+  await assert.rejects(
+    () => googleJson('https://sheets.invalid/private-id', 'token', {
+      fetchImpl: async () => ({ ok: true, json: async () => { throw new SyntaxError('private response fragment'); }, headers: new Headers() }),
+    }),
+    (error) => error.message === 'GOOGLE_SHEETS_RESPONSE_INVALID' && !error.message.includes('private'),
+  );
+
+  await assert.rejects(
+    () => fetchPrivateTrialAggregate(testSourceOptions(async (url) => {
+      if (String(url).includes('/spreadsheets/b?')) throw new Error('GOOGLE_SHEETS_NETWORK');
+      return successfulTrialRequest(url);
+    })),
+    (error) => error.message === 'TRIAL_SOURCE_UNAVAILABLE_B_GOOGLE_SHEETS_NETWORK' && !error.message.includes('private-id'),
+  );
 });
