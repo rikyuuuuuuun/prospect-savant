@@ -40,6 +40,31 @@ test('builds anonymous evidence that reconciles to the five public metric scores
   assert.equal(evidence.A.growth.weightedPoints,349);
 });
 
+test('accepts only superficial family weight-label formatting differences', () => {
+  const f=fixtures();
+  f.ranges.config=[
+    ['x'],
+    ['家庭継続力：　兄弟姉妹重み','.25'],
+    ['家庭継続力: 2年継続重み',.20],
+    ['家庭継続力　再入会重み',.20],
+    ['家庭継続力 イベント継続重み',.15],
+  ];
+  const evidence=buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory});
+  assert.equal(evidence.A.family.components.sibling.weight,25);
+  assert.equal(evidence.A.family.components.retention2y.weight,20);
+  assert.equal(evidence.A.family.components.reentry.weight,20);
+  assert.equal(evidence.A.family.components.eventRepeat.weight,15);
+});
+
+test('fails closed when a family weight label changes meaning', () => {
+  const f=fixtures();
+  f.ranges.config[1][0]='家庭継続力 兄弟世帯重み';
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_MISSING/,
+  );
+});
+
 test('explains A retention drop as a B-team crossover instead of inventing A churn', () => {
   const f=fixtures();
   applyMetricEvidenceAndExplanations(f);

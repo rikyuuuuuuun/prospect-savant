@@ -47,10 +47,14 @@ function buildGrowthEvidence(rows, data) {
   }));
 }
 
+function configLabel(value) {
+  return String(value ?? '').normalize('NFKC').replace(/[\s:：]/g, '');
+}
+
 function familyWeights(rows) {
   const weights = {};
   for (const component of FAMILY_COMPONENTS) {
-    const row = rows.find((candidate) => candidate?.[0] === component.weightLabel);
+    const row = rows.find((candidate) => configLabel(candidate?.[0]) === configLabel(component.weightLabel));
     const value = number(row?.[1]);
     assertEvidence(value !== null && value > 0, `FAMILY_WEIGHT_${component.key}_MISSING`);
     weights[component.key] = value <= 1 ? round1(value * 100) : round1(value);
