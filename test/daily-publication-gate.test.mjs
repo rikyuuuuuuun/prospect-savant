@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { FALLBACK_SCHEDULE, PRIMARY_SCHEDULE, evaluateDailyPublicationGate, publicationTrigger, tokyoDate, validateScheduledCandidateAsOf } from '../scripts/daily-publication-gate.mjs';
 
 const scheduledGate = (schedule, currentPublishedAsOf) => evaluateDailyPublicationGate({
@@ -51,4 +54,10 @@ test('both fallback after primary and delayed primary after fallback are safe no
 test('scheduled candidates must match the Tokyo target date, while manual diagnostics remain allowed', () => {
   assert.throws(() => validateScheduledCandidateAsOf({ eventName: 'schedule', candidateAsOf: '2026-08-26', targetDate: '2026-08-27' }), /CANDIDATE_ASOF_TARGET_DATE_MISMATCH/);
   assert.doesNotThrow(() => validateScheduledCandidateAsOf({ eventName: 'workflow_dispatch', candidateAsOf: '2026-08-26', targetDate: '2026-08-27' }));
+});
+
+test('can import the gate from stdin-style ESM without invoking its CLI entry point', () => {
+  const moduleUrl = pathToFileURL(resolve('scripts/daily-publication-gate.mjs')).href;
+  const result = spawnSync(process.execPath, ['--input-type=module', '--eval', `import ${JSON.stringify(moduleUrl)};`], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
 });

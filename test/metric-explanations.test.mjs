@@ -37,7 +37,98 @@ test('builds anonymous evidence that reconciles to the five public metric scores
   assert.deepEqual(evidence.A.retention.periods.find(p=>p.months===24), {key:'y2',label:'2年',months:24,weight:4,sample:408,retained:236,exited:172,rate:57.8,relativeScore:50,scored:true});
   assert.equal(evidence.A.family.components.sibling.numerator,66);
   assert.equal(evidence.A.family.components.sibling.denominator,254);
+  assert.equal(evidence.A.family.calculatedScore,46.9);
   assert.equal(evidence.A.growth.weightedPoints,349);
+});
+
+test('uses the canonical family score inputs instead of stale detailed-table rates', () => {
+  const f=fixtures();
+  f.ranges.family[5][1]=.5794621026894866;
+  const evidence=buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory});
+  assert.equal(evidence.A.family.calculatedScore,46.9);
+  assert.equal(evidence.A.family.components.retention2y.rate,57.9);
+  assert.equal(evidence.A.family.components.retention2y.numerator,null);
+  assert.equal(evidence.A.family.components.retention2y.denominator,null);
+});
+
+test('withholds detailed family counts when they no longer reconcile to the canonical rate', () => {
+  const f=fixtures();
+  f.ranges.family.find((row) => row?.[0] === 'A')[2]=65;
+  const evidence=buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory});
+  assert.equal(evidence.A.family.components.sibling.rate,26);
+  assert.equal(evidence.A.family.components.sibling.numerator,null);
+  assert.equal(evidence.A.family.components.sibling.denominator,null);
+});
+
+test('explains a canonical family rate when stale detailed counts are withheld', () => {
+  const f=fixtures();
+  f.ranges.family[5][1]=.5794621026894866;
+  applyMetricEvidenceAndExplanations(f);
+  const note=f.data.teams.find((team) => team.id === 'A').note;
+  assert.match(note,/2年継続率 57\.9%（相対点50\.0、人数内訳は現行率と整合しないため非表示）/);
+  assert.doesNotMatch(note,/2年継続率は対象不足/);
+  assert.doesNotMatch(note,/2年継続率 57\.8%/);
+});
+
+test('fails closed when a canonical family rate is outside 0 to 100 percent', () => {
+  const f=fixtures();
+  f.ranges.family[4][1]=1.1;
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_CANONICAL_sibling_A_RATE_INVALID/,
+  );
+});
+
+test('accepts only superficial family weight-label formatting differences', () => {
+  const f=fixtures();
+  f.ranges.config=[
+    ['x'],
+    ['家庭継続力：　兄弟姉妹重み','.25'],
+    ['家庭継続力: 2年継続重み',.20],
+    ['家庭継続力　再入会重み',.20],
+    ['家庭継続力 イベント継続重み',.15],
+  ];
+  const evidence=buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory});
+  assert.equal(evidence.A.family.components.sibling.weight,25);
+  assert.equal(evidence.A.family.components.retention2y.weight,20);
+  assert.equal(evidence.A.family.components.reentry.weight,20);
+  assert.equal(evidence.A.family.components.eventRepeat.weight,15);
+});
+
+test('fails closed when a family weight label changes meaning', () => {
+  const f=fixtures();
+  f.ranges.config[1][0]='家庭継続力 兄弟世帯重み';
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_LABEL_MISSING/,
+  );
+});
+
+test('classifies unsupported family-weight column placement without logging source cells', () => {
+  const f=fixtures();
+  f.ranges.config[1]=['別の設定','家庭継続力 兄弟姉妹重み',.25];
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_LABEL_COLUMN_UNSUPPORTED/,
+  );
+});
+
+test('fails closed when normalized family-weight labels are duplicated', () => {
+  const f=fixtures();
+  f.ranges.config.push(['家庭継続力：兄弟姉妹重み',.25]);
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_LABEL_AMBIGUOUS/,
+  );
+});
+
+test('fails closed when a family-weight value is not positive', () => {
+  const f=fixtures();
+  f.ranges.config[1][1]=0;
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_VALUE_INVALID/,
+  );
 });
 
 test('explains A retention drop as a B-team crossover instead of inventing A churn', () => {

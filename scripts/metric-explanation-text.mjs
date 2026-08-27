@@ -86,7 +86,10 @@ function explainGrowth(current, previous, currentScore, previousScore, previousL
 }
 
 function componentBasis(component) {
-  if (!component || component.denominator === null || component.numerator === null || component.rate === null) return `${component?.label || '指標'}は対象不足`;
+  if (!component || component.rate === null || !Number.isFinite(component.relativeScore)) return `${component?.label || '指標'}は対象不足`;
+  if (component.denominator === null || component.numerator === null) {
+    return `${component.label} ${component.rate.toFixed(1)}%（相対点${component.relativeScore.toFixed(1)}、人数内訳は現行率と整合しないため非表示）`;
+  }
   const suffix = component.key === 'sibling' ? '世帯' : '人';
   return `${component.label} ${component.numerator}/${component.denominator}${suffix}・${component.rate.toFixed(1)}%（相対点${component.relativeScore.toFixed(1)}）`;
 }
