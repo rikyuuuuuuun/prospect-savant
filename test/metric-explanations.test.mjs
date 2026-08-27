@@ -61,7 +61,34 @@ test('fails closed when a family weight label changes meaning', () => {
   f.ranges.config[1][0]='家庭継続力 兄弟世帯重み';
   assert.throws(
     () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
-    /FAMILY_WEIGHT_sibling_MISSING/,
+    /FAMILY_WEIGHT_sibling_LABEL_MISSING/,
+  );
+});
+
+test('classifies unsupported family-weight column placement without logging source cells', () => {
+  const f=fixtures();
+  f.ranges.config[1]=['別の設定','家庭継続力 兄弟姉妹重み',.25];
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_LABEL_COLUMN_UNSUPPORTED/,
+  );
+});
+
+test('fails closed when normalized family-weight labels are duplicated', () => {
+  const f=fixtures();
+  f.ranges.config.push(['家庭継続力：兄弟姉妹重み',.25]);
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_LABEL_AMBIGUOUS/,
+  );
+});
+
+test('fails closed when a family-weight value is not positive', () => {
+  const f=fixtures();
+  f.ranges.config[1][1]=0;
+  assert.throws(
+    () => buildMetricEvidence({data:f.data,ranges:f.ranges,retentionCurve:f.retentionCurve,eventHistory:f.eventHistory}),
+    /FAMILY_WEIGHT_sibling_VALUE_INVALID/,
   );
 });
 
