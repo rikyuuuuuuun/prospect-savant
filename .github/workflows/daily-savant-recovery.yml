@@ -1,0 +1,84 @@
+name: Recover Prospect Savant Daily Publish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/daily-savant-recovery.yml'
+  schedule:
+    # Independent watchdog after the primary/fallback window. Avoid top-of-hour load.
+    - cron: '20 9 * * *'
+      timezone: Asia/Tokyo
+    - cron: '20 12 * * *'
+      timezone: Asia/Tokyo
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: prospect-savant-daily-recovery
+  cancel-in-progress: false
+
+jobs:
+  recover-if-stale:
+    name: Dispatch publisher only when today's snapshot is missing
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - id: freshness
+        name: Compare public snapshot with Tokyo date
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFile, readFile } from 'node:fs/promises';
+
+          const manifest = JSON.parse(await readFile('snapshot-manifest.json', 'utf8'));
+          const current = String(manifest?.asOf || '');
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(current)) throw new Error('PUBLIC_SNAPSHOT_ASOF_INVALID');
+
+          const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit',
+          }).formatToParts(new Date());
+          const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+          const target = `${values.year}-${values.month}-${values.day}`;
+
+          if (current > target) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
+          const needsRecovery = current < target;
+          await appendFile(process.env.GITHUB_OUTPUT, `needs_recovery=${needsRecovery}\n`);
+          await appendFile(process.env.GITHUB_OUTPUT, `target_date=${target}\n`);
+          await appendFile(process.env.GITHUB_OUTPUT, `current_as_of=${current}\n`);
+          await appendFile(process.env.GITHUB_STEP_SUMMARY, [
+            '## Daily Savant recovery watchdog',
+            `targetDate: ${target}`,
+            `currentPublishedAsOf: ${current}`,
+            `action: ${needsRecovery ? 'dispatch-publisher' : 'no-op-current'}`,
+            '',
+          ].join('\n'));
+          NODE
+      - name: Dispatch the canonical publisher
+        if: steps.freshness.outputs.needs_recovery == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'daily-savant-publish.yml',
+              ref: 'main',
+              inputs: { publish: true },
+            });
+      - name: Record recovery decision
+        if: always()
+        shell: bash
+        run: |
+          echo 'targetDate: ${{ steps.freshness.outputs.target_date }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'currentPublishedAsOf: ${{ steps.freshness.outputs.current_as_of }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'publisherDispatch: ${{ steps.freshness.outputs.needs_recovery == 'true' && 'requested' || 'not-needed' }}' >> "$GITHUB_STEP_SUMMARY"
