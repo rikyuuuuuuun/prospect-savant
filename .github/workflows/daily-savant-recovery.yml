@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - '.github/workflows/daily-savant-recovery.yml'
+      # GPT監視がGitHub schedulerに依存せずRecoveryを起動するための軽量pulse。
+      - '.github/savant-recovery-trigger'
   schedule:
     # Independent watchdog after the primary/fallback window. Avoid top-of-hour load.
     - cron: '20 9 * * *'
