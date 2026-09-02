@@ -5,4 +5,4 @@
 # The recovery workflow remains fail-closed and only dispatches the canonical publisher
 # when snapshot-manifest.json is stale for the current Tokyo date.
 initialized: 2026-08-28T12:35:00+09:00
-pulse: 2026-09-01T08:58:00+09:00
+pulse: 2026-09-02T09:03:15+09:00
