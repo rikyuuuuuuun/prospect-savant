@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateAdmissions } from './admission-notices.mjs';
+import { MEMBER_DELTA_DEFINITION, assertMemberMonthlyState } from './member-monthly-change.mjs';
 
 const REQUIRED_FILES = [
   'data.js',
@@ -150,23 +151,31 @@ export async function validateSnapshot(rootDir = process.cwd()) {
     add(errors, comparison.headline?.members === comparisonTotal,
       'comparison headline members must equal the sum of team members');
 
-    const memberComparable = data.memberDefinition?.id === comparison.memberDefinition?.id;
-    if (memberComparable && comparisonTeams.size === teamIds.length) {
-      add(errors, Number.isSafeInteger(data.headline?.monthlyDelta),
-        'headline monthlyDelta must be an integer');
-      for (const teamId of teamIds) {
-        const current = dataTeams.get(teamId);
-        add(errors, Number.isSafeInteger(current?.monthlyDelta),
-          `team ${teamId}: monthlyDelta must be an integer`);
-      }
-    } else {
-      add(errors, data.headline?.monthlyDelta === null,
-        'headline monthlyDelta must be null when member definitions differ');
-      for (const teamId of teamIds) {
-        add(errors, dataTeams.get(teamId)?.monthlyDelta === null,
-          `team ${teamId}: monthlyDelta must be null when member definitions differ`);
+    if (data.memberDeltaDefinition !== MEMBER_DELTA_DEFINITION) {
+      const memberComparable = data.memberDefinition?.id === comparison.memberDefinition?.id;
+      if (memberComparable && comparisonTeams.size === teamIds.length) {
+        add(errors, Number.isSafeInteger(data.headline?.monthlyDelta),
+          'headline monthlyDelta must be an integer');
+        for (const teamId of teamIds) {
+          const current = dataTeams.get(teamId);
+          add(errors, Number.isSafeInteger(current?.monthlyDelta),
+            `team ${teamId}: monthlyDelta must be an integer`);
+        }
+      } else {
+        add(errors, data.headline?.monthlyDelta === null,
+          'headline monthlyDelta must be null when member definitions differ');
+        for (const teamId of teamIds) {
+          add(errors, dataTeams.get(teamId)?.monthlyDelta === null,
+            `team ${teamId}: monthlyDelta must be null when member definitions differ`);
+        }
       }
     }
+  }
+
+  if (data.memberDeltaDefinition === MEMBER_DELTA_DEFINITION) {
+    try { assertMemberMonthlyState(data); } catch (error) { add(errors, false, error.message); }
+  } else if (data.memberDeltaDefinition !== undefined) {
+    add(errors, false, 'memberDeltaDefinition is unsupported');
   }
 
   add(errors,

@@ -71,7 +71,7 @@ test('definition change keeps member delta unavailable', async () => {
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test('same-definition next snapshot rolls current into comparison and calculates deltas', async () => {
+test('same-definition next snapshot rolls current into publication comparison and fails closed without a month-end baseline', async () => {
   const previous = { A: 333, B: 309, C: 224, D: 192 };
   const root = await fixture(publicSnapshot({
     asOf: '2026-08-20', definition: 'operational-person-v1', counts: previous,
@@ -86,8 +86,10 @@ test('same-definition next snapshot rolls current into comparison and calculates
     await publishOperationalMemberSnapshot({ rootDir: root, input: inputForCounts('2026-08-21', next) });
     const data = parseFrozenJson(await readFile(join(root, 'data.js'), 'utf8'));
     assert.equal(data.headline.members, 1061);
-    assert.equal(data.headline.monthlyDelta, 3);
-    assert.deepEqual(Object.fromEntries(data.teams.map((team) => [team.id, team.monthlyDelta])), { A: 2, B: -2, C: 2, D: 1 });
+    assert.equal(data.memberDeltaDefinition, 'previous-month-end-v1');
+    assert.equal(data.memberMonthlyComparison, null);
+    assert.equal(data.headline.monthlyDelta, null);
+    assert(data.teams.every((team) => team.monthlyDelta === null));
     assert.equal(data.comparison.scoreVersion, 'v6-event-eligibility-70-30');
     assert.equal(data.comparison.previousAsOf, '2026-08-20');
     assert.equal(data.comparison.previousAsOfLabel, 'old');
@@ -110,7 +112,28 @@ test('same asOf rerun preserves comparison and never self-compares', async () =>
     assert.equal(second, first);
     assert.equal(data.comparison.previousAsOf, '2026-08-20');
     assert.notEqual(data.comparison.previousAsOf, data.asOf);
-    assert.equal(data.headline.monthlyDelta, 3);
+    assert.equal(data.memberMonthlyComparison, null);
+    assert.equal(data.headline.monthlyDelta, null);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('previous month-end baseline stays fixed while publication comparison rolls daily', async () => {
+  const augustEnd = { A: 333, B: 309, C: 224, D: 192 };
+  const root = await fixture(publicSnapshot({ asOf: '2026-08-31', definition: 'operational-person-v1', counts: augustEnd }));
+  try {
+    await publishOperationalMemberSnapshot({
+      rootDir: root,
+      input: inputForCounts('2026-09-01', { A: 333, B: 308, C: 224, D: 191 }),
+    });
+    await publishOperationalMemberSnapshot({
+      rootDir: root,
+      input: inputForCounts('2026-09-02', { A: 332, B: 307, C: 223, D: 190 }),
+    });
+    const data = parseFrozenJson(await readFile(join(root, 'data.js'), 'utf8'));
+    assert.equal(data.comparison.previousAsOf, '2026-09-01');
+    assert.equal(data.memberMonthlyComparison.previousAsOf, '2026-08-31');
+    assert.equal(data.headline.monthlyDelta, -6);
+    assert.deepEqual(Object.fromEntries(data.teams.map((team) => [team.id, team.monthlyDelta])), { A: -1, B: -2, C: -1, D: -2 });
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

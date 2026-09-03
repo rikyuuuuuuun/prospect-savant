@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { MEMBER_DEFINITION, createCanonicalOperationalMemberOutput, japaneseDateLabel } from './operational-member-canonical.mjs';
+import { applyMemberMonthlyDelta, selectMemberMonthlyComparison } from './member-monthly-change.mjs';
 
 const PUBLIC_FILES = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js'];
 
@@ -106,6 +107,7 @@ export async function publishOperationalMemberSnapshot({ rootDir, input }) {
   if (!isValidIsoDate(canonical.snapshot.asOf)) throw new Error('new snapshot asOf is invalid');
   const dataPath = resolve(root, 'data.js');
   const data = frozenJson(await readFile(dataPath, 'utf8'), 'data.js');
+  const oldData = clonePublicAggregate(data);
   const teamIds = Object.keys(canonical.finalCounts).sort();
   validateCurrentSnapshot(data, teamIds);
   if (data.comparison !== undefined && data.comparison !== null) {
@@ -137,15 +139,8 @@ export async function publishOperationalMemberSnapshot({ rootDir, input }) {
   }
 
   data.comparison = comparison;
-  const comparable = comparison?.memberDefinition?.id === canonical.definitionId;
-  if (comparable) {
-    const previousTeams = validateComparison(comparison, canonical.snapshot.asOf, teamIds);
-    data.headline.monthlyDelta = data.headline.members - comparison.headline.members;
-    for (const team of data.teams) team.monthlyDelta = team.members - previousTeams.get(team.id).members;
-  } else {
-    data.headline.monthlyDelta = null;
-    for (const team of data.teams) team.monthlyDelta = null;
-  }
+  data.memberMonthlyComparison = selectMemberMonthlyComparison(oldData, canonical.snapshot.asOf, canonical.definitionId);
+  applyMemberMonthlyDelta(data);
 
   await writeFile(dataPath, `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(data, null, 2)});\n`, 'utf8');
   for (const file of PUBLIC_FILES.slice(1)) {
