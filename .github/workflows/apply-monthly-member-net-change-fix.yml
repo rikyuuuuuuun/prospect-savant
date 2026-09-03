@@ -1,0 +1,50 @@
+name: Apply monthly member net change fix
+
+on:
+  push:
+    branches:
+      - fix/monthly-member-net-change
+    paths:
+      - 'scripts/apply-monthly-member-net-change-fix.mjs'
+      - '.github/workflows/apply-monthly-member-net-change-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/monthly-member-net-change
+          fetch-depth: 300
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply targeted source patch
+        run: node scripts/apply-monthly-member-net-change-fix.mjs
+      - name: Run regression tests
+        run: |
+          npm test
+          npm run validate:snapshot
+          git diff --check
+      - name: Commit patched source
+        shell: bash
+        run: |
+          git add -- \
+            scripts/publish-private-savant-source.mjs \
+            scripts/publish-private-savant-with-explanations.mjs \
+            scripts/publish-operational-member-snapshot.mjs \
+            scripts/validate-snapshot.mjs \
+            index.html README.md \
+            test/publish-operational-member-snapshot.test.mjs
+          if git diff --cached --quiet; then
+            echo 'No source changes to commit'
+            exit 0
+          fi
+          git config user.name 'prospect-savant-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: calculate member net change from prior month end'
+          git push origin HEAD:fix/monthly-member-net-change
