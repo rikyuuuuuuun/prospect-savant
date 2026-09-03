@@ -2,7 +2,7 @@ import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { aggregateTeam, discoverDailyTrialSchema, fiscalYearFor, normalise, parseSheetIds, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
+import { aggregateTeam, discoverDailyTrialSchema, fiscalYearFor, normalise, parseSheetIds, serialToIsoDate, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
 
 const RANGES = [
   "'00_ダッシュボード'!A1:H23",
@@ -24,6 +24,8 @@ const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
 const GOOGLE_SHEETS_TIMEOUT_MS = 15_000;
 const GOOGLE_SHEETS_MAX_RETRY_DELAY_MS = 30_000;
 const GOOGLE_SHEETS_RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+const MONTHLY_AS_OF_RANGE_INDEX = 2;
+const MONTHLY_AS_OF_COLUMN_INDEX = 21;
 
 const wait = (milliseconds) => new Promise((resolveWait) => setTimeout(resolveWait, milliseconds));
 
@@ -151,6 +153,14 @@ function firstColumn(values) {
   return Array.isArray(values?.[0]) ? values[0] : [];
 }
 
+function sourceAsOf(valueRanges) {
+  const monthly = valueRanges[MONTHLY_AS_OF_RANGE_INDEX]?.values || [];
+  const rows = monthly.slice(4).filter((row) => TEAM_IDS.includes(row?.[1]));
+  const dates = new Set(rows.map((row) => serialToIsoDate(row[MONTHLY_AS_OF_COLUMN_INDEX])));
+  if (rows.length !== TEAM_IDS.length || dates.size !== 1 || dates.has(null)) throw new Error('SOURCE_ASOF_INVALID');
+  return [...dates][0];
+}
+
 function safeTrialFailureCode(error) {
   const message = String(error?.message || '');
   const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_TIMEOUT|GOOGLE_SHEETS_NETWORK|GOOGLE_SHEETS_RESPONSE_INVALID|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID)$/);
@@ -237,7 +247,10 @@ export async function fetchPrivateSavantSource({ spreadsheetId, serviceAccountJs
     throw new Error(`expected ${RANGES.length} ranges, received ${valueRanges.length}`);
   }
   if (!trialSheetIdsJson) throw new Error('PROSPECT_TRIAL_SHEET_IDS_JSON is required');
-  const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, getToken, requestJson, retryOptions });
+  // 公開する主スナップショットと当日体験値の基準日を混在させない。
+  // 中央Savantがまだ更新されていない日は、中央の確定基準日に合わせて取得する。
+  const asOf = sourceAsOf(valueRanges);
+  const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
   const privateSnapshot = {
     fetchedAt: new Date().toISOString(),
     ranges: Object.fromEntries(valueRanges.map((entry, index) => [RANGES[index], entry.values || []])),
