@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       changed: ${{ steps.changes.outputs.changed || 'false' }}
-      candidate_as_of: ${{ steps.candidate.outputs.candidate_as_of }}
+      candidate_as_of: ${{ steps.candidate.outputs.candidate_as_of || steps.source-freshness.outputs.source_as_of }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,8 +65,37 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           PROSPECT_TRIAL_SHEET_IDS_JSON: ${{ secrets.PROSPECT_TRIAL_SHEET_IDS_JSON }}
         run: node scripts/fetch-private-savant-source.mjs .private/savant-source.json
-      - name: Generate and validate a complete candidate snapshot
+      - id: source-freshness
+        name: Verify source freshness before candidate generation
         if: steps.daily-gate.outputs.should_fetch_source == 'true'
+        shell: bash
+        env:
+          TARGET_DATE: ${{ steps.daily-gate.outputs.target_date }}
+          GATE_TRIGGER: ${{ steps.daily-gate.outputs.trigger }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFile, readFile } from 'node:fs/promises';
+          const source = JSON.parse(await readFile('.private/savant-source.json', 'utf8'));
+          const sourceAsOf = source?.trialAggregate?.targetDate;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(sourceAsOf || '')) throw new Error('SOURCE_ASOF_INVALID');
+          const isCurrent = sourceAsOf === process.env.TARGET_DATE;
+          await appendFile(process.env.GITHUB_OUTPUT, [
+            `source_as_of=${sourceAsOf}`,
+            `source_is_current=${isCurrent}`,
+            '',
+          ].join('\n'));
+          await appendFile(process.env.GITHUB_STEP_SUMMARY, [
+            '## Daily Savant source freshness',
+            `trigger: ${process.env.GATE_TRIGGER}`,
+            `sourceAsOf: ${sourceAsOf}`,
+            `targetDate: ${process.env.TARGET_DATE}`,
+            isCurrent ? 'action: generate-candidate' : 'action: skipped-source-not-current',
+            isCurrent ? '' : 'reason: the central source is behind the publication target; the prior public snapshot is retained.',
+            '',
+          ].join('\n'));
+          NODE
+      - name: Generate and validate a complete candidate snapshot
+        if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.source-freshness.outputs.source_is_current == 'true'
         shell: bash
         run: |
           # dry-runも同じ候補を生成する。コミット・Pages配備の有無だけを後段で分ける。
@@ -79,28 +108,21 @@ jobs:
           node --check school-age-data.js
           node --check trial-data.js
       - id: candidate
-        name: Verify scheduled candidate freshness and record safe summary
-        if: steps.daily-gate.outputs.should_fetch_source == 'true'
+        name: Verify generated candidate freshness
+        if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.source-freshness.outputs.source_is_current == 'true'
         shell: bash
         env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
           TARGET_DATE: ${{ steps.daily-gate.outputs.target_date }}
-          GATE_TRIGGER: ${{ steps.daily-gate.outputs.trigger }}
+          SOURCE_AS_OF: ${{ steps.source-freshness.outputs.source_as_of }}
         run: |
           node --input-type=module <<'NODE'
           import { appendFile, readFile } from 'node:fs/promises';
           const manifest = JSON.parse(await readFile('snapshot-manifest.json', 'utf8'));
+          if (manifest.asOf !== process.env.SOURCE_AS_OF || manifest.asOf !== process.env.TARGET_DATE) {
+            throw new Error('CANDIDATE_ASOF_TARGET_DATE_MISMATCH');
+          }
           await appendFile(process.env.GITHUB_OUTPUT, `candidate_as_of=${manifest.asOf}\n`);
-          const isCurrent = process.env.GITHUB_EVENT_NAME !== 'schedule' || manifest.asOf === process.env.TARGET_DATE;
-          await appendFile(process.env.GITHUB_OUTPUT, `candidate_is_current=${isCurrent}\n`);
-          await appendFile(process.env.GITHUB_STEP_SUMMARY, [
-            '## Daily Savant candidate',
-            `trigger: ${process.env.GATE_TRIGGER}`,
-            `candidateAsOf: ${manifest.asOf}`,
-            isCurrent ? 'action: publish-required' : 'action: skipped-source-not-current',
-            isCurrent ? '' : `reason: central Savant source is not current for ${process.env.TARGET_DATE}; prior public snapshot is retained.`,
-            '',
-          ].join('\n'));
+          await appendFile(process.env.GITHUB_OUTPUT, 'candidate_is_current=true\n');
           NODE
       - id: changes
         name: Detect a changed public snapshot only
@@ -118,8 +140,8 @@ jobs:
         shell: bash
         run: |
           echo '## Daily Savant candidate decision' >> "$GITHUB_STEP_SUMMARY"
-          echo 'candidateAsOf: ${{ steps.candidate.outputs.candidate_as_of }}' >> "$GITHUB_STEP_SUMMARY"
-          echo 'candidateIsCurrent: ${{ steps.candidate.outputs.candidate_is_current }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'candidateAsOf: ${{ steps.candidate.outputs.candidate_as_of || steps.source-freshness.outputs.source_as_of }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'candidateIsCurrent: ${{ steps.source-freshness.outputs.source_is_current }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'changed: ${{ steps.changes.outputs.changed }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Record the anonymous trial candidate summary
         if: steps.changes.outputs.changed == 'true'
@@ -268,3 +290,4 @@ jobs:
           echo 'commit: ${{ steps.commit.outputs.commit_sha || 'none' }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'deploy: ${{ steps.deployment.outcome || 'not-run' }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'recovery: ${{ steps.rollback.outputs.reverted || 'not-needed' }}' >> "$GITHUB_STEP_SUMMARY"
+
