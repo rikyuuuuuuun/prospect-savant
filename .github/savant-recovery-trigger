@@ -5,4 +5,4 @@
 # Scheduled recovery remains date-based; explicit pulses force the canonical publisher so
 # same-day upstream corrections can be safely revalidated and republished.
 initialized: 2026-08-28T12:35:00+09:00
-pulse: 2026-09-03-member-snapshot-fix
+pulse: 2026-09-03-monthly-member-net-change-fix
