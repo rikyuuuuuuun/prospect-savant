@@ -26,7 +26,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "periodLabel": "2026年度累計",
   "headline": {
-    "members": 1058,
+    "members": 1052,
     "monthlyDelta": 31,
     "admissionRate": 73,
     "admissionPreviousRate": 68.5,
@@ -885,7 +885,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "A",
       "rank": 1,
-      "members": 333,
+      "members": 332,
       "monthlyDelta": 23,
       "overall": 77,
       "status": "算出済",
@@ -1086,7 +1086,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "B",
       "rank": 2,
-      "members": 309,
+      "members": 307,
       "monthlyDelta": 5,
       "overall": 60,
       "status": "算出済",
@@ -1287,7 +1287,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "C",
       "rank": 3,
-      "members": 224,
+      "members": 223,
       "monthlyDelta": 2,
       "overall": 34,
       "status": "算出済",
@@ -1488,7 +1488,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     {
       "id": "D",
       "rank": 4,
-      "members": 192,
+      "members": 190,
       "monthlyDelta": 1,
       "overall": 27,
       "status": "算出済（参考）",
