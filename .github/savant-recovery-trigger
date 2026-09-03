@@ -2,7 +2,7 @@
 #
 # This file is intentionally non-functional. Updating its contents on main triggers
 # .github/workflows/daily-savant-recovery.yml without depending on GitHub schedule events.
-# The recovery workflow remains fail-closed and only dispatches the canonical publisher
-# when snapshot-manifest.json is stale for the current Tokyo date.
+# Scheduled recovery remains date-based; explicit pulses force the canonical publisher so
+# same-day upstream corrections can be safely revalidated and republished.
 initialized: 2026-08-28T12:35:00+09:00
-pulse: 2026-09-03T08:55:01+09:00
+pulse: 2026-09-03-member-snapshot-fix
