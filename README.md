@@ -5,7 +5,7 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 ## 公開データの範囲
 
 - チーム単位の集計指標
-- 会員数と前月差
+- 会員数と前月末比の純増減
 - 定着・入会・イベント・成長・家庭継続の各スコア
 - 一般会員が参加できる合同練習会など、開催済み対象イベント6件のチーム別実参加人数・開催日時点の人物単位運用会員数・参加率
 - イベント力は平均実参加率70％＋累積継続参加率30％を、対象実績のMAX＝100点で換算
@@ -104,4 +104,4 @@ The generator enforces one person per final team, includes only `在籍` / `休�
 node scripts/publish-operational-member-snapshot.mjs <private-input.json>
 ```
 
-It updates the public aggregate in `data.js`, stamps all four public data files with one snapshot ID, and refreshes `snapshot-manifest.json`. A definition change deliberately marks member deltas as not comparable until a prior snapshot generated under the same definition is available.
+It updates the public aggregate in `data.js`, stamps all four public data files with one snapshot ID, and refreshes `snapshot-manifest.json`. Member net change is calculated only from the exact previous calendar month-end snapshot under the same member definition; otherwise it fails closed as not comparable. The daily `comparison` remains independent so new-admission notices and previous-public movement continue to use the prior publication.

@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { gitBlobSha } from './trial-publication.mjs';
 import { parsePublicSource, publishPrivateSavantSource } from './publish-private-savant-source.mjs';
+import { applyMemberMonthlyDelta, buildMemberMonthlyComparison, previousMonthEnd } from './member-monthly-change.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { applyMetricEvidenceAndExplanations } from './metric-explanations.mjs';
 
@@ -53,6 +54,14 @@ function historicalSnapshot(root, targetAsOf) {
   }
   return null;
 }
+function historicalMemberBaseline(root, targetAsOf) {
+  const revisions = String(git(root, ['rev-list', '--max-count=250', 'HEAD']) || '').trim().split('\n').filter(Boolean);
+  for (const revision of revisions) {
+    const data = gitPublic(root, revision, 'data.js');
+    if (data?.asOf === targetAsOf) return { data, revision };
+  }
+  return null;
+}
 function carryPreviousMetricEvidence(data, previousData) {
   if (!data?.comparison?.teams?.length || data.comparison.previousAsOf !== previousData?.asOf || data.comparison.scoreVersion !== previousData?.scoreVersion) return;
   const previousTeams = new Map((previousData.teams || []).map((team) => [team.id, team]));
@@ -80,6 +89,14 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
     readPublic(root, 'retention-data.js'),
     readPublic(root, 'event-data.js'),
   ]);
+
+  if (!data.memberMonthlyComparison) {
+    const baseline = historicalMemberBaseline(root, previousMonthEnd(data.asOf));
+    if (baseline?.data?.memberDefinition?.id === data.memberDefinition?.id) {
+      data.memberMonthlyComparison = buildMemberMonthlyComparison(baseline.data);
+    }
+  }
+  applyMemberMonthlyDelta(data);
 
   const previousAsOf = data.comparison?.previousAsOf;
   const previousSnapshot = currentPublicData.asOf === previousAsOf

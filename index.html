@@ -935,6 +935,7 @@
         const trialData = window.PROSPECT_TRIAL_DATA;
         const formatNumber = new Intl.NumberFormat("ja-JP");
         const formatDelta = (value) => Number.isFinite(value) ? (value > 0 ? `+${value}` : `${value}`) : "比較対象外";
+        const memberDeltaComparable = data.memberDeltaDefinition === "previous-month-end-v1";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
         const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
         const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
@@ -2032,10 +2033,10 @@
 
         const latestEvent = eventHistory?.events?.find((event) => event.id === eventHistory.latestEventId)
           || eventHistory?.events?.[0];
-        const headlineMemberDeltaComparable = Number.isFinite(data.headline.monthlyDelta);
+        const headlineMemberDeltaComparable = memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
         const kpis = [
           ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
-          [headlineMemberDeltaComparable ? "前月差（参考）" : "前月差（比較対象外）", formatDelta(data.headline.monthlyDelta), headlineMemberDeltaComparable ? "名" : "", ""],
+          [headlineMemberDeltaComparable ? "前月末比 純増減" : "前月末比 純増減（比較対象外）", formatDelta(headlineMemberDeltaComparable ? data.headline.monthlyDelta : null), headlineMemberDeltaComparable ? "名" : "", ""],
           [
             "年度入会率",
             data.headline.admissionRate.toFixed(1),
@@ -2073,7 +2074,7 @@
           const overallChange = data.scoreVersion === data.comparison?.scoreVersion && previousTeam ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
-          const deltaClass = Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
+          const deltaClass = memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
             const change = previousTeam && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
@@ -2092,7 +2093,7 @@
                   <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
                   ${newAdmissionCount ? `<span class="admission-badge">新規入会 +${newAdmissionCount}</span>` : ""}
-                  <p class="team-meta">前月差 <span class="${deltaClass}">${formatDelta(team.monthlyDelta)}${Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
+                  <p class="team-meta">前月末比 純増減 <span class="${deltaClass}">${formatDelta(memberDeltaComparable ? team.monthlyDelta : null)}${memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
                   <div class="focus-row"><span class="focus-badge strong">強み：${strengthLabels}</span><span class="focus-badge watch">改善：${priorityLabel}</span></div>
                 </div>
               </div>

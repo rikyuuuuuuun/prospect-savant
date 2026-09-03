@@ -7,6 +7,7 @@ import { gitBlobSha, parseFrozenJson, publishTrialData, validatePublishedTrialDa
 import { validateAdmissions } from './admission-notices.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { fiscalYearFor, serialToIsoDate, trialPublicInput } from './private-trial-aggregate.mjs';
+import { applyMemberMonthlyDelta, selectMemberMonthlyComparison } from './member-monthly-change.mjs';
 
 const MAIN_FILES = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js'];
 const PUBLIC_FILES = [...MAIN_FILES, 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
@@ -137,7 +138,7 @@ function updateData(data, ranges, asOf) {
   data.admissions = admissions;
   // 4行目は見出し、5行目がダッシュボードの集計値。見出しを数値として扱わない。
   data.headline.members = requiredNumber(dashboard[4]?.[0], 'DASHBOARD_MEMBERS');
-  data.headline.monthlyDelta = requiredNumber(dashboard[4]?.[1], 'DASHBOARD_MONTHLY_DELTA');
+  data.headline.monthlyDelta = null;
   data.headline.admissionRate = percentage(dashboard[4]?.[2], 'DASHBOARD_ADMISSION_RATE');
   data.headline.latestEventParticipants = requiredNumber(dashboard[4]?.[3], 'DASHBOARD_LATEST_EVENT_PARTICIPANTS');
 
@@ -151,7 +152,7 @@ function updateData(data, ranges, asOf) {
     assert(percentage(source[5], `TEAM_ADMISSION_RATE_${id}`) === annual[id].rate, `ANNUAL_RATE_RECONCILIATION_REQUIRED_${id}`);
     assert(round(source[6], 0) === annual[id].score, `ANNUAL_SCORE_RECONCILIATION_REQUIRED_${id}`);
     team.members = requiredNumber(source[1], `TEAM_MEMBERS_${id}`);
-    team.monthlyDelta = requiredNumber(source[2], `TEAM_MONTHLY_DELTA_${id}`);
+    team.monthlyDelta = null;
     team.overall = round(source[13], 0);
     team.rank = requiredNumber(source[14], `TEAM_RANK_${id}`);
     team.status = String(source[15]);
@@ -188,6 +189,8 @@ function updateData(data, ranges, asOf) {
       ...(oldData.admissions ? { admissions: oldData.admissions } : {}),
     };
   }
+  data.memberMonthlyComparison = selectMemberMonthlyComparison(oldData, asOf, data.memberDefinition?.id);
+  applyMemberMonthlyDelta(data);
   return annual;
 }
 
