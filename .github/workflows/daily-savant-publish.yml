@@ -89,21 +89,22 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import { appendFile, readFile } from 'node:fs/promises';
-          import { validateScheduledCandidateAsOf } from './scripts/daily-publication-gate.mjs';
           const manifest = JSON.parse(await readFile('snapshot-manifest.json', 'utf8'));
-          validateScheduledCandidateAsOf({ eventName: process.env.GITHUB_EVENT_NAME, candidateAsOf: manifest.asOf, targetDate: process.env.TARGET_DATE });
           await appendFile(process.env.GITHUB_OUTPUT, `candidate_as_of=${manifest.asOf}\n`);
+          const isCurrent = process.env.GITHUB_EVENT_NAME !== 'schedule' || manifest.asOf === process.env.TARGET_DATE;
+          await appendFile(process.env.GITHUB_OUTPUT, `candidate_is_current=${isCurrent}\n`);
           await appendFile(process.env.GITHUB_STEP_SUMMARY, [
             '## Daily Savant candidate',
             `trigger: ${process.env.GATE_TRIGGER}`,
             `candidateAsOf: ${manifest.asOf}`,
-            'action: publish-required',
+            isCurrent ? 'action: publish-required' : 'action: skipped-source-not-current',
+            isCurrent ? '' : `reason: central Savant source is not current for ${process.env.TARGET_DATE}; prior public snapshot is retained.`,
             '',
           ].join('\n'));
           NODE
       - id: changes
         name: Detect a changed public snapshot only
-        if: steps.daily-gate.outputs.should_fetch_source == 'true'
+        if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.candidate.outputs.candidate_is_current == 'true'
         shell: bash
         run: |
           files=(data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json)
@@ -118,6 +119,7 @@ jobs:
         run: |
           echo '## Daily Savant candidate decision' >> "$GITHUB_STEP_SUMMARY"
           echo 'candidateAsOf: ${{ steps.candidate.outputs.candidate_as_of }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'candidateIsCurrent: ${{ steps.candidate.outputs.candidate_is_current }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'changed: ${{ steps.changes.outputs.changed }}' >> "$GITHUB_STEP_SUMMARY"
       - name: Record the anonymous trial candidate summary
         if: steps.changes.outputs.changed == 'true'
