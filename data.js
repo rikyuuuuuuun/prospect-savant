@@ -27,7 +27,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1052,
-    "monthlyDelta": 31,
+    "monthlyDelta": -6,
     "admissionRate": 73,
     "admissionPreviousRate": 68.5,
     "admissionYoYDelta": 4.3,
@@ -886,7 +886,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "A",
       "rank": 1,
       "members": 332,
-      "monthlyDelta": 23,
+      "monthlyDelta": -1,
       "overall": 77,
       "status": "算出済",
       "metrics": {
@@ -1087,7 +1087,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "B",
       "rank": 2,
       "members": 307,
-      "monthlyDelta": 5,
+      "monthlyDelta": -2,
       "overall": 60,
       "status": "算出済",
       "metrics": {
@@ -1288,7 +1288,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "C",
       "rank": 3,
       "members": 223,
-      "monthlyDelta": 2,
+      "monthlyDelta": -1,
       "overall": 34,
       "status": "算出済",
       "metrics": {
@@ -1489,7 +1489,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "D",
       "rank": 4,
       "members": 190,
-      "monthlyDelta": 1,
+      "monthlyDelta": -2,
       "overall": 27,
       "status": "算出済（参考）",
       "metrics": {
@@ -1714,5 +1714,36 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "memberDefinition": {
     "id": "operational-person-v1",
     "label": "人物単位運用会員"
-  }
+  },
+  "memberMonthlyComparison": {
+    "definition": "previous-month-end-v1",
+    "previousAsOf": "2026-08-31",
+    "previousAsOfLabel": "2026年8月31日",
+    "headline": {
+      "members": 1058
+    },
+    "teams": [
+      {
+        "id": "A",
+        "members": 333
+      },
+      {
+        "id": "B",
+        "members": 309
+      },
+      {
+        "id": "C",
+        "members": 224
+      },
+      {
+        "id": "D",
+        "members": 192
+      }
+    ],
+    "memberDefinition": {
+      "id": "operational-person-v1",
+      "label": "人物単位運用会員"
+    }
+  },
+  "memberDeltaDefinition": "previous-month-end-v1"
 });
