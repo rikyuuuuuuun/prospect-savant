@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   recover-if-stale:
-    name: Dispatch publisher only when today's snapshot is missing
+    name: Dispatch publisher when stale or explicitly pulsed
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -52,14 +52,19 @@ jobs:
           const target = `${values.year}-${values.month}-${values.day}`;
 
           if (current > target) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
-          const needsRecovery = current < target;
+          // scheduleは「日付が古いときだけ」。一方、trigger file / workflow_dispatchは
+          // 当日中の上流訂正も再公開できる明示pulseとして扱う。
+          const forceRecovery = ['push', 'workflow_dispatch'].includes(process.env.GITHUB_EVENT_NAME || '');
+          const needsRecovery = forceRecovery || current < target;
           await appendFile(process.env.GITHUB_OUTPUT, `needs_recovery=${needsRecovery}\n`);
+          await appendFile(process.env.GITHUB_OUTPUT, `force_recovery=${forceRecovery}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `target_date=${target}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `current_as_of=${current}\n`);
           await appendFile(process.env.GITHUB_STEP_SUMMARY, [
             '## Daily Savant recovery watchdog',
             `targetDate: ${target}`,
             `currentPublishedAsOf: ${current}`,
+            `forceRecovery: ${forceRecovery}`,
             `action: ${needsRecovery ? 'dispatch-publisher' : 'no-op-current'}`,
             '',
           ].join('\n'));
@@ -83,4 +88,5 @@ jobs:
         run: |
           echo 'targetDate: ${{ steps.freshness.outputs.target_date }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'currentPublishedAsOf: ${{ steps.freshness.outputs.current_as_of }}' >> "$GITHUB_STEP_SUMMARY"
+          echo 'forceRecovery: ${{ steps.freshness.outputs.force_recovery }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'publisherDispatch: ${{ steps.freshness.outputs.needs_recovery == 'true' && 'requested' || 'not-needed' }}' >> "$GITHUB_STEP_SUMMARY"
