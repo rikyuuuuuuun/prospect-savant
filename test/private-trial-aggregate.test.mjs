@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { access, mkdtemp, rm } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { aggregateTeam, discoverDailyTrialSchema, discoverTrialSchema, fiscalYearFor, parseSheetIds, serialToIsoDate, trialPublicInput } from '../scripts/private-trial-aggregate.mjs';
@@ -20,7 +20,14 @@ function sheet(rows) {
 function successfulTrialRequest(rawUrl) {
   const url = new URL(rawUrl);
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
-    return { valueRanges: Array.from({ length: 13 }, () => ({ values: [] })) };
+    const valueRanges = Array.from({ length: 13 }, () => ({ values: [] }));
+    valueRanges[2] = { values: [[], [], [], [], ...['A', 'B', 'C', 'D'].map((team) => {
+      const row = [];
+      row[1] = team;
+      row[21] = serial('2026-08-21');
+      return row;
+    })] };
+    return { valueRanges };
   }
   if (!url.pathname.endsWith('/values:batchGet')) return { sheets: [
     { properties: { title: '予約', gridProperties: { rowCount: 4 } } },
@@ -194,6 +201,27 @@ test('uses all retry attempts for a repeated B-team 503, then fails closed befor
     assert.equal(bAttempts, 4);
     assert.deepEqual(delays, [1_000, 2_000, 4_000]);
     await assert.rejects(() => access(outputPath));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('uses the central Savant cutoff for the anonymous trial aggregate', async () => {
+  const requests = [];
+  const tempDir = await mkdtemp(join(tmpdir(), 'prospect-savant-source-date-'));
+  try {
+    await fetchPrivateSavantSource({
+      spreadsheetId: 'savant', outputPath: join(tempDir, 'savant-source.json'),
+      ...testSourceOptions(async (url) => {
+        requests.push(new URL(url));
+        return successfulTrialRequest(url);
+      }),
+    });
+    const privateSource = JSON.parse(await readFile(join(tempDir, 'savant-source.json'), 'utf8'));
+    assert.equal(privateSource.trialAggregate.targetDate, '2026-08-21');
+    const dateReads = requests.filter((url) => url.pathname.endsWith('/values:batchGet') && url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4");
+    assert.equal(dateReads.length, 8);
+    assert.equal(dateReads.filter((url) => url.searchParams.get('majorDimension') === 'COLUMNS').length, 4);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
