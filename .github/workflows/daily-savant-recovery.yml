@@ -10,11 +10,16 @@ on:
       - '.github/savant-recovery-trigger'
   schedule:
     # Independent watchdog after the primary/fallback window. Avoid top-of-hour load.
-    - cron: '20 9 * * *'
+    - cron: '40 9 * * *'
       timezone: Asia/Tokyo
     - cron: '20 12 * * *'
       timezone: Asia/Tokyo
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Republish a corrected source even when today is already published'
+        type: boolean
+        default: false
 
 permissions:
   actions: write
@@ -26,9 +31,9 @@ concurrency:
 
 jobs:
   recover-if-stale:
-    name: Dispatch publisher when stale or explicitly pulsed
+    name: Dispatch and verify publisher when stale
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +42,8 @@ jobs:
       - id: freshness
         name: Compare public snapshot with Tokyo date
         shell: bash
+        env:
+          FORCE_RECOVERY: ${{ inputs.force == true }}
         run: |
           node --input-type=module <<'NODE'
           import { appendFile, readFile } from 'node:fs/promises';
@@ -52,10 +59,9 @@ jobs:
           const target = `${values.year}-${values.month}-${values.day}`;
 
           if (current > target) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
-          // scheduleは「日付が古いときだけ」。一方、trigger file / workflow_dispatchは
-          // 当日中の上流訂正も再公開できる明示pulseとして扱う。
-          const forceRecovery = ['push', 'workflow_dispatch'].includes(process.env.GITHUB_EVENT_NAME || '');
-          const needsRecovery = forceRecovery || current < target;
+          const { needsRecovery: evaluateRecovery } = await import('./scripts/recovery-watchdog.mjs');
+          const forceRecovery = process.env.FORCE_RECOVERY === 'true';
+          const needsRecovery = evaluateRecovery({ currentAsOf: current, targetDate: target, force: forceRecovery });
           await appendFile(process.env.GITHUB_OUTPUT, `needs_recovery=${needsRecovery}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `force_recovery=${forceRecovery}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `target_date=${target}\n`);
@@ -75,13 +81,25 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
+            const { waitForRecovery } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/recovery-watchdog.mjs`);
+            const requestId = `${context.runId}-${process.env.GITHUB_RUN_ATTEMPT}`;
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'daily-savant-publish.yml',
               ref: 'main',
-              inputs: { publish: true },
+              inputs: { publish: true, recovery_request_id: requestId },
             });
+            const run = await waitForRecovery({
+              requestId,
+              listRuns: async () => (await github.rest.actions.listWorkflowRuns({ owner: context.repo.owner, repo: context.repo.repo, workflow_id: 'daily-savant-publish.yml', event: 'workflow_dispatch', per_page: 50 })).data.workflow_runs,
+              sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
+            });
+            const response = await github.rest.repos.getContent({ owner: context.repo.owner, repo: context.repo.repo, path: 'snapshot-manifest.json', ref: 'main' });
+            const published = JSON.parse(Buffer.from(response.data.content, 'base64').toString('utf8'));
+            const { tokyoDate } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/daily-publication-gate.mjs`);
+            if (published.asOf !== tokyoDate()) throw new Error('RECOVERY_PUBLICATION_STILL_STALE');
+            await core.summary.addRaw(`Publisher verified: ${run.html_url}\nPublished asOf: ${published.asOf}\n`).write();
       - name: Record recovery decision
         if: always()
         shell: bash

@@ -1,3 +1,4 @@
+import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -18,6 +19,8 @@ const RANGES = [
   "'90_配点設定'!A1:J50",
   "'98_会員マスター連携'!A4:AE9",
   "'99_データ品質'!A1:F20",
+  MEMBER_READBACK_RANGE,
+  MEMBER_GATE_RANGE,
 ];
 
 const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
@@ -233,7 +236,7 @@ export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialShee
   return { targetDate, fiscalYear, aggregates };
 }
 
-export async function fetchPrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath, getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
+async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath, getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
   if (!spreadsheetId) throw new Error('SAVANT_SPREADSHEET_ID is required');
   if (!serviceAccountJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON is required');
   const serviceAccount = parseServiceAccount(serviceAccountJson);
@@ -249,18 +252,46 @@ export async function fetchPrivateSavantSource({ spreadsheetId, serviceAccountJs
   if (!trialSheetIdsJson) throw new Error('PROSPECT_TRIAL_SHEET_IDS_JSON is required');
   // 公開する主スナップショットと当日体験値の基準日を混在させない。
   // 中央Savantがまだ更新されていない日は、中央の確定基準日に合わせて取得する。
+  const ranges = Object.fromEntries(valueRanges.map((entry, index) => [RANGES[index], entry.values || []]));
+  const memberReceipt = readMemberReceipt(ranges[MEMBER_READBACK_RANGE], ranges[MEMBER_GATE_RANGE]);
+  if (!memberReceipt.ready) {
+    const absoluteOutput = resolve(outputPath);
+    await mkdir(dirname(absoluteOutput), { recursive: true });
+    await writeFile(absoluteOutput, JSON.stringify({ fetchedAt: new Date().toISOString(), readiness: memberReceipt }), { mode: 0o600 });
+    return { rangeCount: RANGES.length, outputPath: absoluteOutput, ready: false };
+  }
+  validateSourceQuality(ranges["'99_データ品質'!A1:F20"]);
   const asOf = sourceAsOf(valueRanges);
+  if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
   const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
   const privateSnapshot = {
     fetchedAt: new Date().toISOString(),
-    ranges: Object.fromEntries(valueRanges.map((entry, index) => [RANGES[index], entry.values || []])),
+    ranges,
     trialAggregate,
   };
+  assertMemberSourceReadback(privateSnapshot);
+  // Re-read the complete anonymous source, not only its date, after the
+  // per-team trial requests. A calculation change invalidates the candidate.
+  const readback = await createRetriableGoogleJson({ requestJson, ...retryOptions })(url, token);
+  const afterRanges = Object.fromEntries((readback.valueRanges || []).map((entry, index) => [RANGES[index], entry.values || []]));
+  if (JSON.stringify(afterRanges) !== JSON.stringify(ranges)) throw new Error('MEMBER_SOURCE_CHANGED_DURING_READ');
   const absoluteOutput = resolve(outputPath);
   await mkdir(dirname(absoluteOutput), { recursive: true });
   await writeFile(absoluteOutput, `${JSON.stringify(privateSnapshot)}\n`, { mode: 0o600 });
   console.log(`Fetched ${RANGES.length} private Savant ranges successfully.`);
   return { rangeCount: RANGES.length, outputPath: absoluteOutput };
+}
+
+export async function fetchPrivateSavantSource(options) {
+  const sleep = options.retryOptions?.sleep || wait;
+  const retryable = new Set(['MEMBER_SOURCE_CHANGED_DURING_READ', 'MEMBER_SOURCE_DATE_MISMATCH', 'MEMBER_GATE_DATE_CONFLICT', 'MEMBER_GATE_COUNT_CONFLICT']);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { return await capturePrivateSavantSource(options); }
+    catch (error) {
+      if (!retryable.has(error.message) || attempt === 3) throw error;
+      await sleep(5000);
+    }
+  }
 }
 
 async function main() {
@@ -273,7 +304,7 @@ async function main() {
   });
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error.message);
     process.exitCode = 1;

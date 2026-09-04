@@ -1,3 +1,4 @@
+import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -20,10 +21,19 @@ function sheet(rows) {
 function successfulTrialRequest(rawUrl) {
   const url = new URL(rawUrl);
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
-    const valueRanges = Array.from({ length: 13 }, () => ({ values: [] }));
+    const receipt = syntheticMemberReadback();
+    if (url.searchParams.getAll('ranges').length === 2) return { valueRanges: [{ values: receipt }, { values: syntheticMemberGate() }] };
+    const valueRanges = Array.from({ length: 15 }, () => ({ values: [] }));
+    valueRanges[14] = { values: syntheticMemberGate() };
+    valueRanges[13] = { values: receipt };
+    valueRanges[12] = { values: [[], [], [], [], ['', '', '', '', '', '正常']] };
+    valueRanges[11] = { values: [[], ...['A','B','C','D'].map((id, i) => [id, i + 1]), ['合計', 10]] };
+    valueRanges[1] = { values: [[], [], [], [], ...['A','B','C','D'].map((id, i) => [id, i + 1])] };
+    valueRanges[0] = { values: [[], [], [], [], [10]] };
     valueRanges[2] = { values: [[], [], [], [], ...['A', 'B', 'C', 'D'].map((team) => {
       const row = [];
       row[1] = team;
+      row[2] = 'ABCD'.indexOf(team) + 1;
       row[21] = serial('2026-08-21');
       return row;
     })] };
@@ -296,4 +306,20 @@ test('retries attempt-local timeout and network failures without exposing a requ
     })),
     (error) => error.message === 'TRIAL_SOURCE_UNAVAILABLE_B_GOOGLE_SHEETS_NETWORK' && !error.message.includes('private-id'),
   );
+});
+
+
+test('a changing anonymous source is reread at most three times and never written', async () => {
+  const dir=await mkdtemp(join(tmpdir(),'savant-changing-'));let fullReads=0;
+  try {
+    await assert.rejects(()=>fetchPrivateSavantSource({spreadsheetId:'savant',outputPath:join(dir,'source.json'),...testSourceOptions(async url=>{
+      const result=successfulTrialRequest(url);
+      if(new URL(url).pathname.includes('/spreadsheets/savant/values:batchGet')) {
+        fullReads++;
+        if(fullReads%2===0) result.valueRanges[0].values[4][0]++;
+      }
+      return result;
+    })}),/MEMBER_SOURCE_CHANGED_DURING_READ/);
+    assert.equal(fullReads,6);await assert.rejects(()=>access(join(dir,'source.json')));
+  } finally {await rm(dir,{recursive:true,force:true})}
 });

@@ -1,3 +1,4 @@
+import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -20,7 +21,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   const source = {};
   source[RANGES.dashboard] = [[], [], [], ['運用会員数', '前月差（参考）', '年度入会率', '直近イベント実参加'], [data.headline.members, data.headline.monthlyDelta, data.headline.admissionRate / 100, data.headline.latestEventParticipants]];
   source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, team.rank, team.status])];
-  source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
+  source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, team.members, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
   source[RANGES.retention] = [[], [], [], [], ...data.teams.map((team) => [team.id, '', '', '', '', team.benchmark.retention12mRate / 100, team.benchmark.retention12mSample])];
   source[RANGES.admission] = [[], [], [], [], ...data.teams.map((team) => {
     const annual = trial.annual.teams[team.id];
@@ -51,6 +52,9 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
     ['チーム', '現在会員数', '在籍', '退会予定', '休会', '入会日登録済', '年度累計体験', '年度体験→入会', '年度実入会'],
     ...data.teams.map((team) => ['A', 'B', 'C', 'D'].includes(team.id) && [team.id, team.members, '', '', '', team.members, 0, 0, trial.annual.teams[team.id].admissions]),
   ];
+  source[RANGES.memberMaster].push(['合計', data.headline.members]);
+  source["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback(data.asOf, Object.fromEntries(data.teams.map(t => [t.id, t.members])));
+  source["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate(data.asOf);
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
   return source;
 }
@@ -144,7 +148,9 @@ test('refuses a source snapshot older than the current public snapshot', async (
   try {
     const sourcePath = join(dir, 'source.json');
     const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    snapshot.ranges["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate('2026-08-21');
     for (const row of snapshot.ranges[RANGES.monthly].slice(4)) row[21] = serial('2026-08-21');
+    snapshot.ranges["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback('2026-08-21', Object.fromEntries(data.teams.map(t => [t.id, t.members])));
     snapshot.trialAggregate.targetDate = '2026-08-21';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_ASOF_OLDER_THAN_PUBLIC/);
@@ -158,7 +164,7 @@ test('refuses a trial date that does not match the central source as-of date', a
     const sourcePath = join(dir, 'source.json');
     const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { targetDate: '2026-08-23', fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
-    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /TRIAL_DATE_SOURCE_ASOF_MISMATCH/);
+    await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /MEMBER_SOURCE_DATE_MISMATCH/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
@@ -196,7 +202,7 @@ test('same source creates byte-identical output on a second run', async () => {
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const first = await Promise.all(files.map((file) => readFile(join(dir, file), 'utf8')));
     const manifest = JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'), 'utf8'));
-    assert.equal(manifest.sourceCommit, 'sheets-readonly-source-v1');
+    assert.match(manifest.sourceCommit, /^sheets-readback-sha256:[a-f0-9]{64}$/);
     assert.equal(manifest.sourceKind, 'private-sheets-readonly-anonymous-aggregate-v1');
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const second = await Promise.all(files.map((file) => readFile(join(dir, file), 'utf8')));
