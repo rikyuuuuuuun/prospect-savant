@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-09-03-0730",
-  "asOf": "2026-09-03",
+  "snapshotId": "savant-2026-09-04-0730",
+  "asOf": "2026-09-04",
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readonly-source-v1",
   "files": {
-    "data.js": "d4998b387537c6d4b3270b0b9a1815eb45c71aea",
-    "event-data.js": "c298997a9eacf535599c577a81b9d8f675739694",
-    "retention-data.js": "7f52a6a7447327f78ff19cd2ebc4e40194925337",
-    "school-age-data.js": "eb12fccd2f579b6b02d9c3f22a8219e2b3eff3a5"
+    "data.js": "48d6acad5795b6e3f8957019ec43578fa534657d",
+    "event-data.js": "9246428b2ff79ca6a53aad9ea6aaae12f59a4a01",
+    "retention-data.js": "e485f92cde407cbc0e7810da05a81cabc46fc9da",
+    "school-age-data.js": "a72133eb1ad08df8f029aa9fbcd1c9859a2ada8b"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
