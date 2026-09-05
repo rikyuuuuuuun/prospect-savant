@@ -1,3 +1,4 @@
+import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -29,6 +30,7 @@ function metricRanges(snapshot) {
   const source = snapshot?.ranges || {};
   const ranges = Object.fromEntries(Object.entries(METRIC_RANGES).map(([key, range]) => [key, source[range]]));
   for (const [key, rows] of Object.entries(ranges)) assert(Array.isArray(rows) && rows.length, `METRIC_EVIDENCE_RANGE_MISSING_${key}`);
+  if (source[REFERRAL_RANGE]) ranges.referral = source[REFERRAL_RANGE];
   return ranges;
 }
 function git(root, args) {

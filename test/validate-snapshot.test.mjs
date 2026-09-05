@@ -169,3 +169,34 @@ test('rejects an event rate or denominator that does not reconcile', async () =>
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+
+
+test('referral snapshot validates volume/rate blend and rejects a mismatched denominator', async () => {
+  const root = await fixture();
+  try {
+    const data = JSON.parse(DATA.match(/Object.freeze\(([\s\S]*)\);/)[1]);
+    data.metricDefinitions = { family: 'referral-volume-rate-v2' };
+    data.metricLabels = { family: '紹介力' };
+    data.teams.forEach((team, i) => {
+      const points = [9,8,5,8][i];
+      team.benchmark = { referralPoints: points, referralRate: points / 25 * 100, referralMembers:25 };
+      team.metrics.family = [88,50,13,50][i];
+    });
+    const save = async () => {
+      const content = `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(data)});`;
+      await writeFile(join(root,'data.js'),content);
+      const path = join(root,'snapshot-manifest.json');
+      const manifest = JSON.parse(await readFile(path,'utf8'));
+      manifest.files['data.js'] = blobSha(content);
+      await writeFile(path,JSON.stringify(manifest));
+    };
+    await save();
+    const valid = await validateSnapshot(root);
+    assert.equal(valid.ok,true,valid.errors.join('\n'));
+    data.teams[0].benchmark.referralMembers = 50;
+    await save();
+    const invalid = await validateSnapshot(root);
+    assert.equal(invalid.ok,false);
+    assert.ok(invalid.errors.some(e=>e.includes('referral denominator')));
+  } finally { await rm(root,{recursive:true,force:true}); }
+});

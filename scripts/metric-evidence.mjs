@@ -1,3 +1,4 @@
+import { readReferralEvidence } from './referral-evidence.mjs';
 import {
   TEAM_IDS, assertEvidence, number, count, round1, rawPctFromFraction, pctFromFraction,
   findHeaderRow, rowsByTeam, percentileScore, retainedFromRate,
@@ -157,7 +158,7 @@ export function buildMetricEvidence({ data, ranges, retentionCurve, eventHistory
   const retention = buildRetentionEvidenceFromSource(ranges.retention, retentionCurve?.minimumSample || 20);
   const admission = buildAdmissionEvidence(ranges.admission);
   const growth = buildGrowthEvidence(ranges.growth, data);
-  const family = buildFamilyEvidence(ranges.family, ranges.config, teams);
+  const family = ranges.referral ? readReferralEvidence(ranges.referral, data.asOf) : buildFamilyEvidence(ranges.family, ranges.config, teams);
   const event = buildEventEvidence(eventHistory);
   for (const id of TEAM_IDS) {
     const team = teams.get(id);

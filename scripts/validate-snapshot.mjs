@@ -1,3 +1,4 @@
+import { percentileScore } from './metric-retention-evidence.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -128,9 +129,26 @@ export async function validateSnapshot(rootDir = process.cwd()) {
       add(errors, team.overall === Math.floor(overall), `team ${team.id}: overall must equal weighted metrics`);
     }
     const ranks = [...(data.teams || [])].sort((left, right) => right.overall - left.overall).map((team) => team.id);
-    for (const [index, id] of ranks.entries()) add(errors, dataTeams.get(id)?.rank === index + 1, `team ${id}: rank must match overall`);
+    for (const [index, id] of ranks.entries()) {
+      const expectedRank = data.metricDefinitions?.family === 'referral-volume-rate-v2'
+        ? 1 + data.teams.filter(team => team.overall > dataTeams.get(id).overall).length : index + 1;
+      add(errors, dataTeams.get(id)?.rank === expectedRank, `team ${id}: rank must match overall`);
+    }
   }
 
+  if (data.metricDefinitions?.family === 'referral-volume-rate-v2') {
+    const points = data.teams.map(team => team.benchmark?.referralPoints);
+    add(errors, points.every(n => Number.isSafeInteger(n) && n >= 0), 'referral points must be anonymous non-negative counts');
+    add(errors, data.metricLabels?.family === '紹介力', 'referral label must match definition');
+    data.teams.forEach(team => {
+      const rates = data.teams.map(t => t.benchmark?.referralRate);
+      const members = team.benchmark?.referralMembers;
+      add(errors, Number.isSafeInteger(members) && members > 0 && members === team.members, `team ${team.id}: referral denominator must match current members`);
+      add(errors, Number.isFinite(team.benchmark?.referralRate) && Math.abs(team.benchmark.referralRate - team.benchmark.referralPoints / members * 100) < 1e-8, `team ${team.id}: referral rate must match points / members`);
+      const expected = Math.max(...points) === 0 ? 0 : Math.round(percentileScore(team.benchmark?.referralPoints, points) * 0.7 + percentileScore(team.benchmark?.referralRate, rates) * 0.3);
+      add(errors, team.metrics.family === expected, `team ${team.id}: referral score must use volume 70 / rate 30`);
+    });
+  }
   const comparison = data.comparison;
   if (comparison !== undefined && comparison !== null) {
     add(errors, typeof comparison.scoreVersion === 'string' && comparison.scoreVersion.length > 0,
