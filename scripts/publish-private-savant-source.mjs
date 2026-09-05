@@ -1,3 +1,4 @@
+import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -190,6 +191,7 @@ function updateData(data, ranges, asOf) {
       ...(oldData.admissions ? { admissions: oldData.admissions } : {}),
     };
   }
+  if (ranges.referral) applyReferralMetadata(data, ranges.referral, oldData);
   data.memberMonthlyComparison = selectMemberMonthlyComparison(oldData, asOf, data.memberDefinition?.id);
   applyMemberMonthlyDelta(data);
   return annual;
@@ -281,6 +283,8 @@ function sourceRanges(snapshot) {
   const values = snapshot?.ranges || {};
   const ranges = Object.fromEntries(Object.entries(RANGES).map(([key, range]) => [key, values[range]]));
   for (const [key, rows] of Object.entries(ranges)) assert(Array.isArray(rows) && rows.length, `SOURCE_RANGE_MISSING_${key}`);
+  ranges.referral = values[REFERRAL_RANGE];
+  if (ranges.teams[3]?.includes("紹介力点") && !ranges.referral) throw new Error("REFERRAL_RANGE_MISSING");
   ranges.trialAggregate = snapshot.trialAggregate;
   assert(ranges.trialAggregate?.aggregates, 'TRIAL_AGGREGATE_MISSING');
   return ranges;

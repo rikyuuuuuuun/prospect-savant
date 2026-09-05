@@ -784,7 +784,7 @@
       <div class="container hero-inner">
         <p class="eyebrow">A–D TEAM ANALYTICS</p>
         <h1>数字で見る、<br />チームの現在地。</h1>
-        <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・家庭継続の5指標で比較します。</p>
+        <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・紹介の5指標で比較します。</p>
         <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
         <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
         <section class="admission-notice" id="admission-notice" aria-live="polite" hidden></section>
@@ -929,6 +929,7 @@
         if (!data) return;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        document.querySelector(".hero-lead").textContent = `会員数だけでは見えない組織の強さを、${metricKeys.map(key => data.metricLabels[key]).join("・")}の5指標で比較します。`;
         const eventHistory = window.PROSPECT_EVENT_HISTORY;
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
@@ -977,6 +978,9 @@
           document.getElementById("profiles-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
         };
 
+        const referralComparable = () =>
+          (data.metricDefinitions?.family || 'legacy-family') === (data.comparison?.metricDefinitions?.family || 'legacy-family')
+          && (data.metricDefinitions?.family !== 'referral-points-v1' || data.admissions?.fiscalYear === data.comparison?.admissions?.fiscalYear);
         const buildMovementItems = () => {
           const comparison = data.comparison;
           if (!comparison?.teams?.length) return [];
@@ -988,7 +992,7 @@
           data.teams.forEach((team) => {
             const previous = previousTeams.get(team.id);
             if (!previous) return;
-            const overallDelta = scoreComparable ? team.overall - previous.overall : 0;
+            const overallDelta = scoreComparable && referralComparable() ? team.overall - previous.overall : 0;
             if (overallDelta) {
               items.push({
                 teamId: team.id,
@@ -1003,7 +1007,7 @@
             }
 
             metricKeys.forEach((key) => {
-              if (key === "event" && !scoreComparable) return;
+              if ((key === "event" && !scoreComparable) || (key === "family" && !referralComparable())) return;
               const delta = team.metrics[key] - previous.metrics[key];
               if (!delta) return;
               items.push({
@@ -2071,19 +2075,19 @@
           const newAdmissionCount = newAdmissionsByTeam.get(team.id);
           const order = strongest(team);
           const previousTeam = data.comparison?.teams?.find((item) => item.id === team.id);
-          const overallChange = data.scoreVersion === data.comparison?.scoreVersion && previousTeam ? team.overall - previousTeam.overall : 0;
+          const overallChange = data.scoreVersion === data.comparison?.scoreVersion && referralComparable() && previousTeam ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
           const deltaClass = memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
-            const change = previousTeam && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
+            const change = previousTeam && (key !== "family" || referralComparable()) && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
               ? score - previousTeam.metrics[key]
               : 0;
             const changeMarkup = change
               ? `<small class="${deltaTone(change)}">${formatDelta(change)}</small>`
               : "";
-            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
+            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}${key === "family" && Number.isSafeInteger(team.benchmark.referralPoints) ? `<small> ${team.benchmark.referralPoints}pt</small>` : ""}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
           }).join("");
           return `
             <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">

@@ -105,3 +105,16 @@ node scripts/publish-operational-member-snapshot.mjs <private-input.json>
 ```
 
 It updates the public aggregate in `data.js`, stamps all four public data files with one snapshot ID, and refreshes `snapshot-manifest.json`. Member net change is calculated only from the exact previous calendar month-end snapshot under the same member definition; otherwise it fails closed as not comparable. The daily `comparison` remains independent so new-admission notices and previous-public movement continue to use the prior publication.
+
+## 紹介力への移行
+
+`referral-points-v1` の匿名集計が公開元で検証できた時点で、第5指標を家庭継続力から紹介力へ切り替えます。内部キー `family` は互換性のため保持します。
+
+- 4月〜翌3月の紹介による初回実体験は子ども1人につき1ポイント。同じ家庭が5人紹介すれば5ポイント。
+- 紹介者未入力は0点。既存会員の兄弟姉妹と判別できる入会は空欄でも1ポイント。
+- 同じ子の再体験・入会を二重加算しません。過去の未記録紹介は推定しません。
+- 在籍人数・世帯数・受入枠による規模補正はしません。総数を既存の中央値順位パーセンタイルへ変換し、総合への配点は15％を維持します。全チーム0人なら0点です。
+- 画面には相対点と紹介ポイント実数、紹介体験／兄弟姉妹の内訳を表示します。定義変更・年度変更をまたぐ紹介力と総合点の差は表示しません。
+- 同じ総合点のチームは同順位です。紹介元の氏名・人物ID・世帯ID・子どもの行データは取得・公開しません。
+
+紹介集計の基準日と公開スナップショットの基準日が一致し、元シートのREADY、合計・内訳・相対点の照合を通るまで公開しません。既存の会員同期ゲート・公開7ファイルの一括検証・本番preflightも維持します。

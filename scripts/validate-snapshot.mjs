@@ -1,3 +1,4 @@
+import { percentileScore } from './metric-retention-evidence.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -128,9 +129,22 @@ export async function validateSnapshot(rootDir = process.cwd()) {
       add(errors, team.overall === Math.floor(overall), `team ${team.id}: overall must equal weighted metrics`);
     }
     const ranks = [...(data.teams || [])].sort((left, right) => right.overall - left.overall).map((team) => team.id);
-    for (const [index, id] of ranks.entries()) add(errors, dataTeams.get(id)?.rank === index + 1, `team ${id}: rank must match overall`);
+    for (const [index, id] of ranks.entries()) {
+      const expectedRank = data.metricDefinitions?.family === 'referral-points-v1'
+        ? 1 + data.teams.filter(team => team.overall > dataTeams.get(id).overall).length : index + 1;
+      add(errors, dataTeams.get(id)?.rank === expectedRank, `team ${id}: rank must match overall`);
+    }
   }
 
+  if (data.metricDefinitions?.family === 'referral-points-v1') {
+    const points = data.teams.map(team => team.benchmark?.referralPoints);
+    add(errors, points.every(n => Number.isSafeInteger(n) && n >= 0), 'referral points must be anonymous non-negative counts');
+    add(errors, data.metricLabels?.family === '紹介力', 'referral label must match definition');
+    data.teams.forEach(team => {
+      const expected = Math.max(...points) === 0 ? 0 : Math.round(percentileScore(team.benchmark?.referralPoints, points));
+      add(errors, team.metrics.family === expected, `team ${team.id}: referral score must use unadjusted points`);
+    });
+  }
   const comparison = data.comparison;
   if (comparison !== undefined && comparison !== null) {
     add(errors, typeof comparison.scoreVersion === 'string' && comparison.scoreVersion.length > 0,

@@ -1,3 +1,4 @@
+import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -21,6 +22,7 @@ const RANGES = [
   "'99_データ品質'!A1:F20",
   MEMBER_READBACK_RANGE,
   MEMBER_GATE_RANGE,
+  REFERRAL_RANGE,
 ];
 
 const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;

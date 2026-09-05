@@ -94,6 +94,13 @@ function componentBasis(component) {
   return `${component.label} ${component.numerator}/${component.denominator}${suffix}・${component.rate.toFixed(1)}%（相対点${component.relativeScore.toFixed(1)}）`;
 }
 function explainFamily(id, current, previous, currentAll, previousAll, currentScore, previousScore, previousLabel) {
+  if (current?.definition === 'referral-points-v1') {
+    let text = `【紹介力】${current.fiscalYear}年度の紹介${current.points}ポイント（紹介体験${current.trialPoints}人・兄弟姉妹入会${current.siblingPoints}人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算せず、チーム規模の補正なしで比較し${currentScore}点です。`;
+    if (previous?.definition === current.definition && previous.fiscalYear === current.fiscalYear) {
+      text += ` ${previousLabel || '前回'}の${previous.points}→${current.points}ポイント。`;
+    } else text += ' 家庭継続力とは定義が異なるため、旧指標との点数差は比較しません。';
+    return text;
+  }
   const components = Object.values(current?.components || {});
   const basis = components.map(componentBasis).join('、');
   let text = `【家庭継続力】${basis}。兄弟姉妹25・2年継続20・再入会20・イベント継続15の設定重みを、利用可能項目の合計で正規化して相対評価し${currentScore}点です。`;
