@@ -1,4 +1,5 @@
 name: Publish Prospect Savant
+run-name: ${{ inputs.recovery_request_id && format('Savant recovery {0}', inputs.recovery_request_id) || 'Publish Prospect Savant' }}
 
 on:
   schedule:
@@ -10,6 +11,10 @@ on:
       timezone: Asia/Tokyo
   workflow_dispatch:
     inputs:
+      recovery_request_id:
+        description: 'Recovery correlation ID (watchdog only)'
+        required: false
+        type: string
       publish:
         description: 'mainへcommitし、Pagesへ配備する（既定はdry-run）'
         required: false
@@ -72,28 +77,7 @@ jobs:
         env:
           TARGET_DATE: ${{ steps.daily-gate.outputs.target_date }}
           GATE_TRIGGER: ${{ steps.daily-gate.outputs.trigger }}
-        run: |
-          node --input-type=module <<'NODE'
-          import { appendFile, readFile } from 'node:fs/promises';
-          const source = JSON.parse(await readFile('.private/savant-source.json', 'utf8'));
-          const sourceAsOf = source?.trialAggregate?.targetDate;
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(sourceAsOf || '')) throw new Error('SOURCE_ASOF_INVALID');
-          const isCurrent = sourceAsOf === process.env.TARGET_DATE;
-          await appendFile(process.env.GITHUB_OUTPUT, [
-            `source_as_of=${sourceAsOf}`,
-            `source_is_current=${isCurrent}`,
-            '',
-          ].join('\n'));
-          await appendFile(process.env.GITHUB_STEP_SUMMARY, [
-            '## Daily Savant source freshness',
-            `trigger: ${process.env.GATE_TRIGGER}`,
-            `sourceAsOf: ${sourceAsOf}`,
-            `targetDate: ${process.env.TARGET_DATE}`,
-            isCurrent ? 'action: generate-candidate' : 'action: skipped-source-not-current',
-            isCurrent ? '' : 'reason: the central source is behind the publication target; the prior public snapshot is retained.',
-            '',
-          ].join('\n'));
-          NODE
+        run: node scripts/source-freshness-gate.mjs .private/savant-source.json
       - name: Generate and validate a complete candidate snapshot
         if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.source-freshness.outputs.source_is_current == 'true'
         shell: bash

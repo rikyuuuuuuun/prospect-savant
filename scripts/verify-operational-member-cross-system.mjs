@@ -1,3 +1,4 @@
+import { readMemberReceipt } from './source-member-readback.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -11,7 +12,25 @@ function parseFrozenJson(source) {
   return JSON.parse(source.slice(start + marker.length, end));
 }
 
-export async function verifyOperationalMemberCrossSystem({ input, rootDir }) {
+export function verifyLiveOperationalMemberReadback({ input, sheet05Rows, gateRows, sheet12Rows }) {
+  const projection = projectOperationalMembersForSheets(input);
+  const receipt = readMemberReceipt(sheet05Rows, gateRows);
+  assert.equal(receipt.ready, true, 'live member aggregate is not ready');
+  assert.deepEqual(receipt.counts, projection.canonical.finalCounts, 'live 05 diverges from canonical output');
+  assert.equal(receipt.definitionId, projection.canonical.definitionId, 'live 05 definition diverges');
+  assert.equal(receipt.asOf, projection.canonical.snapshot.asOf, 'live 05 date diverges');
+  assert.equal(receipt.snapshotId, projection.canonical.snapshot.id, 'live 05 snapshot diverges');
+  for (const [i, id] of ['A', 'B', 'C', 'D'].entries()) {
+    assert.equal(sheet12Rows?.[i + 1]?.[0], id, 'live 12 team order diverges');
+    assert.equal(sheet12Rows[i + 1][1], receipt.counts[id], 'live 12 diverges from canonical output');
+  }
+  assert.equal(sheet12Rows?.[5]?.[1], receipt.total, 'live 12 total diverges');
+  return receipt;
+}
+
+export async function verifyOperationalMemberCrossSystem({ input, rootDir, readback }) {
+  assert(readback, 'live Sheets readback is required; a local projection is not verification');
+  verifyLiveOperationalMemberReadback({ input, ...readback });
   const projection = projectOperationalMembersForSheets(input);
   const data = parseFrozenJson(await readFile(resolve(rootDir, 'data.js'), 'utf8'));
   const manifest = JSON.parse(await readFile(resolve(rootDir, 'snapshot-manifest.json'), 'utf8'));
@@ -40,10 +59,11 @@ export async function verifyOperationalMemberCrossSystem({ input, rootDir }) {
 }
 
 async function main() {
-  const [inputPath, rootArg] = process.argv.slice(2);
-  if (!inputPath) throw new Error('usage: node scripts/verify-operational-member-cross-system.mjs <private-input.json> [root-dir]');
+  const [inputPath, rootArg, readbackPath] = process.argv.slice(2);
+  if (!inputPath || !readbackPath) throw new Error('usage: node scripts/verify-operational-member-cross-system.mjs <private-input.json> <root-dir> <private-readback.json>');
   const input = JSON.parse(await readFile(resolve(inputPath), 'utf8'));
-  console.log(JSON.stringify(await verifyOperationalMemberCrossSystem({ input, rootDir: rootArg || process.cwd() }), null, 2));
+  const readback = JSON.parse(await readFile(resolve(readbackPath), 'utf8'));
+  console.log(JSON.stringify(await verifyOperationalMemberCrossSystem({ input, rootDir: rootArg || process.cwd(), readback }), null, 2));
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((error) => { console.error(error.stack || error.message); process.exitCode = 1; });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main().catch((error) => { console.error(error.stack || error.message); process.exitCode = 1; });

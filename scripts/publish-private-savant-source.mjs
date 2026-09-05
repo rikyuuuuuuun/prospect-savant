@@ -1,3 +1,4 @@
+import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
@@ -285,18 +286,11 @@ function sourceRanges(snapshot) {
   return ranges;
 }
 
-function validateSourceQuality(range) {
-  const blocked = /(?:異常|エラー|失敗|未更新|要確認|欠損)/;
-  for (const row of range.slice(4)) {
-    const status = String(row?.[5] ?? '');
-    assert(status.trim(), 'SOURCE_QUALITY_STATUS_MISSING');
-    assert(!blocked.test(status), 'SOURCE_QUALITY_BLOCKED');
-  }
-}
 
 async function publishInto(root, snapshot) {
   const ranges = sourceRanges(snapshot);
   validateSourceQuality(ranges.quality);
+  const memberReceipt = assertMemberSourceReadback(snapshot);
   const data = parsePublicSource(await readFile(join(root, 'data.js'), 'utf8'), 'data.js');
   const events = parsePublicSource(await readFile(join(root, 'event-data.js'), 'utf8'), 'event-data.js');
   const retention = parsePublicSource(await readFile(join(root, 'retention-data.js'), 'utf8'), 'retention-data.js');
@@ -321,7 +315,9 @@ async function publishInto(root, snapshot) {
     snapshotId: data.snapshotId,
     asOf,
     scoreVersion: data.scoreVersion,
-    sourceCommit: 'sheets-readonly-source-v1',
+    sourceCommit: `sheets-readback-sha256:${memberReceipt.digest}`,
+    memberSourceSnapshotId: memberReceipt.snapshotId,
+    operationalMemberDefinition: memberReceipt.definitionId,
     sourceKind: 'private-sheets-readonly-anonymous-aggregate-v1',
     files: Object.fromEntries(Object.entries(output).map(([file, content]) => [file, gitBlobSha(content)])),
   };
