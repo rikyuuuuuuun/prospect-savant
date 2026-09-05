@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-09-05-0730",
-  "asOf": "2026-09-05",
+  "snapshotId": "savant-2026-09-06-0730",
+  "asOf": "2026-09-06",
   "scoreVersion": "v7-operational-member-denominator",
-  "sourceCommit": "sheets-readback-sha256:023173f1915cdd86759133c062f9ac76baa14ffe21edfd0a5be13bb51ca49c15",
+  "sourceCommit": "sheets-readback-sha256:2e6c955421128928023d9728750efe0e7d61b9568258a8893fb450308721663d",
   "files": {
-    "data.js": "efc66d5d71921cc39afaa1b8cc16e59f5c26a7aa",
-    "event-data.js": "3f9118f718b6a19c928eeaf86fa68dfcf7edfbff",
-    "retention-data.js": "72a22b75fad37b02b4cd2bf6c019424067993a7b",
-    "school-age-data.js": "2b643495f287ba3b4e90a5b31e86f6a6a3a147b2"
+    "data.js": "6df5a887542a59874385b329b508350abfa82ef5",
+    "event-data.js": "7075f3b9f3e56fb7e2efd103be1325cfe52999a1",
+    "retention-data.js": "064fc23dc0bf9505c0261a736815bf5920003596",
+    "school-age-data.js": "f3aa69ba96de87d33173781b313e4184e97305a0"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
@@ -31,5 +31,5 @@
     }
   },
   "overlayDigest": "private-overlay-sha256:1ba0aebdc73f77881becd16143cf165c91d77c5dba282b7a8f05874660dd9ae1",
-  "memberSourceSnapshotId": "2026-09-05-v6-003-operational-members"
+  "memberSourceSnapshotId": "2026-09-06-v6-003-operational-members"
 }
