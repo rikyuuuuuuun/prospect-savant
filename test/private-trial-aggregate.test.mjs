@@ -23,7 +23,7 @@ function successfulTrialRequest(rawUrl) {
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
     const receipt = syntheticMemberReadback();
     if (url.searchParams.getAll('ranges').length === 2) return { valueRanges: [{ values: receipt }, { values: syntheticMemberGate() }] };
-    const valueRanges = Array.from({ length: 15 }, () => ({ values: [] }));
+    const valueRanges = Array.from({ length: 16 }, () => ({ values: [] }));
     valueRanges[14] = { values: syntheticMemberGate() };
     valueRanges[13] = { values: receipt };
     valueRanges[12] = { values: [[], [], [], [], ['', '', '', '', '', '正常']] };
