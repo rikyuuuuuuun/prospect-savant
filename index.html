@@ -980,7 +980,7 @@
 
         const referralComparable = () =>
           (data.metricDefinitions?.family || 'legacy-family') === (data.comparison?.metricDefinitions?.family || 'legacy-family')
-          && (data.metricDefinitions?.family !== 'referral-points-v1' || data.admissions?.fiscalYear === data.comparison?.admissions?.fiscalYear);
+          && (data.metricDefinitions?.family !== 'referral-volume-rate-v2' || data.admissions?.fiscalYear === data.comparison?.admissions?.fiscalYear);
         const buildMovementItems = () => {
           const comparison = data.comparison;
           if (!comparison?.teams?.length) return [];
@@ -2087,7 +2087,7 @@
             const changeMarkup = change
               ? `<small class="${deltaTone(change)}">${formatDelta(change)}</small>`
               : "";
-            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}${key === "family" && Number.isSafeInteger(team.benchmark.referralPoints) ? `<small> ${team.benchmark.referralPoints}pt</small>` : ""}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
+            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}${key === "family" && Number.isSafeInteger(team.benchmark.referralPoints) ? `<small> ${team.benchmark.referralPoints}pt · ${Number(team.benchmark.referralRate).toFixed(2)}%</small>` : ""}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
           }).join("");
           return `
             <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">

@@ -94,11 +94,11 @@ function componentBasis(component) {
   return `${component.label} ${component.numerator}/${component.denominator}${suffix}・${component.rate.toFixed(1)}%（相対点${component.relativeScore.toFixed(1)}）`;
 }
 function explainFamily(id, current, previous, currentAll, previousAll, currentScore, previousScore, previousLabel) {
-  if (current?.definition === 'referral-points-v1') {
-    let text = `【紹介力】${current.fiscalYear}年度の紹介${current.points}ポイント（紹介体験${current.trialPoints}人・兄弟姉妹入会${current.siblingPoints}人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算せず、チーム規模の補正なしで比較し${currentScore}点です。`;
+  if (current?.definition === 'referral-volume-rate-v2') {
+    let text = `【紹介力】${current.fiscalYear}年度の紹介${current.points}ポイント（紹介体験${current.trialPoints}人・兄弟姉妹入会${current.siblingPoints}人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は${current.points}pt÷基準日の会員${current.members}人＝${current.rate.toFixed(2)}％。人数相対点${current.pointScore.toFixed(1)}×70％＋紹介率相対点${current.rateScore.toFixed(1)}×30％で${currentScore}点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。`;
     if (previous?.definition === current.definition && previous.fiscalYear === current.fiscalYear) {
       text += ` ${previousLabel || '前回'}の${previous.points}→${current.points}ポイント。`;
-    } else text += ' 家庭継続力とは定義が異なるため、旧指標との点数差は比較しません。';
+    } else text += ' 定義や年度が異なる過去の点数とは比較しません。';
     return text;
   }
   const components = Object.values(current?.components || {});
