@@ -851,6 +851,8 @@
       .withdrawal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
       .withdrawal-card { min-width:0; padding:18px; border:1px solid #dce4eb; border-radius:14px; }
       .withdrawal-card h3 { margin:0; font-size:18px; }
+      .withdrawal-card p.delta-positive { color:#187047; }
+      .withdrawal-card p.delta-negative { color:#b33d38; }
       .withdrawal-card p { font-size:12px; color:#586b7d; line-height:1.6; }
       .withdrawal-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0 10px; }
       .withdrawal-stats span { display:block; font-size:11px; color:#586b7d; }
@@ -1907,25 +1909,35 @@
           updateRetentionSelection(retentionState.selected);
         };
 
+        const withdrawalReference = (row, teamMembers) => {
+          const monthly = Number.isSafeInteger(row.denominator) && row.denominator > 0 && row.missingEntry === 0;
+          const denominator = monthly ? row.denominator : teamMembers;
+          const numerator = monthly ? row.cohortCount : row.count;
+          return { basis: monthly ? 'month-start' : 'snapshot', numerator, denominator,
+            rate: Number.isSafeInteger(denominator) && denominator > 0 ? Number((100 * numerator / denominator).toFixed(2)) : null };
+        };
+
         const initializeWithdrawalHistory = () => {
           const root=document.getElementById('withdrawal-content'), h=data.withdrawalHistory;
           if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは集計待ちです。未取得の数値を0として表示しません。</p>'; return; }
           let selected='ALL', month=h.asOf.slice(0,7);
           const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
-          const fmtRate=r=>r.rate===null?'算出保留':`${r.rate.toFixed(2)}%`;
+          const reference=(r,id)=>withdrawalReference(r,data.teams.find(t=>t.id===id)?.members);
+          const fmtRate=(r,id)=>{const value=reference(r,id);return value.rate===null?'—':`${value.rate.toFixed(2)}%`;};
           const render=()=>{
             const selectedIndex=h.months.indexOf(month);
             const ids=selected==='ALL'?['A','B','C','D']:[selected];
             const max=Math.max(1,...Object.values(h.teams).flatMap(t=>t.months.filter(Boolean).map(r=>r.count)));
             root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL','A','B','C','D'].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
-            <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。退会月不明分は月別人数に含めず、影響する退会率は算出を保留します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
+            <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。割合は判明分だけの参考値です。退会月不明分は計算に含めません。月初人数がない月は基準日の会員数を分母に使い、計算式を各カードに表示します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
             <div class="withdrawal-grid">${ids.map(id=>{
               const t=h.teams[id],r=t.months[selectedIndex],prev=t.months[selectedIndex-1];
-              const delta=r.rate!==null && prev?.rate!==null && Number.isFinite(prev?.rate)?r.rate-prev.rate:null;
-              const change=delta===null?'前月差：比較できる退会率なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
-              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p><div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>月次退会率</span><strong class="withdrawal-rate">${fmtRate(r)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>月初人数：${r.denominator===null?'未取得':r.denominator+'人'} ／ 月初在籍者の判明退会：${r.cohortCount}人</p></article>`;
+              const ref=reference(r,id), prior=prev?reference(prev,id):null;
+              const delta=ref.rate!==null && prior?.rate!==null && Number.isFinite(prior?.rate) && ref.basis===prior.basis?Number((ref.rate-prior.rate).toFixed(2)):null;
+              const change=delta===null?'前月差：分母の基準が異なるか、比較月なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p><div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
             }).join('')}</div>
-            <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明や月初人数未取得の場合、率を0%として表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>月初人数</th><th>退会率</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${r.denominator??'—'}</td><td>${fmtRate(r)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
+            <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明分は分子に含めず、判明分だけで参考値を計算します。月初人数または月初在籍の判定材料がない月は、判明退会人数を基準日の会員数で割った参考割合を表示します。この割合は通常の月次退会率とは分けて読み、基準日会員数の更新でも変わります。異なる分母基準の前月差は表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
           };
           root.addEventListener('click',e=>{const team=e.target.closest('[data-withdrawal-team]'),point=e.target.closest('[data-withdrawal-month]');if(team){selected=team.dataset.withdrawalTeam;render();root.querySelector(`[data-withdrawal-team="${selected}"]`)?.focus({preventScroll:true});}else if(point){month=point.dataset.withdrawalMonth;render();root.querySelector(`[data-withdrawal-month="${month}"]`)?.focus({preventScroll:true});}});
           root.addEventListener('change',e=>{if(e.target.id==='withdrawal-month'){month=e.target.value;render();root.querySelector('#withdrawal-month')?.focus({preventScroll:true});}});
