@@ -2,6 +2,12 @@
 
 ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示で比較するスタッフ共有用ページです。
 
+## スタッフの共通ログイン
+
+閲覧先は [Googleログイン付きサバント](https://prospect-portal.rikuhirata713.chatgpt.site/savant/) です。ポータルと同じGoogleアカウント・同じ7日間のセッションを使用し、旧GitHub Pages URLも画面指定を維持してこの入口へ移動します。
+
+表示と日次公開の両workflowは`node scripts/build-staff-pages.mjs . _site`で検証済み表示・数値を単一の`savant-bundle.json`へまとめ、Pagesの`index.html`には移動用ページを配置します。`index.html`の分析UI本体は引き続きこのリポジトリで管理します。日次更新・匿名集計のルールと公開データの範囲は変更しません。スタッフの認証情報やアクセス履歴をこの公開リポジトリへ保存しません。
+
 ## 公開データの範囲
 
 - チーム単位の集計指標

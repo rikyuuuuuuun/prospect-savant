@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'scripts/build-staff-pages.mjs'
       - '.github/workflows/deploy-savant-display.yml'
 permissions:
   contents: read
@@ -38,10 +39,9 @@ jobs:
           const html = readFileSync('index.html', 'utf8');
           for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
           NODE
-      - name: Stage only public website files
+      - name: Stage shared-login entry and verified dashboard bundle
         run: |
-          mkdir _site
-          cp index.html data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json robots.txt .nojekyll _site/
+          node scripts/build-staff-pages.mjs . _site
           git rev-parse HEAD > _site/display-revision.txt
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
