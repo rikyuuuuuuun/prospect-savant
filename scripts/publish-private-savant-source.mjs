@@ -1,3 +1,4 @@
+import { validateAdmissionHistory } from './admission-history.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -303,6 +304,8 @@ async function publishInto(root, snapshot) {
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
+  if (snapshot.admissionHistory) data.admissionHistory = validateAdmissionHistory(snapshot.admissionHistory, data);
+  else delete data.admissionHistory; // Legacy sources must never carry a stale monthly series forward.
   updateEventHistory(events, ranges.events, data.snapshotId, asOf);
   updateRetentionCurve(retention, ranges.curve, data.snapshotId, asOf);
   updateSchoolAge(schoolAge, ranges.schoolAge, data.snapshotId, asOf);

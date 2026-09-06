@@ -1665,5 +1665,96 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "memberDeltaDefinition": "previous-month-end-v1",
   "metricDefinitions": {
     "family": "referral-volume-rate-v2"
+  },
+  "admissionHistory": {
+    "definition": "member-master-admission-date-monthly-v1",
+    "asOf": "2026-09-06",
+    "fiscalYear": "2026",
+    "months": [
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11",
+      "2026-12",
+      "2027-01",
+      "2027-02",
+      "2027-03"
+    ],
+    "teams": {
+      "A": [
+        30,
+        31,
+        13,
+        21,
+        7,
+        4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "B": [
+        44,
+        22,
+        6,
+        11,
+        2,
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "C": [
+        22,
+        25,
+        13,
+        6,
+        2,
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "D": [
+        21,
+        18,
+        8,
+        6,
+        1,
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "total": [
+      117,
+      96,
+      40,
+      44,
+      12,
+      7,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
   }
 });

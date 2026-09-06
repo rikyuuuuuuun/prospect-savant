@@ -662,6 +662,31 @@
       .curve-summary { margin: 10px 0 0; color: #34485a; font-size: 12px; font-weight: 700; }
       .curve-note { margin: 7px 0 0; color: var(--muted); font-size: 11px; }
 
+      .admission-history-panel { overflow: hidden; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+      .admission-history-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 0 20px; }
+      #admission-history-summary { font-variant-numeric: tabular-nums; }
+      #admission-history-summary strong, #admission-history-summary span { display: block; }
+      #admission-history-summary span { color: var(--muted); font-size: 12px; }
+      .admission-history-legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 20px 12px; color: var(--muted); font-size: 12px; }
+      .admission-history-legend i { display: inline-block; width: 20px; margin-right: 6px; vertical-align: middle; }
+      .admission-bar-key { height: 12px; background: var(--blue); }
+      .admission-line-key { border-top: 3px solid var(--navy-800); }
+      .admission-history-chart { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding: 0 16px 16px; }
+      .admission-history-chart.single-team { grid-template-columns: 1fr; }
+      .admission-team-chart { min-width: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+      .admission-team-chart h3 { margin: 14px 16px 8px; font-size: 18px; }
+      .admission-team-chart h3 small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+      .admission-chart-scroll { overflow-x: auto; }
+      @media (max-width: 780px) { .admission-history-chart { grid-template-columns: 1fr; } }
+      .admission-history-chart svg { display: block; width: 100%; min-width: 480px; }
+      .admission-history-chart [role="button"] { cursor: pointer; }
+      .admission-history-chart [role="button"]:focus { outline: 2px solid var(--blue); outline-offset: -2px; }
+      .admission-history-detail { margin: 0; padding: 14px 20px; background: #eef4f8; font-weight: 700; font-size: 14px; }
+      .admission-history-table { padding: 12px 20px; font-size: 13px; }
+      .admission-history-table summary { cursor: pointer; color: var(--blue-deep); }
+      .admission-history-table table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      .admission-history-table th, .admission-history-table td { padding: 7px; text-align: right; border-bottom: 1px solid var(--line); }
+      .admission-history-table th:first-child { text-align: left; }
       .comparison-wrap { overflow-x: auto; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
       .comparison-table { width: 100%; min-width: 720px; border-collapse: collapse; }
       .comparison-table th, .comparison-table td { padding: 14px 15px; border-bottom: 1px solid #e6ecf1; text-align: center; }
@@ -851,6 +876,11 @@
         </div>
         <div class="team-tools" id="team-filters" aria-label="表示チームを選択"></div>
         <div class="team-grid" id="team-grid"></div>
+      </section>
+
+      <section class="section" id="admission-history-section" aria-labelledby="admission-history-title">
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MONTHLY ADMISSIONS</p><h2 id="admission-history-title">月ごとの入会者数</h2></div><p>A〜Dそれぞれの月別入会と累計を比較。縦軸は全チーム共通です。</p></div>
+        <div class="admission-history-panel" id="admission-history-content"></div>
       </section>
 
       <section class="section" id="retention-section" aria-labelledby="retention-title">
@@ -1785,6 +1815,73 @@
           updateRetentionSelection(retentionState.selected);
         };
 
+        const initializeAdmissionHistory = () => {
+          const history = data.admissionHistory;
+          const root = document.getElementById("admission-history-content");
+          if (!history || history.asOf !== data.asOf) {
+            root.innerHTML = '<p class="team-note">月別入会者数は集計待ちです。</p>';
+            return;
+          }
+          let selected = "ALL";
+          let selectedMonth = history.months.indexOf(data.asOf.slice(0, 7));
+          const currentMonth = selectedMonth;
+          const labelFor = month => `${Number(month.slice(5))}月`;
+          root.innerHTML = `<div class="admission-history-tools"><div class="team-tools" id="admission-history-filters" aria-label="入会者数の表示チーム"></div><p id="admission-history-summary"></p></div><div class="admission-history-legend"><span><i class="admission-bar-key"></i>棒：月ごとの入会者数</span><span><i class="admission-line-key"></i>線：4月からの累計</span></div><div class="admission-history-chart" id="admission-history-chart"></div><p class="admission-history-detail" id="admission-history-detail" aria-live="polite"></p><details class="admission-history-table"><summary>月別の人数を表で確認</summary><div id="admission-history-table"></div></details><p class="team-note">${history.fiscalYear}年度（4月〜翌3月）。${escapeHtml(data.asOfLabel)}基準。今月は途中集計、未来の月は未集計です。会員マスターの入会日による実入会者数（再入会を含む）。退会による減少を差し引かない累計です。</p>`;
+          let activeDetailTeam = "A";
+          const valuesFor = () => history.teams[activeDetailTeam];
+          const totalsFor = values => { let sum = 0; return values.map(v => v === null ? null : (sum += v)); };
+          const detail = () => {
+            const values = valuesFor(), cumulative = totalsFor(values);
+            const month = history.months[selectedMonth];
+            document.getElementById("admission-history-detail").textContent = `${activeDetailTeam} TEAM｜${labelFor(month)}${selectedMonth === currentMonth ? "（途中）" : ""}：${values[selectedMonth] === null ? "未集計" : `入会 ${values[selectedMonth]}人 ／ 年度累計 ${cumulative[selectedMonth]}人`}`;
+          };
+          const render = () => {
+            document.getElementById("admission-history-filters").innerHTML = ["ALL", ...data.teams.map(t => t.id)].map(id => `<button type="button" class="filter-button" data-admission-team="${id}" aria-pressed="${id === selected}">${id === "ALL" ? "全チーム" : id + " TEAM"}</button>`).join("");
+            document.getElementById("admission-history-summary").textContent = `${history.fiscalYear}年度｜各チームの月別入会と累計`;
+            const visibleTeams = selected === "ALL" ? data.teams.map(t => t.id) : [selected];
+            const cards = visibleTeams.map(teamId => {
+            const values = history.teams[teamId], cumulative = totalsFor(values);
+            const width = 700, height = 320, left = 54, right = 28, top = 32, bottom = 60;
+            const plotHeight = height - top - bottom, step = (width - left - right) / 12;
+            const max = Math.max(5, Math.ceil(Math.max(...data.teams.map(t => history.teams[t.id].reduce((sum, n) => sum + (n ?? 0), 0))) / 5) * 5);
+            const x = i => left + step * (i + 0.5), y = n => top + plotHeight * (1 - n / max);
+            const color = retentionColors[teamId];
+            const grid = Array.from({length: 6}, (_, i) => {
+              const value = max * i / 5;
+              return `<line x1="${left}" x2="${width-right}" y1="${y(value)}" y2="${y(value)}" stroke="#e2e8ee"/><text x="${left-10}" y="${y(value)+4}" text-anchor="end" fill="#68788a" font-size="12">${Math.round(value)}</text>`;
+            }).join("");
+            const bars = values.map((value, i) => {
+              let bar = "", stack = 0;
+              if (value !== null) {
+                const parts = [[value, color]];
+                bar = parts.map(([n, fill]) => { stack += n; return `<rect x="${x(i)-14}" y="${y(stack)}" width="28" height="${plotHeight*n/max}" fill="${fill}" opacity="0.78"/>`; }).join("");
+              }
+              const title = `${labelFor(history.months[i])}：${value === null ? "未集計" : `入会${value}人、累計${cumulative[i]}人`}`;
+              return `<g role="button" tabindex="0" data-admission-month="${i}" data-admission-detail-team="${teamId}" aria-label="${title}"><title>${title}</title><rect x="${x(i)-step/2+2}" y="${top}" width="${step-4}" height="${plotHeight}" fill="${i === currentMonth ? '#edf3f8' : 'transparent'}"/>${bar}<text x="${x(i)}" y="${value === null ? y(0)-10 : Math.max(top+14,y(value)-8)}" text-anchor="middle" font-size="13" font-weight="700" fill="#34485a">${value === null ? '—' : value}</text><text x="${x(i)}" y="${height-bottom+24}" text-anchor="middle" font-size="13" fill="#34485a">${labelFor(history.months[i])}</text>${i === currentMonth ? `<text x="${x(i)}" y="${height-bottom+42}" text-anchor="middle" font-size="11" fill="#68788a">途中</text>` : ''}</g>`;
+            }).join("");
+            const points = cumulative.flatMap((v,i) => v === null ? [] : [`${x(i)},${y(v)}`]).join(" ");
+            const dots = cumulative.map((v,i) => v === null ? '' : `<g role="button" tabindex="0" data-admission-month="${i}" data-admission-detail-team="${teamId}" aria-label="${labelFor(history.months[i])}の累計${v}人"><circle cx="${x(i)}" cy="${y(v)}" r="6" fill="white" stroke="${color}" stroke-width="3"/><text x="${x(i)}" y="${y(v)-13}" text-anchor="middle" fill="${color}" font-size="13" font-weight="800">${v}</text></g>`).join("");
+            return `<article class="admission-team-chart"><h3 style="color:${color}">${teamId} TEAM <small>年度累計 ${cumulative[currentMonth]}人 ／ 今月 ${values[currentMonth]}人</small></h3><div class="admission-chart-scroll"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${teamId}チームの月別入会者数と年度累計"><text x="${left}" y="17" fill="#68788a" font-size="12">人数（人）</text>${grid}${bars}<polyline points="${points}" fill="none" stroke="${color}" stroke-width="3" pointer-events="none"/>${dots}</svg></div></article>`;
+            }).join("");
+            const chart = document.getElementById("admission-history-chart");
+            chart.classList.toggle("single-team", selected !== "ALL");
+            chart.innerHTML = cards;
+            document.getElementById("admission-history-table").innerHTML = `<table><thead><tr><th scope="col">月</th>${visibleTeams.map(id => `<th scope="col">${id} 入会 / 累計</th>`).join('')}</tr></thead><tbody>${history.months.map((month,i) => `<tr><th scope="row">${labelFor(month)}${i === currentMonth ? '（途中）' : ''}</th>${visibleTeams.map(id => `<td>${history.teams[id][i] === null ? '未集計' : history.teams[id][i]+'人 / '+totalsFor(history.teams[id])[i]+'人'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+            detail();
+          };
+          root.addEventListener("click", event => {
+            const team = event.target.closest("[data-admission-team]");
+            if (team) { selected = team.dataset.admissionTeam; activeDetailTeam = selected === "ALL" ? "A" : selected; render(); return; }
+            const month = event.target.closest("[data-admission-month]");
+            if (month) { selectedMonth = Number(month.dataset.admissionMonth); activeDetailTeam = month.dataset.admissionDetailTeam; detail(); }
+          });
+          root.addEventListener("keydown", event => {
+            const month = event.target.closest("[data-admission-month]");
+            if (month && ["Enter", " "].includes(event.key)) { event.preventDefault(); selectedMonth = Number(month.dataset.admissionMonth); activeDetailTeam = month.dataset.admissionDetailTeam; detail(); }
+          });
+          render();
+        };
+
         const initializeRetentionCurve = () => {
           const curve = retentionCurve;
           if (!curve) {
@@ -2171,6 +2268,7 @@
 
         initializeMovement();
         initializeEventBoard();
+        initializeAdmissionHistory();
         initializeRetentionCurve();
         initializeSchoolAgeChart();
 

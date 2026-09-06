@@ -20,6 +20,9 @@ function sheet(rows) {
 
 function successfulTrialRequest(rawUrl) {
   const url = new URL(rawUrl);
+  if (url.searchParams.get('valueRenderOption') === 'FORMULA') return { valueRanges: [{ values: [['=IMPORTRANGE("https://docs.google.com/spreadsheets/d/master/edit","\'12_Savant連携\'!A4:AE9")']] }] };
+  if (url.pathname.endsWith('/spreadsheets/master')) return { sheets: [{ properties: { title: '01_会員マスター', gridProperties: { rowCount: 10, columnCount: 33 } } }] };
+  if (url.pathname.includes('/spreadsheets/master/values:batchGet')) return { valueRanges: [{ values: [['入会日']] }, { values: [['主チーム']] }] };
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
     const receipt = syntheticMemberReadback();
     if (url.searchParams.getAll('ranges').length === 2) return { valueRanges: [{ values: receipt }, { values: syntheticMemberGate() }] };
@@ -314,7 +317,7 @@ test('a changing anonymous source is reread at most three times and never writte
   try {
     await assert.rejects(()=>fetchPrivateSavantSource({spreadsheetId:'savant',outputPath:join(dir,'source.json'),...testSourceOptions(async url=>{
       const result=successfulTrialRequest(url);
-      if(new URL(url).pathname.includes('/spreadsheets/savant/values:batchGet')) {
+      if(new URL(url).pathname.includes('/spreadsheets/savant/values:batchGet') && new URL(url).searchParams.getAll('ranges').length === 16) {
         fullReads++;
         if(fullReads%2===0) result.valueRanges[0].values[4][0]++;
       }
