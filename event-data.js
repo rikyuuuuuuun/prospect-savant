@@ -1,7 +1,7 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "savant-2026-09-06-0730",
+  "snapshotId": "savant-2026-09-06-0730-event0823-final",
   "asOf": "2026-09-06",
-  "latestEventId": "EV-2026-HIGH",
+  "latestEventId": "EV-2026-HIGH-0823",
   "scoringVersion": "v7-operational-member-denominator",
   "memberDefinition": {
     "id": "operational-person-v1",
@@ -17,51 +17,74 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
     "repeat": 30
   },
   "historicalMaxRate": 31.9,
-  "repeatMaxRate": 45.5,
+  "repeatMaxRate": 46.9,
   "teams": {
     "A": {
-      "averageRate": 18.8,
-      "participationScore": 58.8,
-      "repeatRate": 37.5,
-      "repeatScore": 82.4,
-      "score": 66
+      "averageRate": 18.4,
+      "participationScore": 57.6,
+      "repeatRate": 45.6,
+      "repeatScore": 97.3,
+      "score": 70
     },
     "B": {
-      "averageRate": 20.8,
-      "participationScore": 65,
-      "repeatRate": 45.5,
+      "averageRate": 18.7,
+      "participationScore": 58.5,
+      "repeatRate": 46.9,
       "repeatScore": 100,
-      "score": 76
+      "score": 71
     },
     "C": {
-      "averageRate": 11.4,
-      "participationScore": 35.7,
-      "repeatRate": 38.3,
-      "repeatScore": 84.1,
-      "score": 50
+      "averageRate": 10.6,
+      "participationScore": 33.2,
+      "repeatRate": 38.4,
+      "repeatScore": 81.9,
+      "score": 48
     },
     "D": {
-      "averageRate": 10.3,
-      "participationScore": 32.4,
-      "repeatRate": 31.1,
-      "repeatScore": 68.5,
-      "score": 43
+      "averageRate": 9.9,
+      "participationScore": 31.1,
+      "repeatRate": 37.9,
+      "repeatScore": 80.8,
+      "score": 46
     }
   },
-  "upcomingEvents": [
+  "upcomingEvents": [],
+  "events": [
     {
-      "id": "UPCOMING-2026-HIGH-0823",
+      "id": "EV-2026-HIGH-0823",
       "startDate": "2026-08-23",
       "endDate": "2026-08-23",
-      "name": "2026高難度特化練習会｜8/23開催予定",
+      "name": "2026高難度特化練習会｜8/23開催済",
       "shortName": "高難度｜8/23",
-      "status": "provisional",
-      "statusLabel": "開催予定・暫定",
-      "aggregate": false,
-      "note": "開催前のため現時点では暫定扱いです。開催後に実参加を確定してから、参加率・ランキング・開催回数へ反映します。"
-    }
-  ],
-  "events": [
+      "note": "出欠確認済み。2コマ参加2人は各2人分として、実人数98人・延べ100人で集計。継続参加率は人物単位で計算します。",
+      "total": {
+        "participants": 100,
+        "members": 1058,
+        "rate": 9.5
+      },
+      "teams": {
+        "A": {
+          "participants": 53,
+          "members": 333,
+          "rate": 15.9
+        },
+        "B": {
+          "participants": 19,
+          "members": 309,
+          "rate": 6.1
+        },
+        "C": {
+          "participants": 13,
+          "members": 224,
+          "rate": 5.8
+        },
+        "D": {
+          "participants": 15,
+          "members": 192,
+          "rate": 7.8
+        }
+      }
+    },
     {
       "id": "EV-2026-HIGH",
       "startDate": "2026-08-09",

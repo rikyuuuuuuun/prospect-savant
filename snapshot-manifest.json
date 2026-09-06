@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-09-06-0730",
+  "snapshotId": "savant-2026-09-06-0730-event0823-final",
   "asOf": "2026-09-06",
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readback-sha256:2e6c955421128928023d9728750efe0e7d61b9568258a8893fb450308721663d",
   "files": {
-    "data.js": "0bfc86c4e3b418447ceb48056b16303aaba5b5fa",
-    "event-data.js": "7075f3b9f3e56fb7e2efd103be1325cfe52999a1",
-    "retention-data.js": "064fc23dc0bf9505c0261a736815bf5920003596",
-    "school-age-data.js": "f3aa69ba96de87d33173781b313e4184e97305a0"
+    "data.js": "ed36288972618887f811c85fedda4b8f8d8b9302",
+    "event-data.js": "8da81c8d325778e6a08a599318e22fcac4edca95",
+    "retention-data.js": "27cfa79973d218b8224c778a111b1683f2c13b1a",
+    "school-age-data.js": "460845a6fd291ee407be457e4234b6ad886bbd5a"
   },
   "invariants": {
-    "expectedEligibleEventCount": 6,
+    "expectedEligibleEventCount": 7,
     "dTeamEvaluationStart": "2025-04-01",
     "excludedEventNamePattern": "大会.*練習"
   },
@@ -31,5 +31,14 @@
     }
   },
   "overlayDigest": "private-overlay-sha256:1ba0aebdc73f77881becd16143cf165c91d77c5dba282b7a8f05874660dd9ae1",
-  "memberSourceSnapshotId": "2026-09-06-v6-003-operational-members"
+  "memberSourceSnapshotId": "2026-09-06-v6-003-operational-members",
+  "eventAttendanceCorrection": {
+    "eventDate": "2026-08-23",
+    "confirmedAt": "2026-09-06",
+    "participants": 100,
+    "uniqueParticipants": 98,
+    "absences": 7,
+    "sourceDigest": "sha256:f543354bcf6cf58ae0d4a172f2eb8b993c46d29e8a5bc75df4374e8b70c6f75a",
+    "scope": "event-attendance-scores-only"
+  }
 }
