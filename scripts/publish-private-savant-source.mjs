@@ -1,3 +1,4 @@
+import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -306,6 +307,8 @@ async function publishInto(root, snapshot) {
   updateData(data, ranges, asOf);
   if (snapshot.admissionHistory) data.admissionHistory = validateAdmissionHistory(snapshot.admissionHistory, data);
   else delete data.admissionHistory; // Legacy sources must never carry a stale monthly series forward.
+  if (snapshot.withdrawalHistory) data.withdrawalHistory = applyWithdrawalBaseline(snapshot.withdrawalHistory, data);
+  else delete data.withdrawalHistory;
   updateEventHistory(events, ranges.events, data.snapshotId, asOf);
   updateRetentionCurve(retention, ranges.curve, data.snapshotId, asOf);
   updateSchoolAge(schoolAge, ranges.schoolAge, data.snapshotId, asOf);

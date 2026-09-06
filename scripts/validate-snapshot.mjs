@@ -1,3 +1,4 @@
+import { validateWithdrawalHistory } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { percentileScore } from './metric-retention-evidence.mjs';
 import { createHash } from 'node:crypto';
@@ -93,6 +94,9 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
   if (data.admissions !== undefined) {
     try { validateAdmissions(data.admissions); } catch (error) { add(errors, false, error.message); }
+  }
+  if (data.withdrawalHistory !== undefined) {
+    try { validateWithdrawalHistory(data.withdrawalHistory, data); } catch (error) { add(errors, false, error.message); }
   }
   if (data.admissionHistory !== undefined) {
     try { validateAdmissionHistory(data.admissionHistory, data); } catch (error) { add(errors, false, error.message); }

@@ -1756,5 +1756,335 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       null,
       null
     ]
+  },
+  "withdrawalHistory": {
+    "definition": "member-retirement-explicit-stop-detected-v1",
+    "asOf": "2026-09-06",
+    "fiscalYear": "2026",
+    "months": [
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11",
+      "2026-12",
+      "2027-01",
+      "2027-02",
+      "2027-03"
+    ],
+    "teams": {
+      "A": {
+        "unknownMonth": 303,
+        "months": [
+          {
+            "month": "2026-04",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-05",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-06",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-07",
+            "explicit": 3,
+            "stopped": 0,
+            "detected": 0,
+            "count": 3,
+            "cohortCount": 3,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-08",
+            "explicit": 4,
+            "stopped": 0,
+            "detected": 0,
+            "count": 4,
+            "cohortCount": 4,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-09",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": 333,
+            "rate": null
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "B": {
+        "unknownMonth": 203,
+        "months": [
+          {
+            "month": "2026-04",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-05",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-06",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-07",
+            "explicit": 2,
+            "stopped": 0,
+            "detected": 0,
+            "count": 2,
+            "cohortCount": 2,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-08",
+            "explicit": 4,
+            "stopped": 0,
+            "detected": 0,
+            "count": 4,
+            "cohortCount": 4,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-09",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": 309,
+            "rate": null
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "C": {
+        "unknownMonth": 148,
+        "months": [
+          {
+            "month": "2026-04",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-05",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-06",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-07",
+            "explicit": 2,
+            "stopped": 0,
+            "detected": 0,
+            "count": 2,
+            "cohortCount": 2,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-08",
+            "explicit": 1,
+            "stopped": 0,
+            "detected": 0,
+            "count": 1,
+            "cohortCount": 1,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-09",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": 224,
+            "rate": null
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "D": {
+        "unknownMonth": 50,
+        "months": [
+          {
+            "month": "2026-04",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-05",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-06",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-07",
+            "explicit": 4,
+            "stopped": 0,
+            "detected": 0,
+            "count": 4,
+            "cohortCount": 4,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-08",
+            "explicit": 4,
+            "stopped": 0,
+            "detected": 1,
+            "count": 5,
+            "cohortCount": 5,
+            "missingEntry": 0,
+            "denominator": null,
+            "rate": null
+          },
+          {
+            "month": "2026-09",
+            "explicit": 0,
+            "stopped": 0,
+            "detected": 0,
+            "count": 0,
+            "cohortCount": 0,
+            "missingEntry": 0,
+            "denominator": 192,
+            "rate": null
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "unassigned": 1
   }
 });
