@@ -1595,6 +1595,8 @@
         const updateEventSelection = (eventId) => {
           const validEvent = eventHistory.events.find((event) => event.id === eventId);
           eventState.selectedEventId = validEvent ? validEvent.id : eventHistory.events[0].id;
+          document.getElementById("event-note").textContent =
+            [getSelectedEvent().note, eventHistory.note].filter(Boolean).join(" ");
           document.querySelectorAll("#event-timeline [data-event-id]").forEach((button) => {
             button.setAttribute("aria-pressed", String(button.dataset.eventId === eventState.selectedEventId));
           });
