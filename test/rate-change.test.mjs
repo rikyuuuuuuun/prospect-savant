@@ -4,9 +4,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const script = html.slice(html.indexOf('        const referralComparable ='), html.indexOf('        const buildMovementItems ='));
-const context = { window: {} };
-vm.runInNewContext(readFileSync(new URL('../data.js', import.meta.url), 'utf8'), context);
-const fixture = context.window.PROSPECT_SAVANT_DATA;
+const fixture = {
+  asOf: '2026-09-06', scoreVersion: 'v7', memberDefinition: { id: 'operational-person-v1' },
+  admissions: { fiscalYear: '2026' }, metricDefinitions: { family: 'referral-volume-rate-v2' },
+  teams: [{ id: 'A', benchmark: { retention12mRate: 82.5, admissionRate: 86.1, referralRate: 2.6946 },
+    metricEvidence: { version: 'metric-evidence-v1', asOf: '2026-09-06',
+      family: { definition: 'referral-volume-rate-v2', fiscalYear: '2026', denominatorBasis: 'operational-members-at-asof' } } }],
+  comparison: { previousAsOf: '2026-09-05', scoreVersion: 'v7', memberDefinition: { id: 'operational-person-v1' },
+    admissions: { fiscalYear: '2026' }, metricDefinitions: {},
+    teams: [{ id: 'A', metricEvidence: { version: 'metric-evidence-v1', asOf: '2026-09-05',
+      retention: { periods: [{ key: 'm12', rate: 82.5 }] }, admission: { rate: 86.1 }, family: {} } }] }
+};
 function run(data, key) {
   return vm.runInNewContext(`${script}\nrateChangeMarkup(data.teams[0], key)`, { data, key });
 }
