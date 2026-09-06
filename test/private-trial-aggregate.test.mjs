@@ -1,3 +1,4 @@
+import { emptyRanges as emptyWithdrawalRanges } from './support/withdrawal-fixture.mjs';
 import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -21,7 +22,8 @@ function sheet(rows) {
 function successfulTrialRequest(rawUrl) {
   const url = new URL(rawUrl);
   if (url.searchParams.get('valueRenderOption') === 'FORMULA') return { valueRanges: [{ values: [['=IMPORTRANGE("https://docs.google.com/spreadsheets/d/master/edit","\'12_Savant連携\'!A4:AE9")']] }] };
-  if (url.pathname.endsWith('/spreadsheets/master')) return { sheets: [{ properties: { title: '01_会員マスター', gridProperties: { rowCount: 10, columnCount: 33 } } }] };
+  if (url.pathname.endsWith('/spreadsheets/master')) return { sheets: ['01_会員マスター','02_所属コース履歴','08_会員変更履歴'].map(title=>({properties:{title,gridProperties:{rowCount:10,columnCount:33}}})) };
+  if (url.pathname.includes('/spreadsheets/master/values:batchGet') && url.searchParams.getAll('ranges').length===7) return {valueRanges:emptyWithdrawalRanges()};
   if (url.pathname.includes('/spreadsheets/master/values:batchGet')) return { valueRanges: [{ values: [['入会日']] }, { values: [['主チーム']] }] };
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
     const receipt = syntheticMemberReadback();

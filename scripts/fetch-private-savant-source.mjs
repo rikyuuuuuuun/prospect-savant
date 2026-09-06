@@ -1,3 +1,4 @@
+import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -268,7 +269,9 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
   const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const privateSnapshot = {
+    withdrawalHistory,
     admissionHistory,
     fetchedAt: new Date().toISOString(),
     ranges,

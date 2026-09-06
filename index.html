@@ -844,6 +844,29 @@
         .view-hidden { display: block !important; }
         .topbar { position: static; }
       }
+
+      .withdrawal-toolbar { display:flex; justify-content:space-between; gap:16px; align-items:center; flex-wrap:wrap; }
+      .withdrawal-toolbar select { padding:9px; border:1px solid #cdd8e2; border-radius:8px; background:white; color:var(--navy-800); font:inherit; }
+      .withdrawal-caution { padding:14px; border-radius:10px; background:#fff8e8; color:#755521; font-size:12px; line-height:1.8; }
+      .withdrawal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+      .withdrawal-card { min-width:0; padding:18px; border:1px solid #dce4eb; border-radius:14px; }
+      .withdrawal-card h3 { margin:0; font-size:18px; }
+      .withdrawal-card p { font-size:12px; color:#586b7d; line-height:1.6; }
+      .withdrawal-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0 10px; }
+      .withdrawal-stats span { display:block; font-size:11px; color:#586b7d; }
+      .withdrawal-stats strong { display:block; font-size:30px; }
+      .withdrawal-stats small { font-size:13px; margin-left:4px; }
+      .withdrawal-stats .withdrawal-rate { font-size:24px; }
+      .withdrawal-bars { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); align-items:end; gap:3px; margin:20px 0 10px; overflow-x:auto; }
+      .withdrawal-bars button { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:125px; padding:4px 0; border:0; border-bottom:2px solid transparent; background:transparent; color:#425a70; cursor:pointer; font:inherit; font-size:12px; }
+      .withdrawal-bars button[aria-pressed="true"] { background:#eaf1f7; border-bottom-color:#3475a7; border-radius:4px 4px 0 0; }
+      .withdrawal-bars i { display:block; width:65%; background:#748fa5; border-radius:3px 3px 0 0; margin:4px 0; }
+      .withdrawal-bars small { font-size:10px; white-space:nowrap; }
+      .withdrawal-future { display:flex; flex-direction:column; text-align:center; gap:6px; color:#8794a0; padding-bottom:6px; }
+      .withdrawal-unknown { border-top:1px solid #e4eaf0; padding-top:12px; }
+      .withdrawal-method { margin-top:20px; font-size:12px; line-height:1.8; }
+      .withdrawal-method summary { cursor:pointer; font-weight:700; padding:12px 0; }
+      @media(max-width:780px) { .withdrawal-grid { grid-template-columns:1fr; } .withdrawal-card { padding:14px; } }
     </style>
   </head>
   <body>
@@ -944,6 +967,11 @@
       <section class="section" id="admission-history-section" aria-labelledby="admission-history-title">
         <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MONTHLY ADMISSIONS</p><h2 id="admission-history-title">月ごとの入会者数</h2></div><p>A〜Dそれぞれの月別入会と累計を比較。縦軸は全チーム共通です。</p></div>
         <div class="admission-history-panel" id="admission-history-content"></div>
+      </section>
+
+      <section class="section" id="withdrawal-section" aria-labelledby="withdrawal-title">
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">WITHDRAWAL · SUPPORTING METRIC</p><h2 id="withdrawal-title">退会の推移</h2></div><p>総合スコアには含めない補助指標です。退会月が判明している人数と、データの確認状況を表示します。</p></div>
+        <div class="retention-panel" id="withdrawal-content"></div>
       </section>
 
       <section class="section" id="retention-section" aria-labelledby="retention-title">
@@ -1879,6 +1907,31 @@
           updateRetentionSelection(retentionState.selected);
         };
 
+        const initializeWithdrawalHistory = () => {
+          const root=document.getElementById('withdrawal-content'), h=data.withdrawalHistory;
+          if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは集計待ちです。未取得の数値を0として表示しません。</p>'; return; }
+          let selected='ALL', month=h.asOf.slice(0,7);
+          const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
+          const fmtRate=r=>r.rate===null?'算出保留':`${r.rate.toFixed(2)}%`;
+          const render=()=>{
+            const selectedIndex=h.months.indexOf(month);
+            const ids=selected==='ALL'?['A','B','C','D']:[selected];
+            const max=Math.max(1,...Object.values(h.teams).flatMap(t=>t.months.filter(Boolean).map(r=>r.count)));
+            root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL','A','B','C','D'].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
+            <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。退会月不明分は月別人数に含めず、影響する退会率は算出を保留します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
+            <div class="withdrawal-grid">${ids.map(id=>{
+              const t=h.teams[id],r=t.months[selectedIndex],prev=t.months[selectedIndex-1];
+              const delta=r.rate!==null && prev?.rate!==null && Number.isFinite(prev?.rate)?r.rate-prev.rate:null;
+              const change=delta===null?'前月差：比較できる退会率なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p><div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>月次退会率</span><strong class="withdrawal-rate">${fmtRate(r)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>月初人数：${r.denominator===null?'未取得':r.denominator+'人'} ／ 月初在籍者の判明退会：${r.cohortCount}人</p></article>`;
+            }).join('')}</div>
+            <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明や月初人数未取得の場合、率を0%として表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>月初人数</th><th>退会率</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${r.denominator??'—'}</td><td>${fmtRate(r)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
+          };
+          root.addEventListener('click',e=>{const team=e.target.closest('[data-withdrawal-team]'),point=e.target.closest('[data-withdrawal-month]');if(team){selected=team.dataset.withdrawalTeam;render();root.querySelector(`[data-withdrawal-team="${selected}"]`)?.focus({preventScroll:true});}else if(point){month=point.dataset.withdrawalMonth;render();root.querySelector(`[data-withdrawal-month="${month}"]`)?.focus({preventScroll:true});}});
+          root.addEventListener('change',e=>{if(e.target.id==='withdrawal-month'){month=e.target.value;render();root.querySelector('#withdrawal-month')?.focus({preventScroll:true});}});
+          render();
+        };
+
         const initializeAdmissionHistory = () => {
           const history = data.admissionHistory;
           const root = document.getElementById("admission-history-content");
@@ -2333,6 +2386,7 @@
         initializeMovement();
         initializeEventBoard();
         initializeAdmissionHistory();
+        initializeWithdrawalHistory();
         initializeRetentionCurve();
         initializeSchoolAgeChart();
 
@@ -2362,7 +2416,7 @@
         const groups = {
           overview: [document.getElementById('movement-section'), profiles, comparison],
           admissions: [document.getElementById('admission-history-section')],
-          retention: [document.getElementById('retention-section'), document.getElementById('school-age-section')],
+          retention: [document.getElementById('withdrawal-section'), document.getElementById('retention-section'), document.getElementById('school-age-section')],
           events: [document.getElementById('event-section')],
           reference: [document.getElementById('method-title').closest('section'), document.getElementById('quality-title').closest('section')],
           all: sections
@@ -2408,7 +2462,7 @@
         };
         document.getElementById('dashboard-team').addEventListener('change', event => {
           const team = event.target.value;
-          [['team-filters','data-filter'],['admission-history-filters','data-admission-team'],['retention-filters','data-curve-filter'],['school-age-filters','data-school-filter'],['event-filters','data-event-filter']].forEach(([id, attr]) => {
+          [['team-filters','data-filter'],['admission-history-filters','data-admission-team'],['withdrawal-filters','data-withdrawal-team'],['retention-filters','data-curve-filter'],['school-age-filters','data-school-filter'],['event-filters','data-event-filter']].forEach(([id, attr]) => {
             document.querySelector(`#${id} [${attr}="${team}"]`)?.click();
           });
         });
