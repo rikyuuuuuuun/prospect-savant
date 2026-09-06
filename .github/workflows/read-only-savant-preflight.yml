@@ -36,6 +36,8 @@ jobs:
             npm run validate:snapshot
             echo "Live read-only preflight ${pass}/3 passed" >> "$GITHUB_STEP_SUMMARY"
             rm -rf .private
+            # Space independent captures below the service-account per-minute read quota.
+            if [ "$pass" -lt 3 ]; then sleep 35; fi
           done
       - name: Destroy private source files
         if: always()
