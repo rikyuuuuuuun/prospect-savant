@@ -1,7 +1,7 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "savant-2026-09-06-0730-event0823-final",
+  "snapshotId": "savant-2026-09-06-0730-high-combined",
   "asOf": "2026-09-06",
-  "latestEventId": "EV-2026-HIGH-0823",
+  "latestEventId": "EV-2026-HIGH",
   "scoringVersion": "v7-operational-member-denominator",
   "memberDefinition": {
     "id": "operational-person-v1",
@@ -20,104 +20,70 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
   "repeatMaxRate": 46.9,
   "teams": {
     "A": {
-      "averageRate": 18.4,
-      "participationScore": 57.6,
+      "averageRate": 21.4,
+      "participationScore": 67.2,
       "repeatRate": 45.6,
       "repeatScore": 97.3,
-      "score": 70
+      "score": 76
     },
     "B": {
-      "averageRate": 18.7,
-      "participationScore": 58.5,
+      "averageRate": 21.8,
+      "participationScore": 68.3,
       "repeatRate": 46.9,
       "repeatScore": 100,
-      "score": 71
+      "score": 78
     },
     "C": {
-      "averageRate": 10.6,
-      "participationScore": 33.2,
+      "averageRate": 12.4,
+      "participationScore": 38.8,
       "repeatRate": 38.4,
       "repeatScore": 81.9,
-      "score": 48
+      "score": 52
     },
     "D": {
-      "averageRate": 9.9,
-      "participationScore": 31.1,
+      "averageRate": 11.9,
+      "participationScore": 37.3,
       "repeatRate": 37.9,
       "repeatScore": 80.8,
-      "score": 46
+      "score": 50
     }
   },
   "upcomingEvents": [],
   "events": [
     {
-      "id": "EV-2026-HIGH-0823",
-      "startDate": "2026-08-23",
-      "endDate": "2026-08-23",
-      "name": "2026高難度特化練習会｜8/23開催済",
-      "shortName": "高難度｜8/23",
-      "note": "出欠確認済み。2コマ参加2人は各2人分として、実人数98人・延べ100人で集計。継続参加率は人物単位で計算します。",
-      "total": {
-        "participants": 100,
-        "members": 1058,
-        "rate": 9.5
-      },
-      "teams": {
-        "A": {
-          "participants": 53,
-          "members": 333,
-          "rate": 15.9
-        },
-        "B": {
-          "participants": 19,
-          "members": 309,
-          "rate": 6.1
-        },
-        "C": {
-          "participants": 13,
-          "members": 224,
-          "rate": 5.8
-        },
-        "D": {
-          "participants": 15,
-          "members": 192,
-          "rate": 7.8
-        }
-      }
-    },
-    {
       "id": "EV-2026-HIGH",
       "startDate": "2026-08-09",
-      "endDate": "2026-08-09",
-      "name": "2026高難度特化練習会｜8/9開催済",
-      "shortName": "高難度｜8/9",
+      "endDate": "2026-08-23",
+      "name": "2026高難度特化練習会",
+      "shortName": "高難度特化",
       "total": {
-        "participants": 124,
+        "participants": 224,
         "members": 1054,
-        "rate": 11.8
+        "rate": 21.3
       },
       "teams": {
         "A": {
-          "participants": 44,
+          "participants": 97,
           "members": 331,
-          "rate": 13.3
+          "rate": 29.3
         },
         "B": {
-          "participants": 43,
+          "participants": 62,
           "members": 306,
-          "rate": 14.1
+          "rate": 20.3
         },
         "C": {
-          "participants": 15,
+          "participants": 28,
           "members": 224,
-          "rate": 6.7
+          "rate": 12.5
         },
         "D": {
-          "participants": 22,
+          "participants": 37,
           "members": 193,
-          "rate": 11.4
+          "rate": 19.2
         }
-      }
+      },
+      "note": "8/9・8/23を1イベントとして合算。参加人数は124人＋100人＝延べ224人。8/23の2コマ参加2人は各2人分として計上。開催時会員数は開始日8/9時点、継続参加率は両日を同一イベントとして人物単位で計算します。"
     },
     {
       "id": "EV-2026-SUMMER",
