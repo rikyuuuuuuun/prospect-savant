@@ -1,0 +1,52 @@
+name: Deploy Savant display
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - '.github/workflows/deploy-savant-display.yml'
+permissions:
+  contents: read
+concurrency:
+  group: prospect-savant-daily-publish
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate current public snapshot and display
+        run: |
+          npm test
+          npm run validate:snapshot
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import vm from 'node:vm';
+          const html = readFileSync('index.html', 'utf8');
+          for (const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
+          NODE
+      - name: Stage only public website files
+        run: |
+          mkdir _site
+          cp index.html data.js event-data.js retention-data.js school-age-data.js snapshot-manifest.json trial-data.js trial-manifest.json robots.txt .nojekyll _site/
+          git rev-parse HEAD > _site/display-revision.txt
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy validated display
+        id: deployment
+        uses: actions/deploy-pages@v4
