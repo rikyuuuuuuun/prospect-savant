@@ -797,6 +797,53 @@
         html { scroll-behavior: auto; }
         *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
       }
+
+      /* Purpose-based navigation keeps every analysis available without one long default page. */
+      [hidden], .view-hidden { display: none !important; }
+      .hero-inner { padding: 28px 0 24px; }
+      h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.2; }
+      .hero-lead { font-size: 14px; margin-top: 10px; }
+      .kpi-grid { margin-top: 22px; }
+      .kpi { padding: 14px 18px; }
+      .dashboard-nav { position: sticky; top: 62px; z-index: 19; background: rgba(255,255,255,.97); border-bottom: 1px solid #dce4eb; }
+      .view-controls { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; }
+      .view-controls button { flex: 0 0 auto; border: 0; background: transparent; color: #526578; border-radius: 9px; padding: 12px 18px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+      .view-controls button:hover { background: #edf3f8; }
+      .view-controls button[aria-pressed="true"] { color: white; background: var(--navy-800); }
+      button:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #3475a7; outline-offset: 3px; }
+      .workspace-heading { scroll-margin-top: 130px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 28px 0 20px; }
+      .workspace-heading .eyebrow { font-size: 10px; color: var(--blue-deep); margin-bottom: 6px; }
+      .workspace-heading h2 { font-size: 26px; margin: 0; }
+      .workspace-heading p:last-child { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+      .team-picker { display: grid; gap: 5px; min-width: 220px; color: var(--muted); font-size: 11px; }
+      .team-picker select { font: inherit; font-size: 14px; font-weight: 700; color: var(--navy-800); background: white; padding: 11px 14px; border: 1px solid #cdd8e2; border-radius: 10px; }
+      .section { margin-top: 28px; scroll-margin-top: 140px; }
+      h2[id] { scroll-margin-top: 140px; }
+      .section-heading h2 { font-size: 24px; }
+      .section-heading .eyebrow { font-size: 10px; margin-bottom: 5px; }
+      .team-card { box-shadow: 0 4px 18px rgba(17,35,50,.04); }
+      .team-explanation { border-top: 1px solid #e5ebf0; background: #f8fafc; }
+      .team-explanation summary { padding: 15px 22px; font-size: 12px; color: #425a70; cursor: pointer; font-weight: 700; }
+      .team-explanation .team-note { font-size: 12px; line-height: 1.85; }
+      .team-note p { margin: 0 0 14px; }
+      .scale-card { margin-bottom: 16px; }
+      .rate-comparison-note { line-height: 1.6; }
+      .team-grid:has(.team-card[hidden]) { grid-template-columns: minmax(0, 1fr); max-width: 880px; margin-inline: auto; }
+      @media (max-width: 780px) {
+        .hero-inner { padding: 22px 0 20px; }
+        .dashboard-nav { top: 62px; }
+        .view-controls button { padding: 10px 13px; font-size: 12px; }
+        .workspace-heading { align-items: stretch; flex-direction: column; gap: 16px; padding-top: 22px; }
+        .team-picker { min-width: 0; }
+        .team-picker span { display: none; }
+        .workspace-heading h2 { font-size: 24px; }
+        .section-heading h2 { font-size: 22px; }
+      }
+      @media print {
+        .dashboard-nav, .workspace-heading { scroll-margin-top: 130px; display: none !important; }
+        .view-hidden { display: block !important; }
+        .topbar { position: static; }
+      }
     </style>
   </head>
   <body>
@@ -813,7 +860,7 @@
     <section class="hero">
       <div class="container hero-inner">
         <p class="eyebrow">A–D TEAM ANALYTICS</p>
-        <h1>数字で見る、<br />チームの現在地。</h1>
+        <h1>チームの現在地。</h1>
         <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・紹介の5指標で比較します。</p>
         <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
         <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
@@ -821,7 +868,23 @@
       </div>
     </section>
 
-    <main class="container main">
+    <nav class="dashboard-nav" aria-label="分析メニュー" hidden>
+      <div class="container dashboard-nav-inner">
+        <div class="view-controls" aria-label="表示する分析">
+          <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
+          <button type="button" data-view="admissions" aria-pressed="false">入会の推移</button>
+          <button type="button" data-view="retention" aria-pressed="false">定着・継続</button>
+          <button type="button" data-view="events" aria-pressed="false">イベント</button>
+          <button type="button" data-view="reference" aria-pressed="false">指標・データ</button>
+          <button type="button" data-view="all" aria-pressed="false">すべて</button>
+        </div>
+      </div>
+    </nav>
+    <main class="container main" id="dashboard-main">
+      <div class="workspace-heading" id="workspace-heading" hidden>
+        <div><p class="eyebrow">EXPLORE YOUR TEAM</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
+        <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option></select><span>各グラフでも個別に選べます</span></label>
+      </div>
       <section id="movement-section" aria-labelledby="movement-title" hidden>
         <div class="movement-panel">
           <div class="movement-head">
@@ -1007,6 +1070,7 @@
           .replaceAll("'", "&#039;");
 
         const activateProfileTeam = (teamId) => {
+          document.querySelector('[data-view="overview"]')?.click();
           const target = document.querySelector(`#team-filters [data-filter="${teamId}"]`)
             || document.querySelector('#team-filters [data-filter="ALL"]');
           if (target) target.click();
@@ -2254,7 +2318,7 @@
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
               <p class="rate-comparison-note">割合の増減：${escapeHtml(data.comparison?.previousAsOfLabel || "比較元なし")} → ${escapeHtml(data.asOfLabel)}。ポイントは割合の差です。定義・年度の変更や比較データ不足は比較対象外。</p>
-              ${team.note ? `<p class="team-note">${team.note}</p>` : ""}
+              ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
             </article>`;
         }).join("");
 
@@ -2262,7 +2326,7 @@
           const button = event.target.closest("button[data-filter]");
           if (!button) return;
           const filter = button.dataset.filter;
-          document.querySelectorAll("button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+          document.querySelectorAll("#team-filters button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
           document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
         });
 
@@ -2286,6 +2350,72 @@
           <div class="quality-stat"><strong>${quality.competitionCount}</strong><span>集計済み大会</span></div>
           <div class="quality-stat"><strong>${formatNumber.format(quality.competitionRows)}</strong><span>大会順位データ</span></div>
           <p class="quality-note">${quality.note}</p>`;
+      })();
+    </script>
+
+    <script>
+      (() => {
+        const main = document.getElementById('dashboard-main');
+        const profiles = document.getElementById('profiles-title').closest('section');
+        const comparison = document.getElementById('comparison-title').closest('section');
+        const sections = [...main.querySelectorAll(':scope > section')];
+        const groups = {
+          overview: [document.getElementById('movement-section'), profiles, comparison],
+          admissions: [document.getElementById('admission-history-section')],
+          retention: [document.getElementById('retention-section'), document.getElementById('school-age-section')],
+          events: [document.getElementById('event-section')],
+          reference: [document.getElementById('method-title').closest('section'), document.getElementById('quality-title').closest('section')],
+          all: sections
+        };
+        const descriptions = {
+          overview: 'まずは変化とチームの数値を確認。集計の詳しい説明は各カードから開けます。',
+          admissions: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。',
+          retention: '入会後の定着と、進級・進学の節目の継続率を確認できます。',
+          events: '開催回を選んで参加状況を比較。推移の点からも詳細に切り替えられます。',
+          reference: 'スコアの定義・配点と、集計できているデータの範囲を確認できます。',
+          all: 'すべての情報を続けて表示しています。上のメニューで目的別に絞り込めます。'
+        };
+        // Reorder existing nodes, preserving their data, listeners, and unavailable-data states.
+        [...groups.overview, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        const controls = document.querySelector('.view-controls');
+        const selectView = (view, focus = false) => {
+          if (!groups[view]) view = 'overview';
+          sections.forEach(section => section.classList.toggle('view-hidden', !groups[view].includes(section)));
+          controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+          document.getElementById('workspace-title').textContent = controls.querySelector(`[data-view="${view}"]`).textContent;
+          document.getElementById('workspace-description').textContent = descriptions[view];
+          document.querySelector('.team-picker').hidden = view === 'reference';
+          if (focus) document.getElementById('workspace-title').focus({preventScroll: true});
+          window.dispatchEvent(new Event('resize'));
+        };
+        controls.addEventListener('click', event => {
+          const button = event.target.closest('[data-view]');
+          if (!button) return;
+          const view = button.dataset.view;
+          history.replaceState(null, '', `#view-${view}`);
+          selectView(view, true);
+          document.getElementById('workspace-heading').scrollIntoView({block: 'start', behavior: 'instant'});
+        });
+        const readHash = () => {
+          const hash = location.hash.slice(1);
+          if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'overview');
+          else {
+            const target = document.getElementById(hash);
+            const view = Object.keys(groups).find(key => key !== 'all' && groups[key].some(section => section.contains(target)));
+            selectView(view || 'overview');
+            target?.scrollIntoView({block: 'start'});
+          }
+        };
+        document.getElementById('dashboard-team').addEventListener('change', event => {
+          const team = event.target.value;
+          [['team-filters','data-filter'],['admission-history-filters','data-admission-team'],['retention-filters','data-curve-filter'],['school-age-filters','data-school-filter'],['event-filters','data-event-filter']].forEach(([id, attr]) => {
+            document.querySelector(`#${id} [${attr}="${team}"]`)?.click();
+          });
+        });
+        window.addEventListener('hashchange', readHash);
+        document.querySelector('.dashboard-nav').hidden = false;
+        document.getElementById('workspace-heading').hidden = false;
+        readHash();
       })();
     </script>
   </body>
