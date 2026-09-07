@@ -1,4 +1,4 @@
-name: Refresh portal project snapshot
+name: Refresh portal daily snapshots
 
 on:
   schedule:
@@ -8,6 +8,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/daily-portal-snapshot.yml'
+  workflow_run:
+    workflows: ['Publish Prospect Savant', 'Deploy Savant display']
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -18,19 +22,34 @@ concurrency:
 
 jobs:
   refresh:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        scope: ${{ fromJSON(github.event_name == 'workflow_run' && '["savant"]' || '["projects","portal","trials","savant"]') }}
     permissions:
       id-token: write
     steps:
-      - name: Refresh saved projects
+      - name: Refresh saved data
         shell: bash
+        env:
+          SNAPSHOT_SCOPE: ${{ matrix.scope }}
         run: |
           node --input-type=module <<'NODE'
           const origin = 'https://prospect-portal.rikuhirata713.chatgpt.site';
-          const audience = origin + '/daily-projects';
+          const paths = {
+            projects: '/api/internal/project-refresh',
+            portal: '/api/internal/portal-refresh',
+            trials: '/api/internal/savant-refresh',
+            savant: '/api/internal/savant-bundle-refresh',
+          };
+          const scope = process.env.SNAPSHOT_SCOPE;
+          if (!Object.hasOwn(paths, scope)) throw new Error('invalid_scope');
           const tokenUrl = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
-          tokenUrl.searchParams.set('audience', audience);
+          tokenUrl.searchParams.set('audience', origin + '/daily-projects');
           for (let attempt = 0; attempt < 4; attempt++) {
             try {
               const identityResponse = await fetch(tokenUrl, {
@@ -40,7 +59,7 @@ jobs:
               if (!identityResponse.ok) throw new Error('identity_unavailable');
               const identity = await identityResponse.json();
               if (typeof identity.value !== 'string') throw new Error('identity_invalid');
-              const response = await fetch(origin + '/api/internal/project-refresh', {
+              const response = await fetch(origin + paths[scope], {
                 method: 'POST',
                 headers: { Authorization: 'Bearer ' + identity.value },
                 signal: AbortSignal.timeout(75000),
@@ -52,55 +71,12 @@ jobs:
               }
               if (!response.ok) throw new Error('refresh_unavailable');
               const result = await response.json();
-              if (!['updated', 'already_current'].includes(result.status)) throw new Error('refresh_incomplete');
-              console.log('Daily project snapshot is ready.');
+              if (!(scope === 'trials' ? result.status === 'ready' : ['updated', 'already_current'].includes(result.status))) throw new Error('refresh_incomplete');
+              console.log('Saved snapshot refresh completed: ' + scope);
               process.exit(0);
             } catch {
               if (attempt === 3) {
-                console.error('Refresh failed; the portal retains its last saved snapshot.');
-                process.exit(1);
-              }
-              await new Promise(resolve => setTimeout(resolve, [15000, 30000, 60000][attempt]));
-            }
-          }
-          NODE
-
-      - name: Refresh saved daily trial counts
-        if: always()
-        shell: bash
-        run: |
-          node --input-type=module <<'NODE'
-          const origin = 'https://prospect-portal.rikuhirata713.chatgpt.site';
-          const audience = origin + '/daily-projects';
-          const tokenUrl = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
-          tokenUrl.searchParams.set('audience', audience);
-          for (let attempt = 0; attempt < 4; attempt++) {
-            try {
-              const identityResponse = await fetch(tokenUrl, {
-                headers: { Authorization: 'Bearer ' + process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN },
-                signal: AbortSignal.timeout(15000),
-              });
-              if (!identityResponse.ok) throw new Error('identity_unavailable');
-              const identity = await identityResponse.json();
-              if (typeof identity.value !== 'string') throw new Error('identity_invalid');
-              const response = await fetch(origin + '/api/internal/savant-refresh', {
-                method: 'POST',
-                headers: { Authorization: 'Bearer ' + identity.value },
-                signal: AbortSignal.timeout(75000),
-                redirect: 'error',
-              });
-              if (response.status === 401 || response.status === 403) {
-                console.error('Refresh authentication failed.');
-                process.exit(1);
-              }
-              if (!response.ok) throw new Error('refresh_unavailable');
-              const result = await response.json();
-              if (result.status !== 'ready') throw new Error('refresh_incomplete');
-              console.log('Daily trial snapshot is ready.');
-              process.exit(0);
-            } catch {
-              if (attempt === 3) {
-                console.error('Refresh failed; today is not marked ready.');
+                console.error('Refresh failed; previous saved data is retained: ' + scope);
                 process.exit(1);
               }
               await new Promise(resolve => setTimeout(resolve, [15000, 30000, 60000][attempt]));
