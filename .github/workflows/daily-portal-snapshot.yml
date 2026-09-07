@@ -64,3 +64,46 @@ jobs:
             }
           }
           NODE
+
+      - name: Refresh saved daily trial counts
+        if: always()
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const origin = 'https://prospect-portal.rikuhirata713.chatgpt.site';
+          const audience = origin + '/daily-projects';
+          const tokenUrl = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          tokenUrl.searchParams.set('audience', audience);
+          for (let attempt = 0; attempt < 4; attempt++) {
+            try {
+              const identityResponse = await fetch(tokenUrl, {
+                headers: { Authorization: 'Bearer ' + process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN },
+                signal: AbortSignal.timeout(15000),
+              });
+              if (!identityResponse.ok) throw new Error('identity_unavailable');
+              const identity = await identityResponse.json();
+              if (typeof identity.value !== 'string') throw new Error('identity_invalid');
+              const response = await fetch(origin + '/api/internal/savant-refresh', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + identity.value },
+                signal: AbortSignal.timeout(75000),
+                redirect: 'error',
+              });
+              if (response.status === 401 || response.status === 403) {
+                console.error('Refresh authentication failed.');
+                process.exit(1);
+              }
+              if (!response.ok) throw new Error('refresh_unavailable');
+              const result = await response.json();
+              if (result.status !== 'ready') throw new Error('refresh_incomplete');
+              console.log('Daily trial snapshot is ready.');
+              process.exit(0);
+            } catch {
+              if (attempt === 3) {
+                console.error('Refresh failed; today is not marked ready.');
+                process.exit(1);
+              }
+              await new Promise(resolve => setTimeout(resolve, [15000, 30000, 60000][attempt]));
+            }
+          }
+          NODE
