@@ -53,7 +53,15 @@ function parseServiceAccount(raw) {
   return parsed;
 }
 
-export async function getAccessToken(serviceAccount) {
+export async function getAccessToken(serviceAccount, options = {}) {
+  try { return await exchangeAccessToken(serviceAccount, options); }
+  catch (error) {
+    const code = String(error?.message || '');
+    throw new Error(/^GOOGLE_OAUTH_(?:\d{3}|TIMEOUT|NETWORK|RESPONSE_INVALID)$/.test(code) ? code : 'GOOGLE_OAUTH_CREDENTIALS_INVALID');
+  }
+}
+
+async function exchangeAccessToken(serviceAccount, options) {
   const now = Math.floor(Date.now() / 1000);
   const header = base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claim = base64url(JSON.stringify({
@@ -70,18 +78,28 @@ export async function getAccessToken(serviceAccount) {
   const signature = signer.sign(serviceAccount.private_key, 'base64url');
   const assertion = `${unsigned}.${signature}`;
 
-  const response = await fetch(serviceAccount.token_uri, {
+  const body = await requestOAuthToken(serviceAccount.token_uri, {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
       assertion,
     }),
-  });
-  if (!response.ok) throw new Error(`Google OAuth token exchange failed: HTTP ${response.status}`);
-  const body = await response.json();
-  if (!body.access_token) throw new Error('Google OAuth response did not contain access_token');
+  }, options);
+  if (typeof body?.access_token !== 'string' || !body.access_token) throw new Error('GOOGLE_OAUTH_RESPONSE_INVALID');
   return body.access_token;
+}
+
+export async function requestOAuthToken(url, requestOptions, { fetchImpl = fetch, timeoutMs = GOOGLE_SHEETS_TIMEOUT_MS, sleep = wait, random = Math.random, logger = console.warn } = {}) {
+  try {
+    return await createRetriableGoogleJson({
+      requestJson: () => googleJson(url, null, { fetchImpl, timeoutMs, requestOptions }),
+      sleep, random,
+      logger: message => logger(message.replaceAll('Google Sheets', 'Google OAuth').replaceAll('GOOGLE_SHEETS_', 'GOOGLE_OAUTH_')),
+    })(url, null);
+  } catch (error) {
+    throw new Error(String(error.message).replace('GOOGLE_SHEETS_', 'GOOGLE_OAUTH_'));
+  }
 }
 
 function retryAfterMilliseconds(headers, now = Date.now()) {
@@ -117,11 +135,11 @@ function retryDelayMilliseconds(failure, attempt, random) {
   );
 }
 
-export async function googleJson(url, token, { fetchImpl = fetch, timeoutMs = GOOGLE_SHEETS_TIMEOUT_MS } = {}) {
+export async function googleJson(url, token, { fetchImpl = fetch, timeoutMs = GOOGLE_SHEETS_TIMEOUT_MS, requestOptions } = {}) {
   const signal = AbortSignal.timeout(timeoutMs);
   try {
     // AbortSignalはattemptごとに生成する。retry後のreadを最初のtimeoutで中断させない。
-    const response = await fetchImpl(url, { headers: { authorization: `Bearer ${token}` }, signal });
+    const response = await fetchImpl(url, { ...(requestOptions || { headers: { authorization: `Bearer ${token}` } }), signal });
     if (!response.ok) {
       throw sheetsError(`GOOGLE_SHEETS_${response.status}`, { retryAfterMs: retryAfterMilliseconds(response.headers) });
     }

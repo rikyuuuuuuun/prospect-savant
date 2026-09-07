@@ -5,6 +5,8 @@ import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parsePublicSource, publishPrivateSavantSource } from '../scripts/publish-private-savant-source.mjs';
+import { publishPrivateSavantWithExplanations } from '../scripts/publish-private-savant-with-explanations.mjs';
+import { PUBLIC_FILES } from '../scripts/stage-public-snapshot.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const readPublic = async (file) => parsePublicSource(await readFile(join(root, file), 'utf8'), file);
@@ -16,6 +18,23 @@ const RANGES = {
   memberMaster: "'98_会員マスター連携'!A4:AE9",
   quality: "'99_データ品質'!A1:F20",
 };
+
+test('late explanation failure leaves all original public files byte-identical', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'savant-explanation-failure-'));
+  try {
+    for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
+    const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
+    const ranges = sourceRows(data, events, retentionCurve, schoolAge, trial);
+    for (const range of ["'07_成長力'!P4:W9", "'08_家庭継続力'!A1:O31", "'90_配点設定'!A1:J50"]) ranges[range] = [['invalid metric input']];
+    const sourcePath = join(dir, 'source.json');
+    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today: 0}])) } }));
+    // The core snapshot is valid; only the later explanation phase rejects it.
+    await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
+    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /(?:RETENTION|FAMILY|GROWTH|WEIGHT|METRIC)/);
+    assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8'))), before);
+  } finally { await rm(dir, {recursive:true, force:true}); }
+});
 
 function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   const source = {};

@@ -72,7 +72,7 @@ export function assertMemberSourceReadback(snapshot) {
 
 export function validateSourceQuality(rows) {
   if (!Array.isArray(rows) || rows.length < 5) fail('SOURCE_QUALITY_MISSING');
-  const blocked = /(?:異常|エラー|失敗|未更新|要確認|欠損)/;
+  const blocked = /(?:異常|エラー|失敗|未更新|要確認|欠損|#(?:REF!|N\/A|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!|ERROR!|SPILL!))/i;
   rows.slice(4).forEach((row, index) => {
     const status = String(row?.[5] ?? '').trim();
     if (!status) fail(`SOURCE_QUALITY_STATUS_MISSING_R${index + 5}`);
