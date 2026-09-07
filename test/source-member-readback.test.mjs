@@ -33,6 +33,12 @@ test('quality diagnostics identify a row without logging its private contents', 
   assert.throws(() => validateSourceQuality(rows), /^Error: SOURCE_QUALITY_BLOCKED_R5$/);
 });
 
+test('quality formula failures never pass the publication gate', () => {
+  for (const status of ['#REF!', '#N/A', '#VALUE!', '#DIV/0!', '#NAME?', '#NUM!', '#NULL!', '#ERROR!']) {
+    assert.throws(() => validateSourceQuality([[], [], [], [], ['private', '', '', '', '', status]]), /^Error: SOURCE_QUALITY_BLOCKED_R5$/);
+  }
+});
+
 test('sync wait retains prior publication before deadline and fails after deadline', () => {
   const source = { readiness: { ready: false, reason: 'MEMBER_SYNC_PENDING' } };
   assert.equal(evaluateSourceFreshness(source, { targetDate: '2026-09-05', now: new Date('2026-09-04T22:30Z') }).errorCode, null);

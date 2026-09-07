@@ -8,6 +8,7 @@ import { parsePublicSource, publishPrivateSavantSource } from './publish-private
 import { applyMemberMonthlyDelta, buildMemberMonthlyComparison, previousMonthEnd } from './member-monthly-change.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { applyMetricEvidenceAndExplanations } from './metric-explanations.mjs';
+import { stagePublicSnapshot } from './stage-public-snapshot.mjs';
 
 const METRIC_RANGES = Object.freeze({
   retention: "'05_定着力'!A1:R10",
@@ -75,6 +76,12 @@ function carryPreviousMetricEvidence(data, previousData) {
 
 export async function publishPrivateSavantWithExplanations({ rootDir = process.cwd(), sourcePath, dryRun = false }) {
   assert(sourcePath, 'sourcePath is required');
+  const historyRoot = resolve(rootDir);
+  return stagePublicSnapshot({ rootDir: historyRoot, dryRun, generate: (candidate) =>
+    publishWithExplanationsInto({ rootDir: candidate, historyRoot, sourcePath }) });
+}
+
+async function publishWithExplanationsInto({ rootDir, historyRoot, sourcePath }) {
   const root = resolve(rootDir);
   const snapshot = JSON.parse(await readFile(resolve(sourcePath), 'utf8'));
   const ranges = metricRanges(snapshot);
@@ -93,7 +100,7 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
   ]);
 
   if (!data.memberMonthlyComparison) {
-    const baseline = historicalMemberBaseline(root, previousMonthEnd(data.asOf));
+    const baseline = historicalMemberBaseline(historyRoot, previousMonthEnd(data.asOf));
     if (baseline?.data?.memberDefinition?.id === data.memberDefinition?.id) {
       data.memberMonthlyComparison = buildMemberMonthlyComparison(baseline.data);
     }
@@ -103,7 +110,7 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
   const previousAsOf = data.comparison?.previousAsOf;
   const previousSnapshot = currentPublicData.asOf === previousAsOf
     ? { data: currentPublicData, retentionCurve: currentPublicRetention, eventHistory: currentPublicEvents, trialData: currentPublicTrial }
-    : historicalSnapshot(root, previousAsOf);
+    : historicalSnapshot(historyRoot, previousAsOf);
   carryPreviousMetricEvidence(data, previousSnapshot?.data);
   applyMetricEvidenceAndExplanations({
     data, ranges, retentionCurve, eventHistory,
@@ -121,7 +128,7 @@ export async function publishPrivateSavantWithExplanations({ rootDir = process.c
   const validation = await validateSnapshot(root);
   assert(validation.ok, `METRIC_EXPLANATION_SNAPSHOT_INVALID:${validation.errors.join(',')}`);
 
-  return { ...result, dryRun, metricExplanations: true, previousEvidenceAsOf: previousSnapshot?.data?.asOf || null };
+  return { ...result, metricExplanations: true, previousEvidenceAsOf: previousSnapshot?.data?.asOf || null };
 }
 
 async function main() {
