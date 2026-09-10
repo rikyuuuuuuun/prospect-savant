@@ -1,6 +1,6 @@
 window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
-  "snapshotId": "savant-2026-09-09-0730",
-  "asOf": "2026-09-09",
+  "snapshotId": "savant-2026-09-10-0730",
+  "asOf": "2026-09-10",
   "minimumSample": 20,
   "milestones": [
     "年長→小1",
