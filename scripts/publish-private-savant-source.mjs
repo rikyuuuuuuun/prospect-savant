@@ -1,5 +1,6 @@
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
+import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -136,7 +137,7 @@ function updateData(data, ranges, asOf) {
   const oldData = structuredClone(data);
   assert(asOf >= oldData.asOf, 'SOURCE_ASOF_OLDER_THAN_PUBLIC');
 
-  data.snapshotId = `savant-${asOf}-0730`;
+  data.snapshotId = `savant-${asOf}-0730-trial-ytd-v1`;
   data.asOf = asOf;
   data.asOfLabel = formatJapaneseDate(asOf);
   data.admissions = admissions;
@@ -305,6 +306,15 @@ async function publishInto(root, snapshot) {
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
+  data.admissionConversion = assertAnnualConversionSource(snapshot, asOf);
+  const conversionTotals = Object.values(data.admissionConversion.teams).reduce((sum, value) => ({
+    trials: sum.trials + value.trials, admissions: sum.admissions + value.admissions,
+    previousTrials: sum.previousTrials + value.previousTrials, previousAdmissions: sum.previousAdmissions + value.previousAdmissions,
+  }), { trials: 0, admissions: 0, previousTrials: 0, previousAdmissions: 0 });
+  const previousRate = conversionTotals.previousAdmissions * 100 / conversionTotals.previousTrials;
+  data.headline.admissionPreviousRate = round(previousRate);
+  data.headline.admissionYoYDelta = round(conversionTotals.admissions * 100 / conversionTotals.trials - previousRate);
+  data.periodLabel = `${data.admissionConversion.fiscalYear}年度累計`;
   if (snapshot.admissionHistory) data.admissionHistory = validateAdmissionHistory(snapshot.admissionHistory, data);
   else delete data.admissionHistory; // Legacy sources must never carry a stale monthly series forward.
   if (snapshot.withdrawalHistory) data.withdrawalHistory = applyWithdrawalBaseline(snapshot.withdrawalHistory, data);

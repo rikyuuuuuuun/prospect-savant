@@ -1,4 +1,5 @@
 import { emptyRanges as emptyWithdrawalRanges } from './support/withdrawal-fixture.mjs';
+import { conversionRows } from './support/annual-conversion.mjs';
 import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,11 +29,13 @@ function successfulTrialRequest(rawUrl) {
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
     const receipt = syntheticMemberReadback();
     if (url.searchParams.getAll('ranges').length === 2) return { valueRanges: [{ values: receipt }, { values: syntheticMemberGate() }] };
-    const valueRanges = Array.from({ length: 16 }, () => ({ values: [] }));
+    const valueRanges = Array.from({ length: 17 }, () => ({ values: [] }));
+    valueRanges[16] = { values: conversionRows('2026-08-21', Object.fromEntries(['A','B','C','D'].map(id => [id, {trials: 2, admissions: 1, previousTrials: 4, previousAdmissions: 1}]))) };
+    valueRanges[5] = { values: [[], [], [], [], ...['A','B','C','D'].map(id => [id, 2, 1, 0.5, 0.25, 0.25])] };
     valueRanges[14] = { values: syntheticMemberGate() };
     valueRanges[13] = { values: receipt };
     valueRanges[12] = { values: [[], [], [], [], ['', '', '', '', '', '正常']] };
-    valueRanges[11] = { values: [[], ...['A','B','C','D'].map((id, i) => [id, i + 1]), ['合計', 10]] };
+    valueRanges[11] = { values: [[], ...['A','B','C','D'].map((id, i) => [id, i + 1, '', '', '', '', 2, 1]), ['合計', 10]] };
     valueRanges[1] = { values: [[], [], [], [], ...['A','B','C','D'].map((id, i) => [id, i + 1])] };
     valueRanges[0] = { values: [[], [], [], [], [10]] };
     valueRanges[2] = { values: [[], [], [], [], ...['A', 'B', 'C', 'D'].map((team) => {
@@ -319,7 +322,7 @@ test('a changing anonymous source is reread at most three times and never writte
   try {
     await assert.rejects(()=>fetchPrivateSavantSource({spreadsheetId:'savant',outputPath:join(dir,'source.json'),...testSourceOptions(async url=>{
       const result=successfulTrialRequest(url);
-      if(new URL(url).pathname.includes('/spreadsheets/savant/values:batchGet') && new URL(url).searchParams.getAll('ranges').length === 16) {
+      if(new URL(url).pathname.includes('/spreadsheets/savant/values:batchGet') && new URL(url).searchParams.getAll('ranges').length === 17) {
         fullReads++;
         if(fullReads%2===0) result.valueRanges[0].values[4][0]++;
       }

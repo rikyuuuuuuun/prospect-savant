@@ -1,3 +1,4 @@
+import { validateAnnualConversion } from './annual-conversion-source.mjs';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -110,6 +111,7 @@ function annualRate(entry) {
 async function validateAnnualRates(rootDir, annual) {
   if (annual.status !== 'ok') return;
   const data = parseFrozenJson(await readFile(resolve(rootDir, 'data.js'), 'utf8'), 'data.js');
+  if (data.admissionConversion) validateAnnualConversion(data, annual);
   const teams = new Map((data.teams || []).map((team) => [team.id, team]));
   for (const id of TEAM_IDS) {
     const expected = annualRate(annual.teams[id]);

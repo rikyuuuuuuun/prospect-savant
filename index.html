@@ -897,7 +897,7 @@
       <div class="container dashboard-nav-inner">
         <div class="view-controls" aria-label="表示する分析">
           <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
-          <button type="button" data-view="admissions" aria-pressed="false">入会の推移</button>
+          <button type="button" data-view="admissions" aria-pressed="false">実入会の推移</button>
           <button type="button" data-view="retention" aria-pressed="false">定着・継続</button>
           <button type="button" data-view="events" aria-pressed="false">イベント</button>
           <button type="button" data-view="reference" aria-pressed="false">指標・データ</button>
@@ -967,7 +967,7 @@
       </section>
 
       <section class="section" id="admission-history-section" aria-labelledby="admission-history-title">
-        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MONTHLY ADMISSIONS</p><h2 id="admission-history-title">月ごとの入会者数</h2></div><p>A〜Dそれぞれの月別入会と累計を比較。縦軸は全チーム共通です。</p></div>
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MONTHLY ADMISSIONS</p><h2 id="admission-history-title">月ごとの実入会者数</h2></div><p>入会日を基準に集計。体験→入会率は、体験した年度を基準にした別の集計です。</p></div>
         <div class="admission-history-panel" id="admission-history-content"></div>
       </section>
 
@@ -1283,7 +1283,14 @@
           if (!entry || !Number.isSafeInteger(entry.admissions) || !Number.isSafeInteger(entry.trials) || entry.trials <= 0) return "母数未取得";
           const calculatedRate = Math.round(entry.admissions * 1000 / entry.trials) / 10;
           if (calculatedRate !== team.benchmark.admissionRate) return "母数不整合";
-          return `${formatNumber.format(entry.admissions)}人入会 / ${formatNumber.format(entry.trials)}人体験`;
+          return `体験${formatNumber.format(entry.trials)}人 → 入会${formatNumber.format(entry.admissions)}人`;
+        };
+        const annualRealAdmissionSample = (team) => {
+          const admissions = data.admissions;
+          const count = admissions?.teams?.[team.id]?.cumulative;
+          if (admissions?.asOf !== data.asOf || admissions?.definition !== 'member-master-admission-date-annual-v1'
+            || !Number.isSafeInteger(count) || count < 0) return '年度実入会：未集計';
+          return `年度実入会 ${formatNumber.format(count)}人（入会日基準）`;
         };
         const renderTrialSummary = () => {
           const target = document.getElementById("trial-summary");
@@ -2318,7 +2325,7 @@
           ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
           [headlineMemberDeltaComparable ? "前月末比 純増減" : "前月末比 純増減（比較対象外）", formatDelta(headlineMemberDeltaComparable ? data.headline.monthlyDelta : null), headlineMemberDeltaComparable ? "名" : "", ""],
           [
-            "年度入会率",
+            "年度 体験→入会率",
             data.headline.admissionRate.toFixed(1),
             "%",
             `前年同期間 ${data.headline.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(data.headline.admissionYoYDelta)}`,
@@ -2380,7 +2387,7 @@
               <div class="metric-list">${metrics}</div>
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${team.benchmark.retention12mRate.toFixed(1)}%</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
-                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span>前年 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
+                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度 体験→入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span><span class="benchmark-sample">${annualRealAdmissionSample(team)}</span>前年同期間 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
                 <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
