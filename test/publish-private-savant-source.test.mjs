@@ -1,4 +1,6 @@
 import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
+import { conversionRows } from './support/annual-conversion.mjs';
+import { ANNUAL_CONVERSION_RANGE } from '../scripts/annual-conversion-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -38,13 +40,20 @@ test('late explanation failure leaves all original public files byte-identical',
 
 function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   const source = {};
+  const conversion = Object.fromEntries(data.teams.map(team => [team.id, {
+    ...trial.annual.teams[team.id],
+    previousTrials: data.admissionConversion?.teams[team.id].previousTrials ?? 1000,
+    previousAdmissions: data.admissionConversion?.teams[team.id].previousAdmissions ?? Math.round(team.benchmark.admissionPreviousRate * 10),
+  }]));
+  source[ANNUAL_CONVERSION_RANGE] = conversionRows(data.asOf, conversion);
   source[RANGES.dashboard] = [[], [], [], ['運用会員数', '前月差（参考）', '年度入会率', '直近イベント実参加'], [data.headline.members, data.headline.monthlyDelta, data.headline.admissionRate / 100, data.headline.latestEventParticipants]];
   source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, team.rank, team.status])];
   source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, team.members, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
   source[RANGES.retention] = [[], [], [], [], ...data.teams.map((team) => [team.id, '', '', '', '', team.benchmark.retention12mRate / 100, team.benchmark.retention12mSample])];
   source[RANGES.admission] = [[], [], [], [], ...data.teams.map((team) => {
     const annual = trial.annual.teams[team.id];
-    return [team.id, annual.trials, annual.admissions, team.benchmark.admissionRate / 100, team.benchmark.admissionPreviousRate / 100, team.benchmark.admissionYoYDelta / 100, team.metrics.admission];
+    const previousRate = conversion[team.id].previousAdmissions / conversion[team.id].previousTrials;
+    return [team.id, annual.trials, annual.admissions, annual.admissions / annual.trials, previousRate, annual.admissions / annual.trials - previousRate, team.metrics.admission];
   })];
   source[RANGES.events] = [[], [], [], [], ...['A', 'B', 'C', 'D'].map((id) => {
     const team = events.teams[id];
@@ -69,7 +78,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   ])];
   source[RANGES.memberMaster] = [
     ['チーム', '現在会員数', '在籍', '退会予定', '休会', '入会日登録済', '年度累計体験', '年度体験→入会', '年度実入会'],
-    ...data.teams.map((team) => ['A', 'B', 'C', 'D'].includes(team.id) && [team.id, team.members, '', '', '', team.members, 0, 0, trial.annual.teams[team.id].admissions]),
+    ...data.teams.map((team) => ['A', 'B', 'C', 'D'].includes(team.id) && [team.id, team.members, '', '', '', team.members, trial.annual.teams[team.id].trials, trial.annual.teams[team.id].admissions, trial.annual.teams[team.id].admissions]),
   ];
   source[RANGES.memberMaster].push(['合計', data.headline.members]);
   source["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback(data.asOf, Object.fromEntries(data.teams.map(t => [t.id, t.members])));

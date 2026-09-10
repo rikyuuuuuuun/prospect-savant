@@ -25,12 +25,12 @@ function event(id, values) {
   const participants = eligibleValues.reduce((a, b) => a + b, 0);
   return {
     id,
-    name: id === 'EV-2024-SUMMER' ? '2024夏合同練習会' : '合同練習会',
+    name: id === 'event-2024-summer' ? '2024夏合同練習会' : '合同練習会',
     total: { participants, members, rate: Number((participants / members * 100).toFixed(1)) },
     teams: Object.fromEntries(['A', 'B', 'C', 'D'].map((key, index) => [key, {
       participants: values[index], members: values[index] === null ? null : 25,
       rate: values[index] === null ? null : values[index] * 4,
-      ...(id === 'EV-2024-SUMMER' && key === 'D' ? { eligible: false } : {}),
+      ...(id === 'event-2024-summer' && key === 'D' ? { eligible: false } : {}),
     }]))
   };
 }
@@ -40,9 +40,9 @@ const EVENTS = `window.PROSPECT_EVENT_HISTORY = Object.freeze(${JSON.stringify({
   teams: { A: { score: 70 }, B: { score: 60 }, C: { score: 50 }, D: { score: 40 } },
   upcomingEvents: [{ id: 'UPCOMING-1', status: 'provisional', aggregate: false }],
   events: [
-    event('EV-1', [1, 1, 1, 1]), event('EV-2', [1, 1, 1, 1]),
-    event('EV-3', [1, 1, 1, 1]), event('EV-4', [1, 1, 1, 1]),
-    event('EV-5', [1, 1, 1, 1]), event('EV-2024-SUMMER', [1, 1, 1, null])
+    event('event-1', [1, 1, 1, 1]), event('event-2', [1, 1, 1, 1]),
+    event('event-3', [1, 1, 1, 1]), event('event-4', [1, 1, 1, 1]),
+    event('event-5', [1, 1, 1, 1]), event('event-2024-summer', [1, 1, 1, null])
   ]
 })});`;
 

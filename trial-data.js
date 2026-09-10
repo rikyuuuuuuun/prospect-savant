@@ -19,20 +19,20 @@ window.PROSPECT_TRIAL_DATA = Object.freeze({
     "fiscalYear": "2026",
     "teams": {
       "A": {
-        "admissions": 93,
-        "trials": 108
+        "admissions": 100,
+        "trials": 117
       },
       "B": {
-        "admissions": 84,
-        "trials": 107
+        "admissions": 90,
+        "trials": 114
       },
       "C": {
         "admissions": 51,
         "trials": 81
       },
       "D": {
-        "admissions": 45,
-        "trials": 78
+        "admissions": 46,
+        "trials": 79
       }
     }
   }

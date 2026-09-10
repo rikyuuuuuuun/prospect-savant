@@ -11,7 +11,7 @@ test('renders the trial summary and annual admission samples without a new secti
   assert.match(source, /trial-summary-breakdown/);
   assert.match(source, /\["A", "B", "C", "D"\]/);
   assert.match(source, /benchmark-sample/);
-  assert.match(source, /人入会 \/ .*人体験/);
+  assert.match(source, /体験\$\{formatNumber.format\(entry.trials\)\}人 → 入会\$\{formatNumber.format\(entry.admissions\)\}人/);
 });
 
 test('keeps unavailable or stale daily data distinct from zero on the public UI', async () => {

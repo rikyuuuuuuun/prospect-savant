@@ -1,5 +1,6 @@
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
+import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { createSign } from 'node:crypto';
@@ -25,6 +26,7 @@ const RANGES = [
   MEMBER_READBACK_RANGE,
   MEMBER_GATE_RANGE,
   REFERRAL_RANGE,
+  ANNUAL_CONVERSION_RANGE,
 ];
 
 const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
@@ -285,6 +287,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   validateSourceQuality(ranges["'99_データ品質'!A1:F20"]);
   const asOf = sourceAsOf(valueRanges);
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
+  assertAnnualConversionSource({ ranges }, asOf);
   const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });

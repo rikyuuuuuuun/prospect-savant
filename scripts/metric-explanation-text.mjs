@@ -63,7 +63,7 @@ function explainRetention(id, current, previous, currentAll, previousAll, curren
 
 function explainAdmission(current, previous, currentScore, previousScore, previousLabel) {
   const basis = current?.trials && current?.admissions !== null
-    ? `${current.trials}人体験のうち${current.admissions}人入会、年度入会率${current.rate.toFixed(1)}%（前年同期間${current.previousRate.toFixed(1)}%）`
+    ? `${current.trials}人体験のうち${current.admissions}人入会、年度の体験→入会率${current.rate.toFixed(1)}%（前年同期間${current.previousRate.toFixed(1)}%）`
     : '年度入会の匿名内訳不足';
   let text = `【年度入会力】${basis}。A〜Dの年度入会率を相対評価して${currentScore}点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。`;
   if (!Number.isFinite(previousScore) || currentScore === previousScore) return text;

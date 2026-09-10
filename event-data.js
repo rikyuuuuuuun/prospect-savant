@@ -1,7 +1,7 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "savant-2026-09-10-0730",
+  "snapshotId": "savant-2026-09-10-0730-trial-ytd-v1",
   "asOf": "2026-09-10",
-  "latestEventId": "EV-2026-HIGH",
+  "latestEventId": "event-2026-high",
   "scoringVersion": "v7-operational-member-denominator",
   "memberDefinition": {
     "id": "operational-person-v1",
@@ -51,7 +51,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
   "upcomingEvents": [],
   "events": [
     {
-      "id": "EV-2026-HIGH",
+      "id": "event-2026-high",
       "startDate": "2026-08-09",
       "endDate": "2026-08-23",
       "name": "2026高難度特化練習会",
@@ -86,7 +86,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       "note": "8/9・8/23を1イベントとして合算。参加人数は124人＋100人＝延べ224人。8/23の2コマ参加2人は各2人分として計上。開催時会員数は開始日8/9時点、継続参加率は両日を同一イベントとして人物単位で計算します。"
     },
     {
-      "id": "EV-2026-SUMMER",
+      "id": "event-2026-summer",
       "startDate": "2026-06-28",
       "endDate": "2026-07-26",
       "name": "2026夏トランポリン練習会",
@@ -120,7 +120,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       }
     },
     {
-      "id": "EV-2026-JOINT",
+      "id": "event-2026-joint",
       "startDate": "2026-02-22",
       "endDate": "2026-02-22",
       "name": "2026合同練習会",
@@ -154,7 +154,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       }
     },
     {
-      "id": "EV-2025-AUTUMN",
+      "id": "event-2025-autumn",
       "startDate": "2025-11-24",
       "endDate": "2025-12-14",
       "name": "2025秋の合同練習会",
@@ -189,7 +189,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       }
     },
     {
-      "id": "EV-2025-SUMMER",
+      "id": "event-2025-summer",
       "startDate": "2025-08-03",
       "endDate": "2025-08-03",
       "name": "2025夏合同練習会",
@@ -223,7 +223,7 @@ window.PROSPECT_EVENT_HISTORY = Object.freeze({
       }
     },
     {
-      "id": "EV-2024-SUMMER",
+      "id": "event-2024-summer",
       "startDate": "2024-08-03",
       "endDate": "2024-08-25",
       "name": "2024夏合同練習会",

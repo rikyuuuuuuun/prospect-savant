@@ -1,5 +1,6 @@
 import { validateWithdrawalHistory } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
+import { validateAnnualConversion } from './annual-conversion-source.mjs';
 import { percentileScore } from './metric-retention-evidence.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -22,6 +23,7 @@ const PRIVATE_PATTERNS = [
   [/\bAKfycb[\w-]+/i, 'Apps Script deployment ID'],
   [/\bAIza[\w-]+/i, 'Google API key'],
   [/\bPERS-\d+\b/i, 'internal person identifier'],
+  [/\bEV-[A-Za-z0-9_-]+/i, 'internal activity identifier'],
   [/Prospect(?:会員|人物)ID/i, 'internal person/member ID label'],
   [/["']?(?:personKey|memberKey|prospectPersonId)["']?\s*:/i, 'person-key field'],
   [/LINE_(?:CHANNEL_)?SECRET/i, 'secret binding name'],
@@ -94,6 +96,9 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
   if (data.admissions !== undefined) {
     try { validateAdmissions(data.admissions); } catch (error) { add(errors, false, error.message); }
+  }
+  if (data.admissionConversion !== undefined) {
+    try { validateAnnualConversion(data); } catch (error) { add(errors, false, error.message); }
   }
   if (data.withdrawalHistory !== undefined) {
     try { validateWithdrawalHistory(data.withdrawalHistory, data); } catch (error) { add(errors, false, error.message); }
@@ -234,13 +239,13 @@ export async function validateSnapshot(rootDir = process.cwd()) {
     add(errors, upcoming.aggregate === false, `${upcoming.id}: upcoming aggregate must be false`);
   }
 
-  const event2024 = (events.events || []).find((event) => event.id === 'EV-2024-SUMMER');
-  add(errors, Boolean(event2024), 'EV-2024-SUMMER is required for historical continuity');
+  const event2024 = (events.events || []).find((event) => event.id === 'event-2024-summer');
+  add(errors, Boolean(event2024), 'event-2024-summer is required for historical continuity');
   if (event2024) {
     const d = event2024.teams?.D;
-    add(errors, d?.eligible === false, 'D must be ineligible for EV-2024-SUMMER');
+    add(errors, d?.eligible === false, 'D must be ineligible for event-2024-summer');
     add(errors, d?.participants === null && d?.members === null && d?.rate === null,
-      'D pre-launch values must be null for EV-2024-SUMMER');
+      'D pre-launch values must be null for event-2024-summer');
   }
 
   return {
