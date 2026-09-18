@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-09-17-0730-trial-ytd-v1",
-  "asOf": "2026-09-17",
+  "snapshotId": "savant-2026-09-18-0730-trial-ytd-v1",
+  "asOf": "2026-09-18",
   "minimumSample": 20,
   "months": [
     1,
@@ -22,20 +22,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       85.9,
       78.2,
       69.3,
-      56.3,
-      37.8,
-      30
+      56,
+      37.9,
+      30.1
     ],
     "samples": [
       1783,
-      1715,
+      1717,
       1473,
-      1432,
+      1435,
       1318,
       1044,
-      891,
-      426,
-      150
+      896,
+      427,
+      153
     ]
   },
   "teams": {
@@ -47,20 +47,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         88.5,
         82.5,
         70.6,
-        58.3,
+        58,
         41.3,
-        30
+        30.1
       ],
       "samples": [
         640,
         609,
         539,
-        522,
+        523,
         497,
         445,
-        412,
+        414,
         276,
-        150
+        153
       ]
     },
     "B": {
@@ -71,8 +71,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         86.7,
         79.3,
         74,
-        58.6,
-        31.3,
+        58.3,
+        31.8,
         null
       ],
       "samples": [
@@ -82,8 +82,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         422,
         391,
         334,
-        307,
-        150,
+        309,
+        151,
         0
       ]
     },
@@ -101,7 +101,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         380,
-        369,
+        370,
         310,
         306,
         274,
@@ -116,7 +116,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         100,
         97.1,
         93.3,
-        85.7,
+        85.9,
         77.6,
         71.1,
         null,
@@ -125,12 +125,12 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         248,
-        238,
+        239,
         193,
-        182,
+        184,
         156,
         45,
-        17,
+        18,
         0,
         0
       ]
