@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-09-23-0730-trial-ytd-v1",
-  "asOf": "2026-09-23",
+  "snapshotId": "savant-2026-09-24-0730-trial-ytd-v1",
+  "asOf": "2026-09-24",
   "minimumSample": 20,
   "months": [
     1,
@@ -18,22 +18,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "rates": [
       99.7,
       98.1,
-      93.4,
+      93.5,
       86,
-      78.3,
+      78.2,
       69.3,
-      56.3,
+      56.5,
       37.8,
       30.3
     ],
     "samples": [
       1786,
-      1727,
-      1477,
+      1728,
+      1481,
       1440,
-      1324,
+      1327,
       1045,
-      915,
+      919,
       431,
       155
     ]
@@ -56,7 +56,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         614,
         540,
         527,
-        497,
+        498,
         445,
         416,
         276,
@@ -71,7 +71,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         86.8,
         79.5,
         74,
-        58.8,
+        59,
         31.6,
         null
       ],
@@ -82,7 +82,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         423,
         395,
         335,
-        313,
+        315,
         155,
         0
       ]
@@ -90,23 +90,23 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "C": {
       "rates": [
         99.2,
-        97,
-        89.7,
+        97.1,
+        89.8,
         80.4,
-        69.3,
+        68.8,
         59.1,
-        45.9,
+        46.3,
         null,
         null
       ],
       "samples": [
         381,
-        372,
-        310,
+        373,
+        314,
         306,
-        274,
+        276,
         220,
-        159,
+        160,
         0,
         0
       ]
@@ -119,7 +119,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         86.4,
         77.8,
         71.1,
-        59.3,
+        60.7,
         null,
         null
       ],
@@ -130,7 +130,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         184,
         158,
         45,
-        27,
+        28,
         0,
         0
       ]
