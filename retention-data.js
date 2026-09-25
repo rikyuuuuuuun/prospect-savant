@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-09-24-0730-trial-ytd-v1",
-  "asOf": "2026-09-24",
+  "snapshotId": "savant-2026-09-25-0730-trial-ytd-v1",
+  "asOf": "2026-09-25",
   "minimumSample": 20,
   "months": [
     1,
@@ -23,18 +23,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       78.2,
       69.3,
       56.5,
-      37.8,
+      38,
       30.3
     ],
     "samples": [
       1786,
-      1728,
+      1729,
       1481,
       1440,
-      1327,
+      1330,
       1045,
       919,
-      431,
+      432,
       155
     ]
   },
@@ -48,7 +48,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         82.5,
         70.6,
         58.2,
-        41.3,
+        41.5,
         30.3
       ],
       "samples": [
@@ -59,7 +59,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         498,
         445,
         416,
-        276,
+        277,
         155
       ]
     },
@@ -77,7 +77,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         515,
-        501,
+        502,
         432,
         423,
         395,
@@ -117,7 +117,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         97.1,
         93.3,
         86.4,
-        77.8,
+        77.6,
         71.1,
         60.7,
         null,
@@ -128,7 +128,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         240,
         195,
         184,
-        158,
+        161,
         45,
         28,
         0,
