@@ -16,6 +16,12 @@ export function evaluateSourceFreshness(source, { targetDate = tokyoDate(), now 
 async function main() {
   const source = JSON.parse(await readFile(process.argv[2] || '.private/savant-source.json', 'utf8'));
   const result = evaluateSourceFreshness(source, { targetDate: process.env.TARGET_DATE });
+  // Probe mode is used by the bounded wait loop: report readiness only. Invalid or future
+  // sources still throw above; the deadline is enforced by the final (non-probe) call.
+  if (process.env.SOURCE_FRESHNESS_MODE === 'probe') {
+    console.log(result.ready ? 'true' : 'false');
+    return;
+  }
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `source_as_of=${result.sourceAsOf}\nsource_is_current=${result.ready}\n`);
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `## Source readiness\nTarget: ${result.targetDate}\nSource: ${result.sourceAsOf || 'pending'}\nAction: ${result.action}\n${result.errorCode || ''}\n`);
   if (result.errorCode) throw new Error(result.errorCode);

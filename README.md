@@ -42,7 +42,7 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 
 ## GitHub Actionsによる自動更新
 
-`.github/workflows/daily-savant-publish.yml` が毎日 **07:30 JST** に実行されます。手動実行は既定でdry-runです。`publish=true` は `main` 上で実行した場合だけ、検証済みの公開7ファイルを単一commitで反映し、GitHub Pagesへ配備します。変更がない日はcommitしません。並行実行は待機させ、二重更新や強制pushはしません。
+`.github/workflows/daily-savant-publish.yml` は毎日 **06:07 / 07:30 / 08:45 JST** に予定されています。GitHubのschedule起動は実測で約2時間遅れるため、定期実行と回復watchdog経由の実行は、会員同期などの上流が準備完了になるまで最大60分、5分間隔で待機します。待機後も未準備で09:30 JSTを過ぎていれば、従来どおり `DAILY_SOURCE_DEADLINE_MISSED` で失敗します。時刻どおりの起動が必要な場合は `ops/external-trigger/`（Cloudflare Cron → 回復workflowのdispatch）を使います。手動実行は既定でdry-runです。`publish=true` は `main` 上で実行した場合だけ、検証済みの公開7ファイルを単一commitで反映し、GitHub Pagesへ配備します。変更がない日はcommitしません。並行実行は待機させ、二重更新や強制pushはしません。
 
 Repository Secretsには値を出力・commitせず、次だけを設定します。
 

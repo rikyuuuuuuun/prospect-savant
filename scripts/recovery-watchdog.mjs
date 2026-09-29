@@ -6,7 +6,8 @@ export function needsRecovery({ currentAsOf, targetDate, force = false }) {
 }
 
 // Poll the uniquely named child, not the latest unrelated successful workflow.
-export async function waitForRecovery({ listRuns, sleep, requestId, attempts = 220 }) {
+// 360 x 15s = 90 min: the publisher may wait up to 60 min for upstream readiness.
+export async function waitForRecovery({ listRuns, sleep, requestId, attempts = 360 }) {
   for (let i = 0; i < attempts; i++) {
     const runs = await listRuns();
     const run = runs.find(r => r.display_title === `Savant recovery ${requestId}` && r.event === 'workflow_dispatch' && r.head_branch === 'main');
