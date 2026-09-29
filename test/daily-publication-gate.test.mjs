@@ -61,3 +61,19 @@ test('can import the gate from stdin-style ESM without invoking its CLI entry po
   const result = spawnSync(process.execPath, ['--input-type=module', '--eval', `import ${JSON.stringify(moduleUrl)};`], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
 });
+
+test('early schedule slot is recognised and obeys the same idempotency gate', async () => {
+  const { EARLY_SCHEDULE: early } = await import('../scripts/daily-publication-gate.mjs');
+  assert.equal(publicationTrigger({ eventName: 'schedule', schedule: early }), 'schedule-early');
+  const current = evaluateDailyPublicationGate({ eventName: 'schedule', schedule: early, currentPublishedAsOf: '2026-08-27', targetDate: '2026-08-27' });
+  assert.equal(current.action, 'skipped-already-current');
+  const stale = evaluateDailyPublicationGate({ eventName: 'schedule', schedule: early, currentPublishedAsOf: '2026-08-26', targetDate: '2026-08-27' });
+  assert.equal(stale.shouldFetchSource, true);
+});
+
+test('workflow schedule strings stay in sync with the gate constants', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { EARLY_SCHEDULE: early } = await import('../scripts/daily-publication-gate.mjs');
+  const workflow = readFileSync('.github/workflows/daily-savant-publish.yml', 'utf8');
+  for (const cron of [early, PRIMARY_SCHEDULE, FALLBACK_SCHEDULE]) assert.ok(workflow.includes(`cron: '${cron}'`), cron);
+});

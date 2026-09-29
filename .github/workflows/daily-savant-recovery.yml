@@ -33,9 +33,9 @@ jobs:
   recover-if-stale:
     name: Dispatch and verify publisher when stale
     runs-on: ubuntu-latest
-    timeout-minutes: 65
+    timeout-minutes: 105
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: main
           fetch-depth: 1
@@ -77,7 +77,7 @@ jobs:
           NODE
       - name: Dispatch the canonical publisher
         if: steps.freshness.outputs.needs_recovery == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ github.token }}
           script: |

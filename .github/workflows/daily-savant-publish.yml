@@ -3,6 +3,9 @@ run-name: ${{ inputs.recovery_request_id && format('Savant recovery {0}', inputs
 
 on:
   schedule:
+    # Early slot: GitHub delays scheduled runs (~2h observed), so start early and wait for the source.
+    - cron: '7 6 * * *'
+      timezone: Asia/Tokyo
     # GitHub Actions supports timezone-aware schedules. 07:30 JST every day.
     - cron: '30 7 * * *'
       timezone: Asia/Tokyo
@@ -32,17 +35,18 @@ jobs:
   prepare:
     name: Read-only source to verified public artifact
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Includes a bounded wait (SOURCE_WAIT_MINUTES) for upstream member sync readiness.
+    timeout-minutes: 80
     outputs:
       changed: ${{ steps.changes.outputs.changed || 'false' }}
       candidate_as_of: ${{ steps.candidate.outputs.candidate_as_of || steps.source-freshness.outputs.source_as_of }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # 遅延したschedule runも開始時の最新mainを判定する。manual dispatchのrefは従来どおり維持する。
           ref: ${{ github.event_name == 'schedule' && 'main' || github.sha }}
           fetch-depth: 50
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
       - id: daily-gate
@@ -63,21 +67,36 @@ jobs:
           test -n "$SAVANT_SPREADSHEET_ID" || { echo 'Missing SAVANT_SPREADSHEET_ID'; exit 1; }
           test -n "$GOOGLE_SERVICE_ACCOUNT_JSON" || { echo 'Missing GOOGLE_SERVICE_ACCOUNT_JSON'; exit 1; }
           test -n "$PROSPECT_TRIAL_SHEET_IDS_JSON" || { echo 'Missing PROSPECT_TRIAL_SHEET_IDS_JSON'; exit 1; }
-      - name: Fetch source and reduce team records to anonymous aggregates
+      - id: source-freshness
+        name: Fetch anonymous aggregates, waiting (bounded) for source readiness
         if: steps.daily-gate.outputs.should_fetch_source == 'true'
+        shell: bash
         env:
           SAVANT_SPREADSHEET_ID: ${{ secrets.SAVANT_SPREADSHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           PROSPECT_TRIAL_SHEET_IDS_JSON: ${{ secrets.PROSPECT_TRIAL_SHEET_IDS_JSON }}
-        run: node scripts/fetch-private-savant-source.mjs .private/savant-source.json
-      - id: source-freshness
-        name: Verify source freshness before candidate generation
-        if: steps.daily-gate.outputs.should_fetch_source == 'true'
-        shell: bash
-        env:
           TARGET_DATE: ${{ steps.daily-gate.outputs.target_date }}
           GATE_TRIGGER: ${{ steps.daily-gate.outputs.trigger }}
-        run: node scripts/source-freshness-gate.mjs .private/savant-source.json
+          # Scheduled and watchdog runs wait for upstream; manual diagnostics do not.
+          SOURCE_WAIT_MINUTES: ${{ (github.event_name == 'schedule' || inputs.recovery_request_id != '') && '60' || '0' }}
+        run: |
+          set -euo pipefail
+          # Late-starting runs (GitHub schedule delay) used to fail instantly after 09:30 JST
+          # when the member sync was still pending. Poll every 5 minutes within the window,
+          # then apply the unchanged final freshness/deadline gate.
+          deadline=$(( $(date +%s) + SOURCE_WAIT_MINUTES * 60 ))
+          attempt=0
+          while :; do
+            attempt=$((attempt + 1))
+            node scripts/fetch-private-savant-source.mjs .private/savant-source.json
+            ready="$(SOURCE_FRESHNESS_MODE=probe node scripts/source-freshness-gate.mjs .private/savant-source.json)"
+            if [ "$ready" = 'true' ]; then break; fi
+            if [ $(( $(date +%s) + 300 )) -gt "$deadline" ]; then break; fi
+            echo "Source not ready (attempt ${attempt}); retrying in 5 minutes"
+            sleep 300
+          done
+          echo "sourceAttempts: ${attempt}" >> "$GITHUB_STEP_SUMMARY"
+          node scripts/source-freshness-gate.mjs .private/savant-source.json
       - name: Generate and validate a complete candidate snapshot
         if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.source-freshness.outputs.source_is_current == 'true'
         shell: bash
@@ -147,7 +166,7 @@ jobs:
           NODE
       - name: Upload only the verified public files
         if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.changes.outputs.changed == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: savant-public-snapshot
           if-no-files-found: error
@@ -181,15 +200,15 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event_name == 'schedule' && 'main' || github.sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
       - name: Download the verified public snapshot
         if: needs.prepare.outputs.changed == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: savant-public-snapshot
           path: .
@@ -204,11 +223,11 @@ jobs:
           unexpected="$(git diff --name-only | grep -vxF -f <(printf '%s\n' "$allowed") || true)"
           test -z "$unexpected" || { echo 'Unexpected changed path'; exit 1; }
       - name: Configure GitHub Pages deployment
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Stage shared-login entry and the verified candidate bundle
         run: node scripts/build-staff-pages.mjs . _site
       - name: Upload the verified Pages artifact before changing main
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           name: github-pages-candidate
           path: _site
@@ -233,7 +252,7 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         if: steps.commit.outputs.committed == 'true'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
         with:
           artifact_name: github-pages-candidate
         continue-on-error: true
@@ -250,14 +269,14 @@ jobs:
         run: node scripts/build-staff-pages.mjs . _site-restored
       - name: Upload restored Pages artifact
         if: steps.rollback.outputs.reverted == 'true'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           name: github-pages-restored
           path: _site-restored
       - id: restored-deployment
         name: Restore the prior GitHub Pages deployment
         if: steps.rollback.outputs.reverted == 'true'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
         with:
           artifact_name: github-pages-restored
         continue-on-error: true

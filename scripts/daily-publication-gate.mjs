@@ -3,6 +3,9 @@ import { pathToFileURL } from 'node:url';
 
 export const PRIMARY_SCHEDULE = '30 7 * * *';
 export const FALLBACK_SCHEDULE = '45 8 * * *';
+// GitHub starts scheduled runs ~2h late under load. The early slot waits for the source
+// (bounded) so publication lands as soon as upstream is ready instead of ~10:00 JST.
+export const EARLY_SCHEDULE = '7 6 * * *';
 
 function assert(condition, code) {
   if (!condition) throw new Error(code);
@@ -28,6 +31,7 @@ export function publicationTrigger({ eventName, schedule }) {
   if (eventName !== 'schedule') return eventName || 'unknown';
   if (schedule === PRIMARY_SCHEDULE) return 'schedule-primary';
   if (schedule === FALLBACK_SCHEDULE) return 'schedule-fallback';
+  if (schedule === EARLY_SCHEDULE) return 'schedule-early';
   return 'schedule-other';
 }
 
