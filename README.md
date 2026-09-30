@@ -42,7 +42,7 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 
 ## GitHub Actionsによる自動更新
 
-`.github/workflows/daily-savant-publish.yml` は毎日 **06:07 / 07:30 / 08:45 JST** に予定されています。GitHubのschedule起動は実測で約2時間遅れるため、定期実行と回復watchdog経由の実行は、会員同期などの上流が準備完了になるまで最大60分、5分間隔で待機します。待機後も未準備で09:30 JSTを過ぎていれば、従来どおり `DAILY_SOURCE_DEADLINE_MISSED` で失敗します。scheduleが大幅に遅れた日の補助は、既存のGPT監視による `.github/savant-recovery-trigger` のpulseで行います。手動実行は既定でdry-runです。`publish=true` は `main` 上で実行した場合だけ、検証済みの公開7ファイルを単一commitで反映し、GitHub Pagesへ配備します。変更がない日はcommitしません。並行実行は待機させ、二重更新や強制pushはしません。
+`.github/workflows/daily-savant-publish.yml` は毎日 **06:07 / 07:30 / 08:45 JST** に予定されています。GitHubのschedule起動は実測で約2時間遅れるため、定期実行と回復watchdog経由の実行は、会員同期などの上流が準備完了になるまで最大60分、5分間隔で待機します。待機後も未準備で09:30 JSTを過ぎていれば、従来どおり `DAILY_SOURCE_DEADLINE_MISSED` で失敗します。scheduleが大幅に遅れた・欠落した日の補助は、既存のGPT監視による `.github/savant-recovery-trigger` のpulseで行います。pulseはPR/mergeを作らず、mainから `automation/savant-recovery-<id>` branchを作ってtrigger file 1件だけを変更してpushすれば足ります（Recoveryがtrigger file以外の差分を検出した場合は起動せず失敗、成功時はbranchを自動削除）。公開は常にmain上のcanonical publisherだけが行い、pulseは日付判定のため公開済みの日は何もしません。手動実行は既定でdry-runです。`publish=true` は `main` 上で実行した場合だけ、検証済みの公開7ファイルを単一commitで反映し、GitHub Pagesへ配備します。変更がない日はcommitしません。並行実行は待機させ、二重更新や強制pushはしません。
 
 Repository Secretsには値を出力・commitせず、次だけを設定します。
 

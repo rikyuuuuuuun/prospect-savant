@@ -19,3 +19,22 @@ export async function waitForRecovery({ listRuns, sleep, requestId, attempts = 3
   }
   throw new Error('RECOVERY_PUBLISHER_TIMEOUT');
 }
+
+// GPT watchdog pulse without PR/merge: a branch named like this, differing from main only
+// in the trigger file, starts the recovery workflow. Publishing still runs on main.
+export const PULSE_BRANCH_PREFIX = 'refs/heads/automation/savant-recovery-';
+export const PULSE_TRIGGER_PATH = '.github/savant-recovery-trigger';
+const PULSE_REF = /^refs\/heads\/automation\/savant-recovery-[0-9A-Za-z._-]{1,80}$/;
+
+export function isPulseBranchRef(ref) {
+  return typeof ref === 'string' && PULSE_REF.test(ref);
+}
+
+// Fail closed: any file other than the trigger (or an empty diff) means this is not a pulse.
+export function validatePulseBranch({ ref, changedFiles }) {
+  if (!isPulseBranchRef(ref)) throw new Error('PULSE_BRANCH_REF_INVALID');
+  if (!Array.isArray(changedFiles) || changedFiles.length !== 1 || changedFiles[0] !== PULSE_TRIGGER_PATH) {
+    throw new Error('PULSE_BRANCH_DIFF_NOT_TRIGGER_ONLY');
+  }
+  return true;
+}
