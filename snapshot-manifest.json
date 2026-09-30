@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-09-29-0730-trial-ytd-v1",
-  "asOf": "2026-09-29",
+  "snapshotId": "savant-2026-09-30-0730-trial-ytd-v1",
+  "asOf": "2026-09-30",
   "scoreVersion": "v7-operational-member-denominator",
-  "sourceCommit": "sheets-readback-sha256:86e970b7115a7d6d44deee9261084836b7c2d76fee95ac7fceeb9109c85f839e",
+  "sourceCommit": "sheets-readback-sha256:6f9a2bdf009d901c064cecbb294537dd8a9a20521e1d42e1e12f3b8dc9d95b81",
   "files": {
-    "data.js": "adc3224fa0361ef0affb73f6e9946248eea779d2",
-    "event-data.js": "30a2965bf3e65a510a922b0971525bdbd2d1b241",
-    "retention-data.js": "14fc21c4187761cf5207d522e9beae43bbc6b7b0",
-    "school-age-data.js": "1d6bb31df85677b3e7674d08ee462310c6b4cbe0"
+    "data.js": "559b11596f803666a1a899caec630265f8134dd0",
+    "event-data.js": "4d06ca7a3d90563054a4751d90c93557864b003c",
+    "retention-data.js": "6ef28c84cfc2dc0901dc2f445146ebcf7f99c020",
+    "school-age-data.js": "0de4978730105c4df53f5e1922d2c5abc7975dc0"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
@@ -31,7 +31,7 @@
     }
   },
   "overlayDigest": "private-overlay-sha256:1ba0aebdc73f77881becd16143cf165c91d77c5dba282b7a8f05874660dd9ae1",
-  "memberSourceSnapshotId": "2026-09-29-v6-003-operational-members",
+  "memberSourceSnapshotId": "2026-09-30-v6-003-operational-members",
   "eventAttendanceCorrection": {
     "eventDate": "2026-08-23",
     "confirmedAt": "2026-09-06",
