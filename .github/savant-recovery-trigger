@@ -1,8 +1,10 @@
 # Prospect Savant GPT recovery trigger
 #
-# This file is intentionally non-functional. Updating its contents on main triggers
+# This file is intentionally non-functional. Changing only this file triggers
 # .github/workflows/daily-savant-recovery.yml without depending on GitHub schedule events.
-# Scheduled recovery remains date-based; explicit pulses force the canonical publisher so
-# same-day upstream corrections can be safely revalidated and republished.
+# Preferred pulse (no PR/merge): push a branch `automation/savant-recovery-<id>` whose only
+# diff from main is this file. The watchdog verifies that, publishes from main, then deletes
+# the branch on success. Updating this file on main still works.
+# Pulses are date-based (already current => no-op); same-day republish needs workflow_dispatch force.
 initialized: 2026-08-28T12:35:00+09:00
 pulse: 2026-09-30-daily-source-ready
