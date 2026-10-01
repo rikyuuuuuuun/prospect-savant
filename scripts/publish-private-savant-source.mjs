@@ -1,3 +1,4 @@
+import { assertTrialAnalyticsQuality } from './trial-analytics-disposition.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -290,6 +291,7 @@ function sourceRanges(snapshot) {
   if (ranges.teams[3]?.includes("紹介力点") && !ranges.referral) throw new Error("REFERRAL_RANGE_MISSING");
   ranges.trialAggregate = snapshot.trialAggregate;
   assert(ranges.trialAggregate?.aggregates, 'TRIAL_AGGREGATE_MISSING');
+  assertTrialAnalyticsQuality(ranges.trialAggregate.quality);
   return ranges;
 }
 
