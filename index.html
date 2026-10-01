@@ -1064,6 +1064,8 @@
         const trialData = window.PROSPECT_TRIAL_DATA;
         const formatNumber = new Intl.NumberFormat("ja-JP");
         const formatDelta = (value) => Number.isFinite(value) ? (value > 0 ? `+${value}` : `${value}`) : "比較対象外";
+        const memberDeltaEstimated = Boolean(data.memberMonthlyComparison?.estimate);
+        const memberDeltaLabel = `前月末比 純増減${memberDeltaEstimated ? "（推定）" : ""}`;
         const memberDeltaComparable = data.memberDeltaDefinition === "previous-month-end-v1";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
         const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
@@ -2323,7 +2325,7 @@
         const headlineMemberDeltaComparable = memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
         const kpis = [
           ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
-          [headlineMemberDeltaComparable ? "前月末比 純増減" : "前月末比 純増減（比較対象外）", formatDelta(headlineMemberDeltaComparable ? data.headline.monthlyDelta : null), headlineMemberDeltaComparable ? "名" : "", ""],
+          [headlineMemberDeltaComparable ? memberDeltaLabel : "前月末比 純増減（比較対象外）", formatDelta(headlineMemberDeltaComparable ? data.headline.monthlyDelta : null), headlineMemberDeltaComparable ? "名" : "", headlineMemberDeltaComparable ? `${escapeHtml(data.memberMonthlyComparison.previousAsOfLabel)} ${formatNumber.format(data.memberMonthlyComparison.headline.members)}名 → ${escapeHtml(data.asOfLabel)}${memberDeltaEstimated ? "。前月末の日次保存値を使用（月次締め未確定）" : ""}` : ""],
           [
             "年度 体験→入会率",
             data.headline.admissionRate.toFixed(1),
@@ -2380,7 +2382,7 @@
                   <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
                   ${newAdmissionCount ? `<span class="admission-badge">新規入会 +${newAdmissionCount}</span>` : ""}
-                  <p class="team-meta">前月末比 純増減 <span class="${deltaClass}">${formatDelta(memberDeltaComparable ? team.monthlyDelta : null)}${memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
+                  <p class="team-meta">${memberDeltaLabel} <span class="${deltaClass}">${formatDelta(memberDeltaComparable ? team.monthlyDelta : null)}${memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
                   <div class="focus-row"><span class="focus-badge strong">強み：${strengthLabels}</span><span class="focus-badge watch">改善：${priorityLabel}</span></div>
                 </div>
               </div>
