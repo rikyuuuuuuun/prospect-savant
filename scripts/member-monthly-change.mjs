@@ -1,4 +1,7 @@
+import { serialToIsoDate } from './private-trial-aggregate.mjs';
+
 export const MEMBER_DELTA_DEFINITION = 'previous-month-end-v1';
+export const MEMBER_MONTHLY_SOURCE_RANGE = "'03_月次集計'!A1:V12";
 
 const TEAM_IDS = Object.freeze(['A', 'B', 'C', 'D']);
 
@@ -58,6 +61,23 @@ export function buildMemberMonthlyComparison(snapshot) {
     teams: TEAM_IDS.map((id) => ({ id, members: teams.get(id).members })),
     memberDefinition: clone(snapshot.memberDefinition),
   };
+}
+
+function sourceConfirmsComparison(monthlyRows, currentAsOf, comparison) {
+  // A daily snapshot dated at month end is not a confirmed closing by itself.
+  // The current source must explicitly confirm every previous-month team count.
+  if (!Array.isArray(monthlyRows) || !comparison) return false;
+  const rows = monthlyRows.slice(4).filter((row) => TEAM_IDS.includes(row?.[1]));
+  if (rows.length !== TEAM_IDS.length || new Set(rows.map((row) => row[1])).size !== TEAM_IDS.length) return false;
+  const teams = teamMap(comparison, 'member monthly comparison baseline');
+  return rows.every((row) => Number.isSafeInteger(row[3]) && row[3] >= 0
+    && serialToIsoDate(row[21]) === currentAsOf
+    && row[3] === teams.get(row[1]).members);
+}
+
+export function selectSourceConfirmedMemberMonthlyComparison(previousData, currentAsOf, definitionId, monthlyRows) {
+  const comparison = selectMemberMonthlyComparison(previousData, currentAsOf, definitionId);
+  return sourceConfirmsComparison(monthlyRows, currentAsOf, comparison) ? comparison : null;
 }
 
 export function selectMemberMonthlyComparison(previousData, currentAsOf, definitionId) {
