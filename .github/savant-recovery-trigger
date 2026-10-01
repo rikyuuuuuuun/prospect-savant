@@ -7,4 +7,4 @@
 # the branch on success. Updating this file on main still works.
 # Pulses are date-based (already current => no-op); same-day republish needs workflow_dispatch force.
 initialized: 2026-08-28T12:35:00+09:00
-pulse: 2026-09-30-daily-source-ready
+pulse: 2026-10-01-daily-source-ready-1053
