@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { gitBlobSha } from './trial-publication.mjs';
 import { parsePublicSource, publishPrivateSavantSource } from './publish-private-savant-source.mjs';
-import { applyMemberMonthlyDelta, MEMBER_MONTHLY_SOURCE_RANGE, previousMonthEnd, selectSourceConfirmedMemberMonthlyComparison } from './member-monthly-change.mjs';
+import { applyMemberMonthlyDelta, MEMBER_MONTHLY_SOURCE_RANGE, previousMonthEnd, selectPublishedMemberMonthlyComparison } from './member-monthly-change.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { applyMetricEvidenceAndExplanations } from './metric-explanations.mjs';
 import { stagePublicSnapshot } from './stage-public-snapshot.mjs';
@@ -99,10 +99,13 @@ async function publishWithExplanationsInto({ rootDir, historyRoot, sourcePath })
     readPublic(root, 'event-data.js'),
   ]);
 
+  data.memberMonthlyComparison = selectPublishedMemberMonthlyComparison(
+    currentPublicData, data.asOf, data.memberDefinition.id, snapshot.ranges?.[MEMBER_MONTHLY_SOURCE_RANGE],
+  );
   if (!data.memberMonthlyComparison) {
     const baseline = historicalMemberBaseline(historyRoot, previousMonthEnd(data.asOf));
     if (baseline?.data?.memberDefinition?.id === data.memberDefinition?.id) {
-      data.memberMonthlyComparison = selectSourceConfirmedMemberMonthlyComparison(
+      data.memberMonthlyComparison = selectPublishedMemberMonthlyComparison(
         baseline.data, data.asOf, data.memberDefinition.id, snapshot.ranges?.[MEMBER_MONTHLY_SOURCE_RANGE],
       );
     }

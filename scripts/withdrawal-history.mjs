@@ -82,7 +82,7 @@ export function buildWithdrawalHistory({ members, courses, changes, asOf }, data
     else if (e.joined < row.month+'-01') row.cohortCount++;
   }
   const baseline=data.memberMonthlyComparison;
-  if (baseline?.previousAsOf === previousMonthEnd(asOf) && baseline.memberDefinition?.id === data.memberDefinition?.id) {
+  if (!baseline?.estimate && baseline?.previousAsOf === previousMonthEnd(asOf) && baseline.memberDefinition?.id === data.memberDefinition?.id) {
     for (const id of IDS) {
       const row=teams[id].months[months.indexOf(asOf.slice(0,7))];
       const count=baseline.teams.find(t=>t.id===id)?.members;
@@ -144,7 +144,7 @@ export function applyWithdrawalBaseline(h,data) {
   const result=structuredClone(h);
   // Rates are rebuilt from the same public snapshot's monthly baseline, never from a different cutoff.
   for(const id of IDS)for(const row of result.teams[id].months){if(!row)continue;row.denominator=null;row.rate=null;
-    if(row.month===data.asOf.slice(0,7) && data.memberMonthlyComparison?.previousAsOf===previousMonthEnd(data.asOf) && data.memberMonthlyComparison.memberDefinition?.id===data.memberDefinition?.id){
+    if(!data.memberMonthlyComparison?.estimate && row.month===data.asOf.slice(0,7) && data.memberMonthlyComparison?.previousAsOf===previousMonthEnd(data.asOf) && data.memberMonthlyComparison.memberDefinition?.id===data.memberDefinition?.id){
       row.denominator=data.memberMonthlyComparison.teams.find(t=>t.id===id)?.members??null;
       if(result.unassigned===0&&result.teams[id].unknownMonth===0&&row.missingEntry===0&&row.denominator>0&&row.cohortCount<=row.denominator)row.rate=Number((100*row.cohortCount/row.denominator).toFixed(2));
     }

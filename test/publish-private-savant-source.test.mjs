@@ -158,7 +158,7 @@ for (const confirmed of [false, true]) {
     } finally { await rm(dir, { recursive: true, force: true }); }
   });
 
-  test(`explanation publication ${confirmed ? 'restores a source-confirmed' : 'cannot restore a source-unconfirmed'} Git month-end baseline`, async () => {
+  test(`explanation publication ${confirmed ? 'restores a source-confirmed' : 'restores an estimated source-unconfirmed'} Git month-end baseline`, async () => {
     const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
     const dir = await mkdtemp(join(tmpdir(), 'savant-monthly-history-'));
     const git = (...args) => execFileSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', ...args], { cwd: dir, stdio: 'pipe' });
@@ -187,16 +187,11 @@ for (const confirmed of [false, true]) {
       const result = await publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath });
       assert.equal(result.ok, true);
       const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
-      if (confirmed) {
-        assert.equal(published.memberMonthlyComparison.previousAsOf, baseline.asOf);
-        assert.equal(published.headline.monthlyDelta, data.headline.members - baseline.headline.members);
-        for (const team of published.teams) {
-          assert.equal(team.monthlyDelta, team.members - baseline.teams.find((previous) => previous.id === team.id).members);
-        }
-      } else {
-        assert.equal(published.memberMonthlyComparison, null);
-        assert.equal(published.headline.monthlyDelta, null);
-        assert(published.teams.every((team) => team.monthlyDelta === null));
+      assert.equal(published.memberMonthlyComparison.previousAsOf, baseline.asOf);
+      assert.equal(published.headline.monthlyDelta, data.headline.members - baseline.headline.members);
+      assert.equal(Boolean(published.memberMonthlyComparison.estimate), !confirmed);
+      for (const team of published.teams) {
+        assert.equal(team.monthlyDelta, team.members - baseline.teams.find((previous) => previous.id === team.id).members);
       }
     } finally { await rm(dir, { recursive: true, force: true }); }
   });

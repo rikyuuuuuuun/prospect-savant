@@ -9,6 +9,7 @@ import {
   buildMemberMonthlyComparison,
   previousMonthEnd,
   selectMemberMonthlyComparison,
+  selectPublishedMemberMonthlyComparison,
   selectSourceConfirmedMemberMonthlyComparison,
 } from '../scripts/member-monthly-change.mjs';
 
@@ -165,4 +166,25 @@ test('UI names the KPI as previous-month-end pure change', async () => {
   const source = await readFile(resolve(import.meta.dirname, '..', 'index.html'), 'utf8');
   assert.match(source, /前月末比 純増減/);
   assert.doesNotMatch(source, /前月差（参考）/);
+});
+
+
+test('authorized month-end estimate persists, becomes confirmed, and expires next month', () => {
+  const counts = { A: 336, B: 319, C: 224, D: 200 };
+  const baseline = snapshot('2026-09-30', counts);
+  const first = snapshot('2026-10-01', { A: 329, B: 310, C: 221, D: 198 });
+  first.memberMonthlyComparison = selectPublishedMemberMonthlyComparison(baseline, first.asOf, 'operational-person-v1', []);
+  applyMemberMonthlyDelta(first);
+  assert.equal(first.headline.monthlyDelta, -21);
+  assert.equal(first.memberMonthlyComparison.estimate.sourceAsOf, '2026-09-30');
+  assertMemberMonthlyState(first);
+  const carried = selectPublishedMemberMonthlyComparison(first, '2026-10-02', 'operational-person-v1', []);
+  assert.deepEqual(carried, first.memberMonthlyComparison);
+  const confirmed = selectPublishedMemberMonthlyComparison(first, '2026-10-02', 'operational-person-v1', monthlySource('2026-10-02', counts));
+  assert.equal(confirmed.estimate, undefined);
+  assert.equal(selectPublishedMemberMonthlyComparison(first, '2026-11-01', 'operational-person-v1', []), null);
+  assert.equal(selectPublishedMemberMonthlyComparison(baseline, first.asOf, 'other-definition', []), null);
+  const invalid = structuredClone(first);
+  invalid.memberMonthlyComparison.estimate.sourceAsOf = '2026-09-29';
+  assert.throws(() => assertMemberMonthlyState(invalid), /estimate provenance/);
 });

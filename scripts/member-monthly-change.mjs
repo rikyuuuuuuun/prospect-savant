@@ -80,6 +80,22 @@ export function selectSourceConfirmedMemberMonthlyComparison(previousData, curre
   return sourceConfirmsComparison(monthlyRows, currentAsOf, comparison) ? comparison : null;
 }
 
+// Authorized estimate: use an observed month-end daily snapshot when closing is unconfirmed.
+// Never substitute a different date or member definition.
+export function selectPublishedMemberMonthlyComparison(previousData, currentAsOf, definitionId, monthlyRows) {
+  const comparison = selectMemberMonthlyComparison(previousData, currentAsOf, definitionId);
+  if (!comparison) return null;
+  if (sourceConfirmsComparison(monthlyRows, currentAsOf, comparison)) {
+    delete comparison.estimate;
+    return comparison;
+  }
+  comparison.estimate = {
+    method: 'unconfirmed-month-end-daily-snapshot',
+    sourceAsOf: comparison.previousAsOf,
+  };
+  return comparison;
+}
+
 export function selectMemberMonthlyComparison(previousData, currentAsOf, definitionId) {
   const baselineAsOf = previousMonthEnd(currentAsOf);
   if (previousData?.memberDefinition?.id !== definitionId) return null;
@@ -138,6 +154,12 @@ export function assertMemberMonthlyState(data) {
     return;
   }
 
+  if (comparison.estimate !== undefined) {
+    assert(comparison.estimate?.method === 'unconfirmed-month-end-daily-snapshot'
+      && comparison.estimate.sourceAsOf === comparison.previousAsOf
+      && Object.keys(comparison.estimate).sort().join(',') === 'method,sourceAsOf',
+      'member monthly comparison estimate provenance is invalid');
+  }
   assert(comparison.definition === MEMBER_DELTA_DEFINITION,
     'member monthly comparison definition is invalid');
   assert(comparison.previousAsOf === previousMonthEnd(data.asOf),

@@ -1,5 +1,5 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-10-01-0730-trial-ytd-v1",
+  "snapshotId": "savant-2026-10-01-0730-trial-ytd-v1-estimated-month-end-v1",
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-10-01",
   "asOfLabel": "2026年10月1日",
@@ -27,7 +27,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "periodLabel": "2026年度累計",
   "headline": {
     "members": 1058,
-    "monthlyDelta": null,
+    "monthlyDelta": -21,
     "admissionRate": 73.8,
     "admissionPreviousRate": 69.5,
     "admissionYoYDelta": 4.2,
@@ -793,7 +793,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "A",
       "rank": 1,
       "members": 329,
-      "monthlyDelta": null,
+      "monthlyDelta": -7,
       "overall": 76,
       "status": "算出済",
       "metrics": {
@@ -973,7 +973,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "B",
       "rank": 2,
       "members": 310,
-      "monthlyDelta": null,
+      "monthlyDelta": -9,
       "overall": 62,
       "status": "算出済",
       "metrics": {
@@ -1153,7 +1153,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "C",
       "rank": 4,
       "members": 221,
-      "monthlyDelta": null,
+      "monthlyDelta": -3,
       "overall": 23,
       "status": "算出済",
       "metrics": {
@@ -1333,7 +1333,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "id": "D",
       "rank": 3,
       "members": 198,
-      "monthlyDelta": null,
+      "monthlyDelta": -2,
       "overall": 42,
       "status": "算出済",
       "metrics": {
@@ -1538,7 +1538,40 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "id": "operational-person-v1",
     "label": "人物単位運用会員"
   },
-  "memberMonthlyComparison": null,
+  "memberMonthlyComparison": {
+    "definition": "previous-month-end-v1",
+    "previousAsOf": "2026-09-30",
+    "previousAsOfLabel": "2026年9月30日",
+    "headline": {
+      "members": 1079
+    },
+    "teams": [
+      {
+        "id": "A",
+        "members": 336
+      },
+      {
+        "id": "B",
+        "members": 319
+      },
+      {
+        "id": "C",
+        "members": 224
+      },
+      {
+        "id": "D",
+        "members": 200
+      }
+    ],
+    "memberDefinition": {
+      "id": "operational-person-v1",
+      "label": "人物単位運用会員"
+    },
+    "estimate": {
+      "method": "unconfirmed-month-end-daily-snapshot",
+      "sourceAsOf": "2026-09-30"
+    }
+  },
   "memberDeltaDefinition": "previous-month-end-v1",
   "metricDefinitions": {
     "family": "referral-volume-rate-v2"
