@@ -1,3 +1,4 @@
+import { centralTrialValueRanges, gridTrialResponse } from './support/trial-disposition.mjs';
 import { emptyRanges as emptyWithdrawalRanges } from './support/withdrawal-fixture.mjs';
 import { conversionRows } from './support/annual-conversion.mjs';
 import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
@@ -23,7 +24,9 @@ function sheet(rows) {
 function successfulTrialRequest(rawUrl) {
   const url = new URL(rawUrl);
   if (url.searchParams.get('valueRenderOption') === 'FORMULA') return { valueRanges: [{ values: [['=IMPORTRANGE("https://docs.google.com/spreadsheets/d/master/edit","\'12_Savant連携\'!A4:AE9")']] }] };
-  if (url.pathname.endsWith('/spreadsheets/master')) return { sheets: ['01_会員マスター','02_所属コース履歴','08_会員変更履歴'].map(title=>({properties:{title,gridProperties:{rowCount:10,columnCount:33}}})) };
+  if (url.pathname.endsWith('/spreadsheets/master')) return { sheets: ['01_会員マスター','02_所属コース履歴','08_会員変更履歴','14_LINE体験受付','09_体験入会突合'].map(title=>({properties:{title,gridProperties:{rowCount:10,columnCount:36}}})) };
+  if (url.pathname.includes('/spreadsheets/master/values:batchGet') && url.searchParams.getAll('ranges').length === 14) return { valueRanges: centralTrialValueRanges() };
+  if (url.searchParams.get('includeGridData') === 'true') return gridTrialResponse();
   if (url.pathname.includes('/spreadsheets/master/values:batchGet') && url.searchParams.getAll('ranges').length===7) return {valueRanges:emptyWithdrawalRanges()};
   if (url.pathname.includes('/spreadsheets/master/values:batchGet')) return { valueRanges: [{ values: [['入会日']] }, { values: [['主チーム']] }] };
   if (url.pathname.includes('/spreadsheets/savant/values:batchGet')) {
@@ -60,6 +63,7 @@ function successfulTrialRequest(rawUrl) {
 }
 
 const testSourceOptions = (requestJson, retryOptions = {}) => ({
+  spreadsheetId: 'savant',
   serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
   trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}',
   targetDate: '2026-08-22',
@@ -137,21 +141,15 @@ test('uses the Google serial date convention and public input contains only aggr
   assert.deepEqual(canonicalInput.annual.teams.C, { admissions: 51, trials: 81 });
 });
 
-test('reads only date columns and fails closed when any of four team sources fails', async () => {
+test('reads only bounded dates/notes and fails closed when any of four team sources fails', async () => {
   const requests = [];
   const requestJson = async (rawUrl) => {
     const url = new URL(rawUrl);
     requests.push(url);
-    if (!url.pathname.endsWith('/values:batchGet')) return { sheets: [
-      { properties: { title: '予約', gridProperties: { rowCount: 4 } } },
-      { properties: { title: '補助', gridProperties: { rowCount: 4 } } },
-    ] };
-    const ranges = url.searchParams.getAll('ranges');
-    if (ranges.every((range) => range.endsWith('A1:A4'))) return { valueRanges: ranges.map((_, index) => ({ values: index === 0 ? [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] : [[]] })) };
-    if (ranges.every((range) => range.endsWith('E1:H1'))) return { valueRanges: [{ values: [['出席確認', '入会']] }] };
-    return { valueRanges: [{ values: [['体験予約日', serial('2026-08-22'), serial('2026-08-21')]] }] };
+    return successfulTrialRequest(rawUrl);
   };
   const options = {
+    spreadsheetId: 'savant',
     serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
     trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: '2026-08-22',
     getToken: async () => 'test-token', requestJson,
@@ -159,7 +157,7 @@ test('reads only date columns and fails closed when any of four team sources fai
   const result = await fetchPrivateTrialAggregate(options);
   assert.deepEqual(result.aggregates, { A: { today: 1 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
   const dataReads = requests.filter((url) => url.pathname.endsWith('/values:batchGet') && url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4");
-  assert.equal(dataReads.length, 8);
+  assert.equal(dataReads.length, 4);
   assert(dataReads.every((url) => url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4"));
 
   await assert.rejects(() => fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
@@ -169,6 +167,7 @@ test('reads only date columns and fails closed when any of four team sources fai
 
   const multipleTables = await fetchPrivateTrialAggregate({ ...options, requestJson: async (url, token) => {
     const text = String(url);
+    if (text.includes('/spreadsheets/a?') && new URL(url).searchParams.get('includeGridData') === 'true') return gridTrialResponse(['体験予約日', serial('2026-08-22'), ...Array(28).fill(''), '体験予約日', serial('2026-08-22')]);
     if (text.includes('/spreadsheets/a?')) return { sheets: [{ properties: { title: '予約', gridProperties: { rowCount: 40 } } }] };
     if (text.includes('/spreadsheets/a/') && text.includes('values:batchGet') && text.includes('A1%3AA40')) {
       const values = [['体験予約日'], ['2026-08-22'], ...Array.from({ length: 28 }, () => []), ['体験予約日'], ['2026-08-22']];
@@ -192,7 +191,7 @@ test('recovers all four trial aggregates after one B-team Sheets 503 without rea
   }, { sleep: async (delay) => delays.push(delay), logger: (message) => logs.push(message) }));
 
   assert.deepEqual(result.aggregates, { A: { today: 1 }, B: { today: 1 }, C: { today: 1 }, D: { today: 1 } });
-  assert.equal(bAttempts, 2);
+  assert.equal(bAttempts, 5);
   assert.deepEqual(delays, [1_000]);
   assert.deepEqual(logs, ['Google Sheets transient read failure: status=503 attempt=1/4; retrying']);
 });
@@ -238,8 +237,8 @@ test('uses the central Savant cutoff for the anonymous trial aggregate', async (
     const privateSource = JSON.parse(await readFile(join(tempDir, 'savant-source.json'), 'utf8'));
     assert.equal(privateSource.trialAggregate.targetDate, '2026-08-21');
     const dateReads = requests.filter((url) => url.pathname.endsWith('/values:batchGet') && url.searchParams.getAll('ranges')[0] === "'予約'!A1:A4");
-    assert.equal(dateReads.length, 8);
-    assert.equal(dateReads.filter((url) => url.searchParams.get('majorDimension') === 'COLUMNS').length, 4);
+    assert.equal(dateReads.length, 4);
+    assert.equal(requests.filter(url => url.searchParams.get('includeGridData') === 'true').length, 8);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

@@ -1,3 +1,4 @@
+import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -7,7 +8,7 @@ import { createSign } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { aggregateTeam, discoverDailyTrialSchema, fiscalYearFor, normalise, parseSheetIds, serialToIsoDate, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
+import { discoverDailyTrialSchema, fiscalYearFor, normalise, parseSheetIds, serialToIsoDate, TEAM_IDS, tokyoDate } from './private-trial-aggregate.mjs';
 
 const RANGES = [
   "'00_ダッシュボード'!A1:H23",
@@ -176,10 +177,6 @@ function quotedRange(title, column, endRow) {
   return `'${String(title).replaceAll("'", "''")}'!${column}1:${column}${endRow}`;
 }
 
-function firstColumn(values) {
-  return Array.isArray(values?.[0]) ? values[0] : [];
-}
-
 function sourceAsOf(valueRanges) {
   const monthly = valueRanges[MONTHLY_AS_OF_RANGE_INDEX]?.values || [];
   const rows = monthly.slice(4).filter((row) => TEAM_IDS.includes(row?.[1]));
@@ -190,7 +187,7 @@ function sourceAsOf(valueRanges) {
 
 function safeTrialFailureCode(error) {
   const message = String(error?.message || '');
-  const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_TIMEOUT|GOOGLE_SHEETS_NETWORK|GOOGLE_SHEETS_RESPONSE_INVALID|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID)$/);
+  const match = message.match(/^(GOOGLE_SHEETS_\d+|GOOGLE_SHEETS_TIMEOUT|GOOGLE_SHEETS_NETWORK|GOOGLE_SHEETS_RESPONSE_INVALID|GOOGLE_SHEETS_INCOMPLETE|SOURCE_SCHEMA_INVALID|TRIAL_DISPOSITION_[A-Z_]+)$/);
   return match ? match[1] : 'UNKNOWN';
 }
 
@@ -198,11 +195,12 @@ function dateHeaderRows(values) {
   return (values || []).flatMap((row, index) => ['体験予約日', '体験日'].includes(normalise(row?.[0])) ? [index + 1] : []);
 }
 
-async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, requestJson) {
-  const metadata = await requestJson(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`, token);
+async function fetchTeamTrialSheets(team, spreadsheetId, token, requestJson) {
+  const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title,gridProperties(rowCount)))`;
+  const metadata = await requestJson(metadataUrl, token);
   const sheets = metadata.sheets || [];
-  if (!sheets.length) throw new Error('SOURCE_SCHEMA_INVALID');
-  // A列は予約日だけで、後段の当日集計でも全行を読む。全体を検査して重複見出しをfail-closedにする。
+  if (!sheets.length || sheets.some(sheet => !sheet.properties?.title || !Number.isSafeInteger(sheet.properties?.gridProperties?.rowCount) || sheet.properties.gridProperties.rowCount < 1 || sheet.properties.gridProperties.rowCount > 50_000)) throw new Error('SOURCE_SCHEMA_INVALID');
+  // Discover headers with date-only reads. Later read only A values/notes, never names.
   const headerRanges = sheets.map((sheet) => quotedRange(sheet.properties?.title, 'A', Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1)));
   const headerUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
   headerUrl.searchParams.set('majorDimension', 'ROWS');
@@ -233,31 +231,57 @@ async function fetchTeamAggregate(team, spreadsheetId, token, targetDate, reques
     const rowCount = Math.max(1, Number(sheet.properties?.gridProperties?.rowCount) || 1);
     return quotedRange(title, 'A', rowCount);
   });
-  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchGet`);
-  url.searchParams.set('majorDimension', 'COLUMNS');
-  url.searchParams.set('valueRenderOption', 'UNFORMATTED_VALUE');
-  url.searchParams.set('dateTimeRenderOption', 'SERIAL_NUMBER');
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}`);
+  url.searchParams.set('includeGridData', 'true');
+  url.searchParams.set('fields', 'sheets(properties(title),data(startRow,startColumn,rowData(values(effectiveValue,note))))');
   for (const range of ranges) url.searchParams.append('ranges', range);
-  const values = (await requestJson(url, token)).valueRanges || [];
-  if (values.length !== ranges.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
-  const privateColumns = schemas.map((schema, index) => ({
-    dateColumn: firstColumn(values[index]?.values),
-    headerRow: schema.headerRow,
-  }));
-  return [team, aggregateTeam({ sheets: privateColumns, targetDate })];
+  const capture = async () => {
+    const response = await requestJson(url, token);
+    if (!Array.isArray(response.sheets) || response.sheets.length !== schemas.length) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
+    return schemas.map(schema => {
+      const title = schema.sheet.properties.title;
+      const matches = response.sheets.filter(sheet => sheet.properties?.title === title);
+      if (matches.length !== 1 || !Array.isArray(matches[0].data) || matches[0].data.length !== 1) throw new Error('GOOGLE_SHEETS_INCOMPLETE');
+      const grid = matches[0].data[0];
+      if ((grid.startRow || 0) !== 0 || (grid.startColumn || 0) !== 0) throw new Error('SOURCE_SCHEMA_INVALID');
+      const rows = grid.rowData || [];
+      if (!Array.isArray(rows) || rows.length > schema.sheet.properties.gridProperties.rowCount) throw new Error('SOURCE_SCHEMA_INVALID');
+      const dateColumn = rows.map(row => {
+        const cell = row.values?.[0]?.effectiveValue;
+        if (cell?.errorValue || (cell && 'boolValue' in cell)) throw new Error('SOURCE_SCHEMA_INVALID');
+        return cell?.numberValue ?? cell?.stringValue ?? '';
+      });
+      if (!['体験予約日', '体験日'].includes(normalise(dateColumn[schema.headerRow - 1]))) throw new Error('SOURCE_SCHEMA_INVALID');
+      return { owner: team, spreadsheetId, title, headerRow: schema.headerRow,
+        dateColumn, noteColumn: rows.map(row => row.values?.[0]?.note || '') };
+    });
+  };
+  const sheetsData = await capture();
+  return { sheets: sheetsData, readback: async () => {
+    if (JSON.stringify(await capture()) !== JSON.stringify(sheetsData) ||
+        JSON.stringify(await requestJson(metadataUrl, token)) !== JSON.stringify(metadata) ||
+        JSON.stringify((await requestJson(candidateUrl, token)).valueRanges || []) !== JSON.stringify(candidateHeaders)) {
+      throw new Error('TRIAL_DISPOSITION_SOURCE_CHANGED_DURING_READ');
+    }
+  } };
 }
 
-export async function fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
+export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
   const fiscalYear = fiscalYearFor(targetDate);
   const token = await getToken(serviceAccount);
   const retriableRequestJson = createRetriableGoogleJson({ requestJson, ...retryOptions });
-  const settled = await Promise.allSettled(TEAM_IDS.map((team) => fetchTeamAggregate(team, ids[team], token, targetDate, retriableRequestJson)));
+  const disposition = await captureTrialDispositionSource({ spreadsheetId, token, requestJson: retriableRequestJson });
+  const settled = await Promise.allSettled(TEAM_IDS.map(team => fetchTeamTrialSheets(team, ids[team], token, retriableRequestJson)));
   const failures = settled.flatMap((result, index) => result.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(result.reason)}`] : []);
   if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
-  const aggregates = Object.fromEntries(settled.map((result) => result.value));
-  return { targetDate, fiscalYear, aggregates };
+  const sources = settled.map(result => result.value);
+  const result = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate });
+  await Promise.all(sources.map(source => source.readback()));
+  await disposition.readback();
+  // Only anonymous counters survive. Raw source routes, notes and receipts stay in memory.
+  return { targetDate, fiscalYear, ...result, quality: disposition.quality };
 }
 
 async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath, getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
@@ -288,7 +312,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   const asOf = sourceAsOf(valueRanges);
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
   assertAnnualConversionSource({ ranges }, asOf);
-  const trialAggregate = await fetchPrivateTrialAggregate({ serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
+  const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const privateSnapshot = {
@@ -313,7 +337,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
 
 export async function fetchPrivateSavantSource(options) {
   const sleep = options.retryOptions?.sleep || wait;
-  const retryable = new Set(['MEMBER_SOURCE_CHANGED_DURING_READ', 'MEMBER_SOURCE_DATE_MISMATCH', 'MEMBER_GATE_DATE_CONFLICT', 'MEMBER_GATE_COUNT_CONFLICT']);
+  const retryable = new Set(['MEMBER_SOURCE_CHANGED_DURING_READ', 'MEMBER_SOURCE_DATE_MISMATCH', 'MEMBER_GATE_DATE_CONFLICT', 'MEMBER_GATE_COUNT_CONFLICT', 'TRIAL_DISPOSITION_SOURCE_CHANGED_DURING_READ', 'TRIAL_DISPOSITION_SOURCE_LINK_CHANGED_DURING_READ']);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try { return await capturePrivateSavantSource(options); }
     catch (error) {
