@@ -6,6 +6,9 @@ import assert from 'node:assert/strict';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { applyMemberMonthlyDelta, buildMemberMonthlyComparison, previousMonthEnd } from '../scripts/member-monthly-change.mjs';
+import { REFERRAL_RANGE } from '../scripts/referral-evidence.mjs';
 import { parsePublicSource, publishPrivateSavantSource } from '../scripts/publish-private-savant-source.mjs';
 import { publishPrivateSavantWithExplanations } from '../scripts/publish-private-savant-with-explanations.mjs';
 import { PUBLIC_FILES } from '../scripts/stage-public-snapshot.mjs';
@@ -85,6 +88,117 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   source["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate(data.asOf);
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
   return source;
+}
+
+function syntheticMonthlyBaseline(data) {
+  const baseline = structuredClone(data);
+  baseline.asOf = previousMonthEnd(data.asOf);
+  baseline.asOfLabel = baseline.asOf;
+  baseline.teams.forEach((team, index) => { team.members = index * 10; });
+  baseline.headline.members = baseline.teams.reduce((total, team) => total + team.members, 0);
+  return baseline;
+}
+
+function explanationSourceRows(data, events, retentionCurve, schoolAge, trial) {
+  const ranges = sourceRows(data, events, retentionCurve, schoolAge, trial);
+  ranges[RANGES.retention] = [[], [], [], ['チーム', '3か月\n継続率'], ...data.teams.map((team) => [
+    team.id, ...team.metricEvidence.retention.periods.flatMap((period) => [
+      period.retained === null ? (period.rate === null ? null : period.rate / 100) : period.retained / period.sample,
+      period.sample,
+    ]),
+  ])];
+  ranges[RANGES.admission][3] = ['チーム', '', '', '年度入会率'];
+  ranges["'07_成長力'!P4:W9"] = [['チーム', '上位10％記録', '', '', '成長力点'], ...data.teams.map((team) => {
+    const e = team.metricEvidence.growth;
+    return [team.id, e.top10, e.top10to20, e.top20to30, e.relativeScore, e.top30Children, e.weightedPoints, e.status];
+  })];
+  // The public fixture uses referral evidence rather than the legacy family metric.
+  ranges["'08_家庭継続力'!A1:O31"] = [['legacy metric']];
+  ranges["'90_配点設定'!A1:J50"] = [['legacy config']];
+  const referral = [[], ['', `${trial.annual.fiscalYear}-04-01`, '', data.asOf], [],
+    ['チーム', '紹介体験', '兄弟姉妹入会', '紹介ポイント', '紹介力点', '定義', '基準日会員数', '紹介率', '人数相対点', '紹介率相対点', '人数配点', '紹介率配点'],
+    ...data.teams.map((team) => {
+      const e = team.metricEvidence.family;
+      return [team.id, e.trialPoints, e.siblingPoints, e.points, e.calculatedScore, e.definition,
+        e.members, e.points / e.members, e.pointScore, e.rateScore, 0.7, 0.3];
+    }),
+  ];
+  const sum = (column) => referral.slice(4).reduce((total, row) => total + row[column], 0);
+  referral.push(['合計', sum(1), sum(2), sum(3), '', '', sum(6), sum(3) / sum(6)], [], ['', '', '', '', '', 'READY']);
+  ranges[REFERRAL_RANGE] = referral;
+  return ranges;
+}
+
+for (const confirmed of [false, true]) {
+  test(`source publication ${confirmed ? 'keeps' : 'withholds'} a carried month-end comparison based on source counts`, async () => {
+    const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+    const dir = await mkdtemp(join(tmpdir(), 'savant-monthly-source-'));
+    try {
+      await Promise.all(PUBLIC_FILES.map((file) => copyFile(join(root, file), join(dir, file))));
+      data.memberMonthlyComparison = buildMemberMonthlyComparison(syntheticMonthlyBaseline(data));
+      applyMemberMonthlyDelta(data);
+      await writeFile(join(dir, 'data.js'), `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(data)});\n`);
+      const ranges = sourceRows(data, events, retentionCurve, schoolAge, trial);
+      if (confirmed) for (const row of ranges[RANGES.monthly].slice(4)) {
+        row[3] = data.memberMonthlyComparison.teams.find((team) => team.id === row[1]).members;
+      }
+      const sourcePath = join(dir, 'source.json');
+      await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: {
+        targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear,
+        aggregates: Object.fromEntries(data.teams.map((team) => [team.id, { today: 0 }])),
+      } }));
+      await publishPrivateSavantSource({ rootDir: dir, sourcePath });
+      const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
+      assert.deepEqual(published.memberMonthlyComparison, confirmed ? data.memberMonthlyComparison : null);
+      assert.equal(published.headline.monthlyDelta, confirmed ? data.headline.members - data.memberMonthlyComparison.headline.members : null);
+      for (const team of published.teams) {
+        assert.equal(team.monthlyDelta, confirmed ? team.members - data.memberMonthlyComparison.teams.find((previous) => previous.id === team.id).members : null);
+      }
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
+  test(`explanation publication ${confirmed ? 'restores a source-confirmed' : 'cannot restore a source-unconfirmed'} Git month-end baseline`, async () => {
+    const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+    const dir = await mkdtemp(join(tmpdir(), 'savant-monthly-history-'));
+    const git = (...args) => execFileSync('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', ...args], { cwd: dir, stdio: 'pipe' });
+    try {
+      const baseline = syntheticMonthlyBaseline(data);
+      git('init');
+      await writeFile(join(dir, 'data.js'), `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(baseline)});\n`);
+      git('add', 'data.js');
+      git('commit', '-m', 'Synthetic month-end baseline');
+      await Promise.all(PUBLIC_FILES.map((file) => copyFile(join(root, file), join(dir, file))));
+      data.memberMonthlyComparison = null;
+      data.headline.monthlyDelta = null;
+      data.teams.forEach((team) => { team.monthlyDelta = null; });
+      await writeFile(join(dir, 'data.js'), `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(data)});\n`);
+      git('add', 'data.js');
+      git('commit', '-m', 'Current snapshot without monthly comparison');
+      const ranges = explanationSourceRows(data, events, retentionCurve, schoolAge, trial);
+      if (confirmed) for (const row of ranges[RANGES.monthly].slice(4)) {
+        row[3] = baseline.teams.find((team) => team.id === row[1]).members;
+      }
+      const sourcePath = join(dir, 'source.json');
+      await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: {
+        targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear,
+        aggregates: Object.fromEntries(data.teams.map((team) => [team.id, { today: 0 }])),
+      } }));
+      const result = await publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath });
+      assert.equal(result.ok, true);
+      const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
+      if (confirmed) {
+        assert.equal(published.memberMonthlyComparison.previousAsOf, baseline.asOf);
+        assert.equal(published.headline.monthlyDelta, data.headline.members - baseline.headline.members);
+        for (const team of published.teams) {
+          assert.equal(team.monthlyDelta, team.members - baseline.teams.find((previous) => previous.id === team.id).members);
+        }
+      } else {
+        assert.equal(published.memberMonthlyComparison, null);
+        assert.equal(published.headline.monthlyDelta, null);
+        assert(published.teams.every((team) => team.monthlyDelta === null));
+      }
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
 }
 
 test('dry-run transforms only a complete reconciled anonymous source snapshot', async () => {

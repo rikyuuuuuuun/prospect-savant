@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { gitBlobSha } from './trial-publication.mjs';
 import { parsePublicSource, publishPrivateSavantSource } from './publish-private-savant-source.mjs';
-import { applyMemberMonthlyDelta, buildMemberMonthlyComparison, previousMonthEnd } from './member-monthly-change.mjs';
+import { applyMemberMonthlyDelta, MEMBER_MONTHLY_SOURCE_RANGE, previousMonthEnd, selectSourceConfirmedMemberMonthlyComparison } from './member-monthly-change.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { applyMetricEvidenceAndExplanations } from './metric-explanations.mjs';
 import { stagePublicSnapshot } from './stage-public-snapshot.mjs';
@@ -102,7 +102,9 @@ async function publishWithExplanationsInto({ rootDir, historyRoot, sourcePath })
   if (!data.memberMonthlyComparison) {
     const baseline = historicalMemberBaseline(historyRoot, previousMonthEnd(data.asOf));
     if (baseline?.data?.memberDefinition?.id === data.memberDefinition?.id) {
-      data.memberMonthlyComparison = buildMemberMonthlyComparison(baseline.data);
+      data.memberMonthlyComparison = selectSourceConfirmedMemberMonthlyComparison(
+        baseline.data, data.asOf, data.memberDefinition.id, snapshot.ranges?.[MEMBER_MONTHLY_SOURCE_RANGE],
+      );
     }
   }
   applyMemberMonthlyDelta(data);

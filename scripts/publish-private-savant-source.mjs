@@ -12,7 +12,7 @@ import { gitBlobSha, parseFrozenJson, publishTrialData, validatePublishedTrialDa
 import { validateAdmissions } from './admission-notices.mjs';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { fiscalYearFor, serialToIsoDate, trialPublicInput } from './private-trial-aggregate.mjs';
-import { applyMemberMonthlyDelta, selectMemberMonthlyComparison } from './member-monthly-change.mjs';
+import { applyMemberMonthlyDelta, MEMBER_MONTHLY_SOURCE_RANGE, selectSourceConfirmedMemberMonthlyComparison } from './member-monthly-change.mjs';
 
 const MAIN_FILES = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js'];
 const PUBLIC_FILES = [...MAIN_FILES, 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
@@ -20,7 +20,7 @@ const TEAM_IDS = ['A', 'B', 'C', 'D'];
 const RANGES = Object.freeze({
   dashboard: "'00_ダッシュボード'!A1:H23",
   teams: "'01_チーム比較'!A1:P12",
-  monthly: "'03_月次集計'!A1:V12",
+  monthly: MEMBER_MONTHLY_SOURCE_RANGE,
   events: "'04_イベント力'!A1:S100",
   retention: "'05_定着力'!A1:R10",
   admission: "'06_入会力（年度）'!A1:H12",
@@ -195,7 +195,7 @@ function updateData(data, ranges, asOf) {
     };
   }
   if (ranges.referral) applyReferralMetadata(data, ranges.referral, oldData);
-  data.memberMonthlyComparison = selectMemberMonthlyComparison(oldData, asOf, data.memberDefinition?.id);
+  data.memberMonthlyComparison = selectSourceConfirmedMemberMonthlyComparison(oldData, asOf, data.memberDefinition?.id, ranges.monthly);
   applyMemberMonthlyDelta(data);
   return annual;
 }
