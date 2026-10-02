@@ -41,6 +41,9 @@ jobs:
         with:
           ref: main
           fetch-depth: 1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
       - name: Verify pulse branch contains only the trigger change
         if: github.event_name == 'push' && github.ref != 'refs/heads/main'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
@@ -75,7 +78,12 @@ jobs:
           if (current > target) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
           const { needsRecovery: evaluateRecovery } = await import('./scripts/recovery-watchdog.mjs');
           const forceRecovery = process.env.FORCE_RECOVERY === 'true';
-          const needsRecovery = evaluateRecovery({ currentAsOf: current, targetDate: target, force: forceRecovery });
+          let needsRecovery = evaluateRecovery({ currentAsOf: current, targetDate: target, force: forceRecovery });
+          if (!needsRecovery) {
+            const { verifyLivePages } = await import('./scripts/verify-live-pages.mjs');
+            try { await verifyLivePages({ root: '.', expectedAsOf: target, attempts: 2 }); }
+            catch { needsRecovery = true; }
+          }
           await appendFile(process.env.GITHUB_OUTPUT, `needs_recovery=${needsRecovery}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `force_recovery=${forceRecovery}\n`);
           await appendFile(process.env.GITHUB_OUTPUT, `target_date=${target}\n`);
@@ -114,6 +122,10 @@ jobs:
             const { tokyoDate } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/daily-publication-gate.mjs`);
             if (published.asOf !== tokyoDate()) throw new Error('RECOVERY_PUBLICATION_STILL_STALE');
             await core.summary.addRaw(`Publisher verified: ${run.html_url}\nPublished asOf: ${published.asOf}\n`).write();
+      - name: Verify the live result, including unchanged-snapshot redeploys
+        run: |
+          git pull --ff-only origin main
+          EXPECTED_AS_OF='${{ steps.freshness.outputs.target_date }}' node scripts/verify-live-pages.mjs .
       - name: Record recovery decision
         if: always()
         shell: bash

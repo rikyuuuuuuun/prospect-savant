@@ -38,6 +38,8 @@ jobs:
     # Includes a bounded wait (SOURCE_WAIT_MINUTES) for upstream member sync readiness.
     timeout-minutes: 80
     outputs:
+      current: ${{ steps.candidate.outputs.candidate_is_current == 'true' || steps.daily-gate.outputs.action == 'skipped-already-current' }}
+      target_date: ${{ steps.daily-gate.outputs.target_date }}
       changed: ${{ steps.changes.outputs.changed || 'false' }}
       candidate_as_of: ${{ steps.candidate.outputs.candidate_as_of || steps.source-freshness.outputs.source_as_of }}
     steps:
@@ -81,21 +83,7 @@ jobs:
           SOURCE_WAIT_MINUTES: ${{ (github.event_name == 'schedule' || inputs.recovery_request_id != '') && '60' || '0' }}
         run: |
           set -euo pipefail
-          # Late-starting runs (GitHub schedule delay) used to fail instantly after 09:30 JST
-          # when the member sync was still pending. Poll every 5 minutes within the window,
-          # then apply the unchanged final freshness/deadline gate.
-          deadline=$(( $(date +%s) + SOURCE_WAIT_MINUTES * 60 ))
-          attempt=0
-          while :; do
-            attempt=$((attempt + 1))
-            node scripts/fetch-private-savant-source.mjs .private/savant-source.json
-            ready="$(SOURCE_FRESHNESS_MODE=probe node scripts/source-freshness-gate.mjs .private/savant-source.json)"
-            if [ "$ready" = 'true' ]; then break; fi
-            if [ $(( $(date +%s) + 300 )) -gt "$deadline" ]; then break; fi
-            echo "Source not ready (attempt ${attempt}); retrying in 5 minutes"
-            sleep 300
-          done
-          echo "sourceAttempts: ${attempt}" >> "$GITHUB_STEP_SUMMARY"
+          node scripts/wait-private-savant-source.mjs .private/savant-source.json
           node scripts/source-freshness-gate.mjs .private/savant-source.json
       - name: Generate and validate a complete candidate snapshot
         if: steps.daily-gate.outputs.should_fetch_source == 'true' && steps.source-freshness.outputs.source_is_current == 'true'
@@ -187,7 +175,7 @@ jobs:
     name: Commit verified snapshot and deploy Pages with recovery
     needs: prepare
     if: >-
-      needs.prepare.outputs.changed == 'true' &&
+      (needs.prepare.outputs.changed == 'true' || (inputs.publish == true && needs.prepare.outputs.current == 'true')) &&
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'schedule' || inputs.publish == true)
     runs-on: ubuntu-latest
@@ -251,11 +239,16 @@ jobs:
           echo 'committed=true' >> "$GITHUB_OUTPUT"
       - name: Deploy GitHub Pages
         id: deployment
-        if: steps.commit.outputs.committed == 'true'
+        if: steps.commit.outputs.committed == 'true' || needs.prepare.outputs.changed == 'false'
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
         with:
           artifact_name: github-pages-candidate
         continue-on-error: true
+      - name: Verify actual HTTP publication
+        if: steps.deployment.outcome == 'success'
+        env:
+          EXPECTED_AS_OF: ${{ needs.prepare.outputs.target_date }}
+        run: node scripts/verify-live-pages.mjs .
       - id: rollback
         name: Restore the prior public snapshot after a failed deployment
         if: steps.deployment.outcome == 'failure' && steps.commit.outputs.committed == 'true'
@@ -299,3 +292,25 @@ jobs:
           echo 'deploy: ${{ steps.deployment.outcome || 'not-run' }}' >> "$GITHUB_STEP_SUMMARY"
           echo 'recovery: ${{ steps.rollback.outputs.reverted || 'not-needed' }}' >> "$GITHUB_STEP_SUMMARY"
 
+
+  verify-current-pages:
+    name: Verify current Pages even when generation is skipped
+    needs: [prepare, publish-and-deploy]
+    if: >-
+      always() && needs.prepare.result == 'success' &&
+      needs.prepare.outputs.current == 'true' &&
+      needs.publish-and-deploy.result == 'skipped' &&
+      github.ref == 'refs/heads/main' && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - name: Verify current live files and UI bundle
+        env:
+          EXPECTED_AS_OF: ${{ needs.prepare.outputs.target_date }}
+        run: node scripts/verify-live-pages.mjs .

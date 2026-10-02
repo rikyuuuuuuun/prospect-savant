@@ -5,6 +5,7 @@ on:
     paths:
       - 'index.html'
       - 'scripts/build-staff-pages.mjs'
+      - 'scripts/verify-live-pages.mjs'
       - '.github/workflows/deploy-savant-display.yml'
 permissions:
   contents: read
@@ -50,3 +51,5 @@ jobs:
       - name: Deploy validated display
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - name: Verify actual HTTP publication
+        run: node scripts/verify-live-pages.mjs .
