@@ -265,7 +265,7 @@ async function main() {
   if (!result.ok) process.exitCode = 1;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error.stack || error.message);
     process.exitCode = 1;
