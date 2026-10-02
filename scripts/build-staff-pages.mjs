@@ -39,7 +39,7 @@ export async function stageStaffPages(root, output) {
   return bundle;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   stageStaffPages(resolve(process.argv[2] || '.'), resolve(process.argv[3] || '_site'))
     .then(bundle => console.log(`Staff Pages staged: ${bundle.snapshotId}`))
     .catch(error => { console.error(error.message); process.exitCode = 1; });
