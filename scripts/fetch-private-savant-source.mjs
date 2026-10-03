@@ -332,6 +332,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   await mkdir(dirname(absoluteOutput), { recursive: true });
   await writeFile(absoluteOutput, `${JSON.stringify(privateSnapshot)}\n`, { mode: 0o600 });
   console.log(`Fetched ${RANGES.length} private Savant ranges successfully.`);
+  if (trialAggregate.dailyReceipt.supersededRows) console.log(`TRIAL_RECEIPT_COPIES_RECONCILED supersededRows=${trialAggregate.dailyReceipt.supersededRows}`);
   return { rangeCount: RANGES.length, outputPath: absoluteOutput };
 }
 
