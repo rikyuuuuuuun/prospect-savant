@@ -114,9 +114,9 @@ export function assertTrialAnalyticsQuality(summary) {
 export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
   check(trialDate(targetDate) === targetDate, 'TARGET_DATE_INVALID');
   const intake = buildTrialIntakeIndex(intakeRows);
-  const seen = new Set();
+  const receiptGroups = new Map();
   const aggregates = Object.fromEntries(TEAM_IDS.map(team => [team, { today: 0 }]));
-  const dailyReceipt = { receiptRows: 0, eligibleRows: 0, excludedRows: 0, pendingRows: 0, manualRows: 0, crossOwnerRows: 0 };
+  const dailyReceipt = { receiptRows: 0, eligibleRows: 0, excludedRows: 0, pendingRows: 0, manualRows: 0, crossOwnerRows: 0, supersededRows: 0 };
   for (const sheet of sheets) {
     check(TEAM_IDS.includes(sheet.owner) && Number.isSafeInteger(sheet.headerRow) && sheet.headerRow > 0 && Array.isArray(sheet.dateColumn) && Array.isArray(sheet.noteColumn), 'SOURCE_SCHEMA_INVALID');
     for (let i = sheet.headerRow; i < Math.max(sheet.dateColumn.length, sheet.noteColumn.length); i++) {
@@ -127,22 +127,38 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
         if (date) { dailyReceipt.manualRows++; if (date === targetDate) aggregates[sheet.owner].today++; }
         continue;
       }
-      check(!seen.has(receipt), 'SOURCE_RECEIPT_NOT_UNIQUE');
-      seen.add(receipt);
       dailyReceipt.receiptRows++;
-      const record = intake.get(receipt);
-      check(record?.form, 'SOURCE_RECEIPT_UNRESOLVED');
-      const { row, disposition } = record;
-      const team = text(row[4]);
-      check(TEAM_IDS.includes(team), 'TEAM_INVALID');
+      if (!receiptGroups.has(receipt)) receiptGroups.set(receipt, []);
+      receiptGroups.get(receipt).push({ sheet, date });
+    }
+  }
+  for (const [receipt, matches] of receiptGroups) {
+    const record = intake.get(receipt);
+    check(record?.form, 'SOURCE_RECEIPT_UNRESOLVED');
+    const { row, disposition } = record;
+    const team = text(row[4]);
+    check(TEAM_IDS.includes(team), 'TEAM_INVALID');
+    for (const { sheet } of matches) {
       check(normaliseTrialRoute(row[6]) === sheet.spreadsheetId && normaliseTrialRoute(row[7]) === normaliseTrialRoute(sheet.title), 'ROUTE_MISMATCH');
       if (team !== sheet.owner) dailyReceipt.crossOwnerRows++;
-      if (disposition) { dailyReceipt[disposition === 'HOLD_UNDATED' ? 'pendingRows' : 'excludedRows']++; continue; }
-      check(text(row[23]) === '反映済', 'WORKFLOW_UNRESOLVED');
-      check(date && date === trialDate(row[14]), 'SOURCE_DATE_MISMATCH');
-      dailyReceipt.eligibleRows++;
-      if (date === targetDate) aggregates[team].today++;
     }
+    if (disposition) {
+      check(matches.length === 1, 'SOURCE_RECEIPT_NOT_UNIQUE');
+      dailyReceipt[disposition === 'HOLD_UNDATED' ? 'pendingRows' : 'excludedRows']++;
+      continue;
+    }
+    check(text(row[23]) === '反映済', 'WORKFLOW_UNRESOLVED');
+    const date = trialDate(row[14]);
+    const exact = matches.filter(match => match.date && match.date === date);
+    // Central intake is reconciled against canonical 09 before this aggregate.
+    // Only one physical row at that date may represent the receipt. Older
+    // copied notes are not new reservations and never become manual rows.
+    // Do not pick the newest row, accept invalid dates or hide a later copy.
+    check(exact.length <= 1, 'SOURCE_RECEIPT_NOT_UNIQUE');
+    check(date && exact.length === 1 && matches.every(match => match.date && match.date <= date), 'SOURCE_DATE_MISMATCH');
+    dailyReceipt.supersededRows += matches.length - 1;
+    dailyReceipt.eligibleRows++;
+    if (date === targetDate) aggregates[team].today++;
   }
   return { aggregates, dailyReceipt };
 }
