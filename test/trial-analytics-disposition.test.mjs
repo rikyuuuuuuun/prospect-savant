@@ -32,7 +32,7 @@ test('manual rows preserve physical ownership; exact exclusions and still-held v
   const rows = [intakeRow(), disposition('EXCLUDE_TEST'), disposition('EXCLUDE_OWNER', { status: '未処理' }), disposition('HOLD_UNDATED')];
   const result = read(rows, [sourceSheet([{ }, { date: serial('2026-08-21') }, ...rows.map(row => ({ receipt: row[0] }))])]);
   assert.deepEqual(result.aggregates, { A: { today: 2 }, B: { today: 0 }, C: { today: 0 }, D: { today: 0 } });
-  assert.deepEqual(result.dailyReceipt, { receiptRows: 4, eligibleRows: 1, excludedRows: 2, pendingRows: 1, manualRows: 2, crossOwnerRows: 0 });
+  assert.deepEqual(result.dailyReceipt, { receiptRows: 4, eligibleRows: 1, excludedRows: 2, pendingRows: 1, manualRows: 2, crossOwnerRows: 0, supersededRows: 0 });
   // Merely adding a date cannot clear the authoritative hold. Only the GAS flow may remove it.
   rows[3][34] = '';
   assert.equal(read(rows, [sourceSheet(rows.map(row => ({ receipt: row[0] })))]).aggregates.A.today, 2);
@@ -78,6 +78,37 @@ test('notes require one complete receipt, and source duplicate, missing receipt,
   }
   const excluded = disposition('EXCLUDE_OWNER'); excluded[7] = 'wrong-tab';
   assert.throws(() => read([excluded], [sourceSheet([{ receipt: excluded[0] }])]), /ROUTE_MISMATCH/);
+});
+
+test('one canonical date reconciles older receipt copies once, regardless of row order', () => {
+  const row = intakeRow();
+  const old = { receipt: row[0], date: serial('2026-08-15') };
+  const current = { receipt: row[0], date: serial(TARGET) + 0.5 };
+  for (const physical of [[current, old, old], [old, current, old], [old, old, current]]) {
+    const result = read([row], [sourceSheet([...physical, {}])]);
+    assert.equal(result.aggregates.A.today, 2); // one receipt, one unmarked manual row
+    assert.equal(result.dailyReceipt.receiptRows, 3);
+    assert.equal(result.dailyReceipt.eligibleRows, 1);
+    assert.equal(result.dailyReceipt.supersededRows, 2);
+    assert(!/FORM-|予約|spreadsheet|https:/.test(JSON.stringify(result)));
+    const oldDay = aggregateDispositionTrials({ intakeRows: [row], sheets: [sourceSheet(physical)], targetDate: '2026-08-15' });
+    assert.equal(oldDay.aggregates.A.today, 0);
+  }
+});
+
+test('receipt reconciliation cannot select a latest row, resolve same-day ambiguity or cross routes', () => {
+  const row = intakeRow();
+  const current = { receipt: row[0] };
+  for (const copies of [[current, current], [{ receipt: row[0], date: serial(TARGET) + 0.5 }, current]])
+    assert.throws(() => read([row], [sourceSheet(copies)]), /SOURCE_RECEIPT_NOT_UNIQUE/);
+  for (const other of [{ receipt: row[0], date: serial('2026-08-23') }, { receipt: row[0], date: '' }, { receipt: row[0], date: '2026-02-30' }])
+    assert.throws(() => read([row], [sourceSheet([current, other])]), /SOURCE_DATE_MISMATCH/);
+  assert.throws(() => read([row], [sourceSheet([{ receipt: row[0], date: serial('2026-08-15') }])]), /SOURCE_DATE_MISMATCH/);
+  assert.throws(() => read([row], [sourceSheet([current]), sourceSheet([{ receipt: row[0], date: serial('2026-08-15') }], { book: 'other' })]), /ROUTE_MISMATCH/);
+  for (const reason of ['EXCLUDE_TEST', 'EXCLUDE_OWNER', 'HOLD_UNDATED']) {
+    const held = disposition(reason);
+    assert.throws(() => read([held], [sourceSheet([{ receipt: held[0] }, { receipt: held[0], date: serial('2026-08-15') }])]), /SOURCE_RECEIPT_NOT_UNIQUE/);
+  }
 });
 
 test('eligible matching is exact and unique and cannot be overridden with normal quality text', () => {
@@ -153,6 +184,35 @@ test('full daily fetch applies exclusion policy, validates fresh matches and out
   assert.equal(result.quality.total, 4); assert.equal(result.quality.exactUniqueMatched, 1);
   assert.equal(requests.filter(url => url.searchParams.get('includeGridData') === 'true').length, 8);
   assert(!/FORM-|EXP-LINE|予約|master|savant|spreadsheet|https:/.test(JSON.stringify(result)));
+});
+
+test('full daily fetch reconciles historical copies only after fresh 14/09 quality and source readback', async () => {
+  const row = intakeRow();
+  const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+    trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused' };
+  for (const mismatch of [false, true]) {
+    const match = experienceRow(row);
+    if (mismatch) match[1] = serial('2026-08-15');
+    const fixture = requestFixture({ intakeRows: [row], experienceRows: [match] });
+    let teamReads = 0;
+    const requestJson = async raw => {
+      const url = new URL(raw);
+      if (url.pathname.endsWith('/spreadsheets/a') && url.searchParams.get('includeGridData') === 'true') {
+        teamReads++;
+        return gridTrialResponse(['体験予約日', serial(TARGET), serial('2026-08-15'), serial('2026-08-15')], ['', ...Array(3).fill(`LINE受付ID=${row[0]}`)]);
+      }
+      return fixture(raw);
+    };
+    if (mismatch) {
+      await assert.rejects(fetchPrivateTrialAggregate({ ...options, requestJson }), /QUALITY_BLOCKED/);
+      assert.equal(teamReads, 0);
+    } else {
+      const result = await fetchPrivateTrialAggregate({ ...options, requestJson });
+      assert.equal(result.aggregates.A.today, 1);
+      assert.equal(result.dailyReceipt.supersededRows, 2);
+      assert.equal(teamReads, 2);
+    }
+  }
 });
 
 test('a source note or date changed during final readback blocks the aggregate', async () => {
