@@ -196,28 +196,30 @@ test('recovers all four trial aggregates after one B-team Sheets 503 without rea
   assert.deepEqual(logs, ['Google Sheets transient read failure: status=503 attempt=1/4; retrying']);
 });
 
-test('uses all retry attempts for a repeated B-team 503, then fails closed before writing a snapshot', async () => {
+test('uses all retry attempts for a repeated daily B-team 503, then preserves verified metrics with unavailable counts', async () => {
   let bAttempts = 0;
   const delays = [];
   const tempDir = await mkdtemp(join(tmpdir(), 'prospect-savant-retry-'));
   const outputPath = join(tempDir, 'savant-source.json');
   try {
-    await assert.rejects(
-      () => fetchPrivateSavantSource({
-        spreadsheetId: 'savant', outputPath,
-        ...testSourceOptions(async (url) => {
-          if (String(url).includes('/spreadsheets/b?')) {
-            bAttempts += 1;
-            throw new Error('GOOGLE_SHEETS_503');
-          }
-          return successfulTrialRequest(url);
-        }, { sleep: async (delay) => delays.push(delay) }),
-      }),
-      /^Error: TRIAL_SOURCE_UNAVAILABLE_B_GOOGLE_SHEETS_503$/,
-    );
+    await fetchPrivateSavantSource({
+      spreadsheetId: 'savant', outputPath,
+      ...testSourceOptions(async (url) => {
+        if (String(url).includes('/spreadsheets/b?')) {
+          bAttempts += 1;
+          throw new Error('GOOGLE_SHEETS_503');
+        }
+        return successfulTrialRequest(url);
+      }, { sleep: async (delay) => delays.push(delay) }),
+    });
     assert.equal(bAttempts, 4);
     assert.deepEqual(delays, [1_000, 2_000, 4_000]);
-    await assert.rejects(() => access(outputPath));
+    const snapshot = JSON.parse(await readFile(outputPath, 'utf8'));
+    assert.equal(snapshot.trialAggregate.status, 'unavailable');
+    assert.equal(snapshot.trialAggregate.aggregates, null);
+    assert.equal(snapshot.trialAggregate.reason, 'TRIAL_DAILY_SOURCE_UNAVAILABLE');
+    assert.ok(snapshot.ranges["'98_会員マスター連携'!A12:H18"]);
+    assert.ok(snapshot.admissionHistory);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

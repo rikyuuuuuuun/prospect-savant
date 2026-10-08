@@ -1,4 +1,4 @@
-import { assertTrialAnalyticsQuality } from './trial-analytics-disposition.mjs';
+import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -290,8 +290,7 @@ function sourceRanges(snapshot) {
   ranges.referral = values[REFERRAL_RANGE];
   if (ranges.teams[3]?.includes("紹介力点") && !ranges.referral) throw new Error("REFERRAL_RANGE_MISSING");
   ranges.trialAggregate = snapshot.trialAggregate;
-  assert(ranges.trialAggregate?.aggregates, 'TRIAL_AGGREGATE_MISSING');
-  assertTrialAnalyticsQuality(ranges.trialAggregate.quality);
+  assertDailyTrialAvailability(ranges.trialAggregate);
   return ranges;
 }
 
@@ -341,11 +340,13 @@ async function publishInto(root, snapshot) {
     memberSourceSnapshotId: memberReceipt.snapshotId,
     operationalMemberDefinition: memberReceipt.definitionId,
     sourceKind: 'private-sheets-readonly-anonymous-aggregate-v1',
+    publication: { status: ranges.trialAggregate.status === 'unavailable' ? 'partial' : 'complete' },
     files: Object.fromEntries(Object.entries(output).map(([file, content]) => [file, gitBlobSha(content)])),
   };
   await writeFile(join(root, 'snapshot-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
   const trial = trialPublicInput({
     aggregates: ranges.trialAggregate.aggregates,
+    todayStatus: ranges.trialAggregate.status === 'unavailable' ? 'unavailable' : 'ok',
     annualTeams: annualFromSource(ranges.admission),
     targetDate: ranges.trialAggregate.targetDate,
     fiscalYear: ranges.trialAggregate.fiscalYear,

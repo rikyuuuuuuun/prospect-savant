@@ -27,3 +27,9 @@ test('recovery workflow listens to pulse branches and never forces from a push',
   assert.ok(workflow.includes("FORCE_RECOVERY: ${{ inputs.force == true }}"));
   assert.ok(workflow.includes("ref: 'main'"), 'publisher must be dispatched on main');
 });
+
+test('watchdog retries a partial publication without requiring force', async () => {
+  const { needsRecovery } = await import('../scripts/recovery-watchdog.mjs');
+  assert.equal(needsRecovery({ currentAsOf: '2026-10-08', targetDate: '2026-10-08', publicationStatus: 'partial' }), true);
+  assert.equal(needsRecovery({ currentAsOf: '2026-10-08', targetDate: '2026-10-08', publicationStatus: 'complete' }), false);
+});

@@ -35,12 +35,16 @@ export function publicationTrigger({ eventName, schedule }) {
   return 'schedule-other';
 }
 
-export function evaluateDailyPublicationGate({ eventName, schedule, currentPublishedAsOf, targetDate = tokyoDate() }) {
+export function evaluateDailyPublicationGate({ eventName, schedule, currentPublishedAsOf, targetDate = tokyoDate(), publicationStatus = 'complete' }) {
   assert(isIsoDate(currentPublishedAsOf), 'PUBLIC_SNAPSHOT_ASOF_INVALID');
   assert(isIsoDate(targetDate), 'DAILY_PUBLICATION_TARGET_DATE_INVALID');
   const trigger = publicationTrigger({ eventName, schedule });
   if (eventName !== 'schedule') {
     return { trigger, targetDate, currentPublishedAsOf, action: 'publish-required', shouldFetchSource: true };
+  }
+  if (!['complete', 'partial'].includes(publicationStatus)) throw new Error('PUBLICATION_STATUS_INVALID');
+  if (currentPublishedAsOf === targetDate && publicationStatus === 'partial') {
+    return { trigger, targetDate, currentPublishedAsOf, action: 'refresh-partial', shouldFetchSource: true };
   }
   if (currentPublishedAsOf === targetDate) {
     return { trigger, targetDate, currentPublishedAsOf, action: 'skipped-already-current', shouldFetchSource: false };
@@ -63,7 +67,7 @@ export async function readDailyPublicationGate({ manifestPath, eventName, schedu
   } catch {
     throw new Error('PUBLIC_SNAPSHOT_MANIFEST_INVALID');
   }
-  return evaluateDailyPublicationGate({ eventName, schedule, currentPublishedAsOf: manifest?.asOf, targetDate: tokyoDate(now) });
+  return evaluateDailyPublicationGate({ eventName, schedule, currentPublishedAsOf: manifest?.asOf, targetDate: tokyoDate(now), publicationStatus: manifest?.publication?.status ?? 'complete' });
 }
 
 export function gateSummary(result) {

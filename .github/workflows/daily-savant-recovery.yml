@@ -78,7 +78,7 @@ jobs:
           if (current > target) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
           const { needsRecovery: evaluateRecovery } = await import('./scripts/recovery-watchdog.mjs');
           const forceRecovery = process.env.FORCE_RECOVERY === 'true';
-          let needsRecovery = evaluateRecovery({ currentAsOf: current, targetDate: target, force: forceRecovery });
+          let needsRecovery = evaluateRecovery({ currentAsOf: current, targetDate: target, force: forceRecovery, publicationStatus: manifest.publication?.status ?? 'complete' });
           if (!needsRecovery) {
             const { verifyLivePages } = await import('./scripts/verify-live-pages.mjs');
             try { await verifyLivePages({ root: '.', expectedAsOf: target, attempts: 2 }); }

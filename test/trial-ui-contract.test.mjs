@@ -17,7 +17,8 @@ test('renders the trial summary and annual admission samples without a new secti
 test('keeps unavailable or stale daily data distinct from zero on the public UI', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.match(source, /today\?\.status === "ok" && today\.date === tokyoDate\(\)/);
-  assert.match(source, /取得失敗/);
+  assert.match(source, /確認中/);
+  assert.match(source, /データ基準日をご確認ください/);
   assert.match(source, /人数は表示していません/);
 });
 

@@ -145,11 +145,16 @@ jobs:
           const daily = trial?.today;
           const annualC = trial?.annual?.teams?.C;
           const ids = ['A', 'B', 'C', 'D'];
-          if (daily?.status !== 'ok' || !annualC || !ids.every((id) => Number.isSafeInteger(daily?.teams?.[id]))) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
-          const total = ids.reduce((sum, id) => sum + daily.teams[id], 0);
-          if (daily.total !== total || !Number.isSafeInteger(annualC.admissions) || !Number.isSafeInteger(annualC.trials)) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
+          if (trial?.annual?.status !== 'ok' || !annualC || !Number.isSafeInteger(annualC.admissions) || !Number.isSafeInteger(annualC.trials)) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
           console.log('## 匿名体験候補の確認');
-          console.log(`status: ok / A: ${daily.teams.A} / B: ${daily.teams.B} / C: ${daily.teams.C} / D: ${daily.teams.D} / 合計: ${total}`);
+          if (daily?.status === 'unavailable' && daily.total === null && daily.teams === null) {
+            console.log('status: partial / 本日の体験人数は確認中。検証済みの他の指標は更新。');
+          } else {
+            if (daily?.status !== 'ok' || !ids.every(id => Number.isSafeInteger(daily?.teams?.[id]))) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
+            const total = ids.reduce((sum, id) => sum + daily.teams[id], 0);
+            if (daily.total !== total) throw new Error('TRIAL_PUBLIC_SUMMARY_INVALID');
+            console.log(`status: ok / A: ${daily.teams.A} / B: ${daily.teams.B} / C: ${daily.teams.C} / D: ${daily.teams.D} / 合計: ${total}`);
+          }
           console.log(`C年度: ${annualC.admissions} / ${annualC.trials}`);
           NODE
       - name: Upload only the verified public files

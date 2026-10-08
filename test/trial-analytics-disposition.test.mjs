@@ -251,3 +251,50 @@ test('a metadata expansion after the private capture is rejected even if prior r
   } });
   await assert.rejects(source.readback, /SOURCE_CHANGED_DURING_READ/);
 });
+
+test('pending current and future receipts yield unavailable daily counts without blocking verified history', async () => {
+  const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+    trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused', allowUnavailable: true };
+  for (const date of [TARGET, '2026-08-23']) {
+    const row = intakeRow('FORM-synthetic-pending', {date});
+    const result = await fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({ intakeRows: [row], experienceRows: [] }) });
+    assert.deepEqual(result, { targetDate: TARGET, fiscalYear: '2026', status: 'unavailable', reason: 'TRIAL_SYNC_PENDING', aggregates: null });
+    assert(!/FORM-|EXP-LINE|予約|master|savant|https:/.test(JSON.stringify(result)));
+    const repaired = await fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({ intakeRows: [row], experienceRows: [experienceRow(row)] }) });
+    assert.equal(repaired.quality.status, 'READY');
+    assert.equal(repaired.aggregates.A.today, date === TARGET ? 2 : 1);
+  }
+  // A second unresolved historical receipt must not be hidden by a newer one.
+  const pending = intakeRow('FORM-synthetic-new', {date: TARGET});
+  const historical = intakeRow('FORM-synthetic-old', {date: '2026-08-21'});
+  const excluded = intakeRow('FORM-synthetic-excluded', {disposition: 'EXCLUDE_TEST'});
+  for (const [intakeRows, experienceRows] of [
+    [[historical], []],
+    [[pending, historical], []],
+    [[pending, excluded], [experienceRow(excluded)]],
+    [[pending], [experienceRow(pending), experienceRow(pending)]],
+    [[pending], [{...experienceRow(pending), 3: 'B'}]],
+    [[intakeRow('FORM-synthetic-invalid', {date: ''})], []],
+  ]) await assert.rejects(fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({intakeRows, experienceRows}) }), /QUALITY_BLOCKED/);
+  await assert.rejects(fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({intakeRows: [pending], changeReadback: true}) }), /SOURCE_CHANGED_DURING_READ/);
+});
+
+test('verified canonical history permits isolating a daily sheet failure, but never unknown errors', async () => {
+  const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+    trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused',
+    allowUnavailable: true, retryOptions: {sleep: async () => {}, logger: () => {}} };
+  for (const code of ['GOOGLE_SHEETS_503', 'SOURCE_SCHEMA_INVALID', 'unexpected-private-detail']) {
+    const fixture = requestFixture();
+    const requestJson = async raw => {
+      if (new URL(raw).pathname.endsWith('/spreadsheets/a')) throw new Error(code);
+      return fixture(raw);
+    };
+    if (code === 'unexpected-private-detail') {
+      await assert.rejects(fetchPrivateTrialAggregate({...options, requestJson}), /TRIAL_SOURCE_UNAVAILABLE_A_UNKNOWN/);
+    } else {
+      const result = await fetchPrivateTrialAggregate({...options, requestJson});
+      assert.equal(result.status, 'unavailable'); assert.equal(result.aggregates, null);
+      assert.equal(result.reason, 'TRIAL_DAILY_SOURCE_UNAVAILABLE');
+    }
+  }
+});

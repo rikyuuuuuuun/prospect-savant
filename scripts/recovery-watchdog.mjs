@@ -1,8 +1,9 @@
-export function needsRecovery({ currentAsOf, targetDate, force = false }) {
+export function needsRecovery({ currentAsOf, targetDate, force = false, publicationStatus = 'complete' }) {
   const valid = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) && new Date(`${v}T00:00:00Z`).toISOString().slice(0, 10) === v;
   if (!valid(currentAsOf) || !valid(targetDate)) throw new Error('RECOVERY_DATE_INVALID');
   if (currentAsOf > targetDate) throw new Error('PUBLIC_SNAPSHOT_FUTURE_ASOF');
-  return force || currentAsOf < targetDate;
+  if (!['complete', 'partial'].includes(publicationStatus)) throw new Error('PUBLICATION_STATUS_INVALID');
+  return force || currentAsOf < targetDate || publicationStatus === 'partial';
 }
 
 // Poll the uniquely named child, not the latest unrelated successful workflow.

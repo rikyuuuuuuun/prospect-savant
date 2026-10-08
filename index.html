@@ -1299,7 +1299,7 @@
           const today = trialData?.today;
           const current = today?.status === "ok" && today.date === tokyoDate();
           if (!current) {
-            target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">取得失敗</div></div><div class="trial-summary-unavailable">当日データを取得できないため、人数は表示していません。</div>`;
+            target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">確認中</div></div><div class="trial-summary-unavailable">当日の人数は確認中のため、人数は表示していません。ほかの指標の更新日は、画面上部のデータ基準日をご確認ください。</div>`;
             return;
           }
           target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">${formatNumber.format(today.total)}名</div></div><div class="trial-summary-breakdown">${["A", "B", "C", "D"].map((id) => `<div class="trial-team">${id} TEAM<strong>${formatNumber.format(today.teams[id])}名</strong></div>`).join("")}</div>`;
