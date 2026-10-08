@@ -276,7 +276,7 @@ export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccount
   const disposition = await captureTrialDispositionSource({
     spreadsheetId, token, requestJson: retriableRequestJson, targetDate, allowPending: allowUnavailable,
   });
-  if (disposition.pending) {
+  if (disposition.pending && !disposition.futurePendingOnly) {
     await disposition.readback();
     return unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_SYNC_PENDING' });
   }
@@ -289,6 +289,10 @@ export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccount
     const aggregate = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate });
     await Promise.all(sources.map(source => source.readback()));
     result = { targetDate, fiscalYear, ...aggregate, quality: disposition.quality };
+    if (disposition.futurePendingOnly) {
+      result.reservationReadiness = { definition: 'future-reconciliation-pending-v1',
+        targetDate, pendingReceipts: disposition.quality.unresolvedEligible };
+    }
   } catch (error) {
     if (!allowUnavailable || !isDailyTrialSourceFailure(error)) throw error;
     result = unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_DAILY_SOURCE_UNAVAILABLE' });

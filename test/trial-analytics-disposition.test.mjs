@@ -1,3 +1,4 @@
+import { assertDailyTrialAvailability } from '../scripts/daily-trial-availability.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { aggregateDispositionTrials, assertTrialAnalyticsQuality, buildTrialAnalyticsQuality, buildTrialIntakeIndex, captureTrialDispositionSource, trialAnalyticsDisposition, trialReceiptFromNote } from '../scripts/trial-analytics-disposition.mjs';
@@ -252,13 +253,20 @@ test('a metadata expansion after the private capture is rejected even if prior r
   await assert.rejects(source.readback, /SOURCE_CHANGED_DURING_READ/);
 });
 
-test('pending current and future receipts yield unavailable daily counts without blocking verified history', async () => {
+test('current pending receipts remain unavailable while future-only pending receipts cannot block today', async () => {
   const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
     trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused', allowUnavailable: true };
   for (const date of [TARGET, '2026-08-23']) {
     const row = intakeRow('FORM-synthetic-pending', {date});
     const result = await fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({ intakeRows: [row], experienceRows: [] }) });
-    assert.deepEqual(result, { targetDate: TARGET, fiscalYear: '2026', status: 'unavailable', reason: 'TRIAL_SYNC_PENDING', aggregates: null });
+    if (date === TARGET) {
+      assert.deepEqual(result, { targetDate: TARGET, fiscalYear: '2026', status: 'unavailable', reason: 'TRIAL_SYNC_PENDING', aggregates: null });
+    } else {
+      assert.equal(result.aggregates.A.today, 1);
+      assert.equal(result.quality.status, 'REVIEW');
+      assert.equal(result.reservationReadiness.pendingReceipts, 1);
+      assertDailyTrialAvailability(result);
+    }
     assert(!/FORM-|EXP-LINE|予約|master|savant|https:/.test(JSON.stringify(result)));
     const repaired = await fetchPrivateTrialAggregate({ ...options, requestJson: requestFixture({ intakeRows: [row], experienceRows: [experienceRow(row)] }) });
     assert.equal(repaired.quality.status, 'READY');
@@ -296,5 +304,35 @@ test('verified canonical history permits isolating a daily sheet failure, but ne
       assert.equal(result.status, 'unavailable'); assert.equal(result.aggregates, null);
       assert.equal(result.reason, 'TRIAL_DAILY_SOURCE_UNAVAILABLE');
     }
+  }
+});
+
+test('a future receipt absent from the venue source cannot erase verified today counts', async () => {
+  const row = intakeRow('FORM-synthetic-absent', {date:'2026-08-23'});
+  const fixture = requestFixture({intakeRows:[row]});
+  const result = await fetchPrivateTrialAggregate({
+    spreadsheetId:'savant',serviceAccountJson:'{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+    trialSheetIdsJson:'{"A":"a","B":"b","C":"c","D":"d"}',targetDate:TARGET,getToken:async()=>'unused',allowUnavailable:true,
+    requestJson:async raw=>{
+      const url=new URL(raw);
+      if(url.pathname.endsWith('/spreadsheets/a')&&url.searchParams.get('includeGridData')==='true')
+        return gridTrialResponse(['体験予約日',serial(TARGET)]);
+      return fixture(raw);
+    }
+  });
+  assert.equal(result.aggregates.A.today,1);
+  assert.equal(result.quality.unresolvedEligible,1);
+  assertDailyTrialAvailability(result);
+  for (const mutate of [
+    x=>{delete x.reservationReadiness;},
+    x=>{x.reservationReadiness.pendingReceipts=2;},
+    x=>{x.reservationReadiness.targetDate='2026-08-21';},
+    x=>{x.quality.invalidEligibleDate=1;},
+    x=>{x.quality.archivedMatchRows=1;},
+    x=>{x.quality.ambiguousMatches=1;},
+    x=>{x.quality.receiptColumnUniqueMatched++;},
+  ]) {
+    const bad=structuredClone(result);mutate(bad);
+    assert.throws(()=>assertDailyTrialAvailability(bad));
   }
 });
