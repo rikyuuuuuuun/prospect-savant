@@ -12,3 +12,11 @@ A pending new reservation or an unavailable daily trial sheet must not stop veri
 - If a pending reservation remains unmatched into a later day, it is historical and requires source reconciliation; it is no longer automatically deferrable.
 
 Recovery pulse operations continue to change only the pulse line on the dedicated automation branch.
+
+## Future reservation reconciliation versus today's count
+
+A reflected reservation strictly after the snapshot date, with no canonical S match or legacy/generated-ID evidence, cannot change today's reservation count or the confirmed attendance cohort. After the complete remaining history passes the existing strict quality check, read and validate all four physical daily sources and their readbacks normally. Such future-only pending receipts no longer suppress today's verified counts.
+
+Keep the original source quality as REVIEW in the private capture. A separate anonymous `future-reconciliation-pending-v1` receipt records the snapshot date and unresolved future count. Publication validation checks its exact fields, count consistency and the fully reconciled subset. The proof never appears in public data and does not mark the original source READY. Missing or inconsistent proof, today's pending reservation, historical mismatch, duplicate/date/team conflicts and archived excluded history retain their prior handling.
+
+Operational follow-up remains required for reflected future receipts whose physical venue record is missing. Do not recreate a removed/moved booking or infer cancellation. When its date reaches the current/past cohort, the existing stricter availability/history checks apply. The new GAS catch-up scans every five minutes and distinguishes recoverable source-backed bookings from missing source records.

@@ -245,7 +245,11 @@ export async function captureTrialDispositionSource({ spreadsheetId, token, requ
         !canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, targetDate)) throw error;
     pending = true;
   }
-  return { ...initial, quality, pending, readback: async () => {
+  // Future-only reconciliation cannot change today's reservations or confirmed
+  // attendance. Keep the original REVIEW receipt; only its daily dependency changes.
+  const nextDate = targetDate && new Date(Date.parse(targetDate) + 86400000).toISOString().slice(0, 10);
+  const futurePendingOnly = pending && canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, nextDate);
+  return { ...initial, quality, pending, futurePendingOnly, readback: async () => {
     check(JSON.stringify(await capture()) === JSON.stringify(initial), 'SOURCE_CHANGED_DURING_READ');
     check(JSON.stringify(await requestJson(metadataUrl, token)) === JSON.stringify(metadata), 'SOURCE_CHANGED_DURING_READ');
     check(JSON.stringify(await requestJson(linkUrl, token)) === JSON.stringify(link), 'SOURCE_LINK_CHANGED_DURING_READ');

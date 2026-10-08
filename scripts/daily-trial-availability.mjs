@@ -19,6 +19,22 @@ export function assertDailyTrialAvailability(value) {
   }
   if (value?.status !== undefined && value.status !== 'ok') throw new Error('TRIAL_STATUS_INVALID');
   if (!value?.aggregates) throw new Error('TRIAL_AGGREGATE_MISSING');
+  if (value.reservationReadiness) {
+    const proof = value.reservationReadiness, quality = value.quality;
+    if (!exact(proof, ['definition', 'targetDate', 'pendingReceipts']) ||
+        proof.definition !== 'future-reconciliation-pending-v1' || proof.targetDate !== value.targetDate ||
+        !Number.isSafeInteger(proof.pendingReceipts) || proof.pendingReceipts <= 0 ||
+        quality?.status !== 'REVIEW' || proof.pendingReceipts !== quality.unresolvedEligible ||
+        quality.receiptColumnUniqueMatched !== quality.exactUniqueMatched) {
+      throw new Error('TRIAL_FUTURE_RECONCILIATION_PROOF_INVALID');
+    }
+    // Validate the fully reconciled cohort with the unchanged strict gate. This
+    // scoped copy is never published as the original source quality.
+    assertTrialAnalyticsQuality({ ...quality, status: 'READY',
+      total: quality.total - proof.pendingReceipts, eligible: quality.eligible - proof.pendingReceipts,
+      unresolvedEligible: 0 });
+    return;
+  }
   assertTrialAnalyticsQuality(value.quality);
 }
 
