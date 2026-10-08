@@ -20,3 +20,11 @@ A reflected reservation strictly after the snapshot date, with no canonical S ma
 Keep the original source quality as REVIEW in the private capture. A separate anonymous `future-reconciliation-pending-v1` receipt records the snapshot date and unresolved future count. Publication validation checks its exact fields, count consistency and the fully reconciled subset. The proof never appears in public data and does not mark the original source READY. Missing or inconsistent proof, today's pending reservation, historical mismatch, duplicate/date/team conflicts and archived excluded history retain their prior handling.
 
 Operational follow-up remains required for reflected future receipts whose physical venue record is missing. Do not recreate a removed/moved booking or infer cancellation. When its date reaches the current/past cohort, the existing stricter availability/history checks apply. The new GAS catch-up scans every five minutes and distinguishes recoverable source-backed bookings from missing source records.
+
+## Saved portal refresh after recovery
+
+The shared-login portal stores a separate Savant HTML bundle. Verifying Pages alone does not verify that saved view. On 2026-10-08 a recovery publisher completed successfully while the last portal refresh had run earlier after display deployment, leaving the saved view on the previous day.
+
+The portal refresh workflow also listens to successful `Recover Prospect Savant Daily Publish` completion, including validated `automation/savant-recovery-*` pulse branches. Recovery waits for its canonical publisher and live Pages verification before completing, so this refresh occurs after the new bundle is available. Failed recovery runs do not refresh. Workflow-run and workflow-maintenance push events refresh only Savant; scheduled/manual all-scope refreshes remain unchanged. Existing OIDC authentication, retry budget and previous-snapshot retention remain intact.
+
+After repairing this path, verify the portal's saved `asOf` and rendered dashboard, not just the publisher result.
