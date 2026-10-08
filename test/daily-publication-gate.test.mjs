@@ -77,3 +77,12 @@ test('workflow schedule strings stay in sync with the gate constants', async () 
   const workflow = readFileSync('.github/workflows/daily-savant-publish.yml', 'utf8');
   for (const cron of [early, PRIMARY_SCHEDULE, FALLBACK_SCHEDULE]) assert.ok(workflow.includes(`cron: '${cron}'`), cron);
 });
+
+test('a partial current-day publication keeps later automatic repair slots eligible', () => {
+  for (const schedule of [PRIMARY_SCHEDULE, FALLBACK_SCHEDULE]) {
+    const result = evaluateDailyPublicationGate({ eventName: 'schedule', schedule,
+      currentPublishedAsOf: '2026-08-27', targetDate: '2026-08-27', publicationStatus: 'partial' });
+    assert.equal(result.shouldFetchSource, true);
+    assert.equal(result.action, 'refresh-partial');
+  }
+});

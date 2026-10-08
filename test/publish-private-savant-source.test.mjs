@@ -363,3 +363,32 @@ test('publication requires a fresh eligible-cohort receipt and cannot force-norm
     }
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+
+test('partial publication updates the complete bundle and recovers daily counts on the same date', async () => {
+  const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'savant-partial-publication-'));
+  try {
+    for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
+    const sourcePath = join(dir, 'source.json');
+    const snapshot = {ranges: explanationSourceRows(data, events, retentionCurve, schoolAge, trial),
+      trialAggregate: {targetDate:data.asOf, fiscalYear:trial.annual.fiscalYear, status:'unavailable', reason:'TRIAL_SYNC_PENDING', aggregates:null}};
+    await writeFile(sourcePath, JSON.stringify(snapshot));
+    await publishPrivateSavantWithExplanations({rootDir:dir, sourcePath});
+    const read = async file => parsePublicSource(await readFile(join(dir,file),'utf8'),file);
+    assert.deepEqual((await read('trial-data.js')).today, {status:'unavailable',date:data.asOf,total:null,teams:null});
+    assert.deepEqual((await read('trial-data.js')).annual, trial.annual);
+    assert.equal((await read('data.js')).headline.members, data.headline.members);
+    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,'partial');
+    const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir,file),'utf8')));
+    snapshot.trialAggregate.aggregates = {A:{today:0}};
+    await writeFile(sourcePath,JSON.stringify(snapshot));
+    await assert.rejects(publishPrivateSavantSource({rootDir:dir,sourcePath}),/TRIAL_UNAVAILABLE_RECEIPT_INVALID/);
+    assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir,file),'utf8'))), before);
+    snapshot.trialAggregate = {targetDate:data.asOf, fiscalYear:trial.annual.fiscalYear, quality:syntheticTrialQuality(),
+      aggregates:Object.fromEntries(['A','B','C','D'].map(id => [id,{today:id==='C'?3:0}]))};
+    await writeFile(sourcePath,JSON.stringify(snapshot));
+    await publishPrivateSavantWithExplanations({rootDir:dir,sourcePath});
+    assert.equal((await read('trial-data.js')).today.total,3);
+    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,'complete');
+  } finally { await rm(dir,{recursive:true,force:true}); }
+});

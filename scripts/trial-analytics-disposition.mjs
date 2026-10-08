@@ -163,6 +163,29 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
   return { aggregates, dailyReceipt };
 }
 
+/** A missing current/future reservation cannot change a confirmed attendance cohort. */
+export function canDeferTrialReconciliation(intakeRows, experienceRows, targetDate) {
+  if (trialDate(targetDate) !== targetDate) return false;
+  const index = buildTrialIntakeIndex(intakeRows);
+  const deferred = new Set();
+  for (const [receipt, { row, disposition, form }] of index) {
+    if (!form || disposition || text(row[23]) !== '反映済') continue;
+    const date = trialDate(row[14]);
+    if (!date || date < targetDate) continue;
+    const generatedId = `EXP-LINE-${createHash('sha256').update(receipt).digest('hex').slice(0, 16)}`;
+    const evidence = experienceRows.some(match => text(match[18]).trim() === receipt ||
+      legacyReceiptFromNote(match[17]) === receipt || text(match[0]) === generatedId);
+    if (!evidence) deferred.add(receipt);
+  }
+  if (!deferred.size) return false;
+  // Re-run the complete quality check on everything that can affect confirmed history.
+  try {
+    assertTrialAnalyticsQuality(buildTrialAnalyticsQuality(
+      intakeRows.filter(row => !deferred.has(text(row[0]).trim())), experienceRows));
+    return true;
+  } catch { return false; }
+}
+
 const INTAKE_COLUMNS = [['A', 0, '受付ID'], ['E', 4, 'チーム'], ['G', 6, '体験管理ファイルID'], ['H', 7, '会場タブ'], ['L', 11, 'メッセージ種別'], ['M', 12, '抽出方法'], ['O', 14, '体験日'], ['X', 23, '会場反映状態'], ['AI', 34, 'エラー・備考']];
 const EXPERIENCE_COLUMNS = [['A', 0, '突合ID'], ['B', 1, '体験日'], ['D', 3, 'チーム'], ['R', 17, '備考'], ['S', 18, 'LINE受付ID']];
 const INTAKE_TITLE = '14_LINE体験受付';
@@ -187,7 +210,7 @@ function sparseRows(valueRanges, columns) {
 }
 
 /** Resolve the canonical master through the existing private link, never a public hardcoded ID. */
-export async function captureTrialDispositionSource({ spreadsheetId, token, requestJson }) {
+export async function captureTrialDispositionSource({ spreadsheetId, token, requestJson, targetDate, allowPending = false }) {
   check(spreadsheetId, 'SOURCE_LINK_MISSING');
   const linkUrl = batchUrl(spreadsheetId, ["'98_会員マスター連携'!A4"], 'FORMULA', 'ROWS');
   const link = await requestJson(linkUrl, token);
@@ -212,8 +235,17 @@ export async function captureTrialDispositionSource({ spreadsheetId, token, requ
       experienceRows: sparseRows(raw.valueRanges.slice(INTAKE_COLUMNS.length), EXPERIENCE_COLUMNS) };
   };
   const initial = await capture();
-  const quality = assertTrialAnalyticsQuality(buildTrialAnalyticsQuality(initial.intakeRows, initial.experienceRows));
-  return { ...initial, quality, readback: async () => {
+  const quality = buildTrialAnalyticsQuality(initial.intakeRows, initial.experienceRows);
+  let pending = false;
+  try { assertTrialAnalyticsQuality(quality); }
+  catch (error) {
+    // Only a new, dated receipt with no canonical or legacy match can wait.
+    // Historical mismatches, exclusions, duplicate matches and bad dates still block.
+    if (!allowPending || error.message !== 'TRIAL_DISPOSITION_QUALITY_BLOCKED' ||
+        !canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, targetDate)) throw error;
+    pending = true;
+  }
+  return { ...initial, quality, pending, readback: async () => {
     check(JSON.stringify(await capture()) === JSON.stringify(initial), 'SOURCE_CHANGED_DURING_READ');
     check(JSON.stringify(await requestJson(metadataUrl, token)) === JSON.stringify(metadata), 'SOURCE_CHANGED_DURING_READ');
     check(JSON.stringify(await requestJson(linkUrl, token)) === JSON.stringify(link), 'SOURCE_LINK_CHANGED_DURING_READ');

@@ -1,3 +1,4 @@
+import { unavailableDailyTrial, isDailyTrialSourceFailure } from './daily-trial-availability.mjs';
 import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
@@ -266,22 +267,35 @@ async function fetchTeamTrialSheets(team, spreadsheetId, token, requestJson) {
   } };
 }
 
-export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
+export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions, allowUnavailable = false }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
   const fiscalYear = fiscalYearFor(targetDate);
   const token = await getToken(serviceAccount);
   const retriableRequestJson = createRetriableGoogleJson({ requestJson, ...retryOptions });
-  const disposition = await captureTrialDispositionSource({ spreadsheetId, token, requestJson: retriableRequestJson });
-  const settled = await Promise.allSettled(TEAM_IDS.map(team => fetchTeamTrialSheets(team, ids[team], token, retriableRequestJson)));
-  const failures = settled.flatMap((result, index) => result.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(result.reason)}`] : []);
-  if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
-  const sources = settled.map(result => result.value);
-  const result = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate });
-  await Promise.all(sources.map(source => source.readback()));
+  const disposition = await captureTrialDispositionSource({
+    spreadsheetId, token, requestJson: retriableRequestJson, targetDate, allowPending: allowUnavailable,
+  });
+  if (disposition.pending) {
+    await disposition.readback();
+    return unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_SYNC_PENDING' });
+  }
+  let result;
+  try {
+    const settled = await Promise.allSettled(TEAM_IDS.map(team => fetchTeamTrialSheets(team, ids[team], token, retriableRequestJson)));
+    const failures = settled.flatMap((entry, index) => entry.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(entry.reason)}`] : []);
+    if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
+    const sources = settled.map(entry => entry.value);
+    const aggregate = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate });
+    await Promise.all(sources.map(source => source.readback()));
+    result = { targetDate, fiscalYear, ...aggregate, quality: disposition.quality };
+  } catch (error) {
+    if (!allowUnavailable || !isDailyTrialSourceFailure(error)) throw error;
+    result = unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_DAILY_SOURCE_UNAVAILABLE' });
+  }
+  // Even a partial publication must prove the canonical cohort stayed unchanged.
   await disposition.readback();
-  // Only anonymous counters survive. Raw source routes, notes and receipts stay in memory.
-  return { targetDate, fiscalYear, ...result, quality: disposition.quality };
+  return result;
 }
 
 async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, outputPath, getToken = getAccessToken, requestJson = googleJson, retryOptions }) {
@@ -312,7 +326,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   const asOf = sourceAsOf(valueRanges);
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
   assertAnnualConversionSource({ ranges }, asOf);
-  const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions });
+  const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions, allowUnavailable: true });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const privateSnapshot = {
@@ -332,7 +346,8 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   await mkdir(dirname(absoluteOutput), { recursive: true });
   await writeFile(absoluteOutput, `${JSON.stringify(privateSnapshot)}\n`, { mode: 0o600 });
   console.log(`Fetched ${RANGES.length} private Savant ranges successfully.`);
-  if (trialAggregate.dailyReceipt.supersededRows) console.log(`TRIAL_RECEIPT_COPIES_RECONCILED supersededRows=${trialAggregate.dailyReceipt.supersededRows}`);
+  if (trialAggregate.status === 'unavailable') console.warn(`TRIAL_DAILY_DEFERRED reason=${trialAggregate.reason}`);
+  if (trialAggregate.dailyReceipt?.supersededRows) console.log(`TRIAL_RECEIPT_COPIES_RECONCILED supersededRows=${trialAggregate.dailyReceipt.supersededRows}`);
   return { rangeCount: RANGES.length, outputPath: absoluteOutput };
 }
 

@@ -42,7 +42,8 @@ export async function verifyLivePages({ root = '.', baseUrl = PAGES_URL, fetchIm
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   verifyLivePages({ root: resolve(process.argv[2] || '.'), expectedAsOf: process.env.EXPECTED_AS_OF })
     .then(async result => {
-      const summary = `CURRENT_DAY_VERIFIED asOf=${result.asOf} files=${result.publicFilesMatched}/7 bundle=true entry=true attempts=${result.attempts}`;
+      const manifest = JSON.parse(await readFile(join(resolve(process.argv[2] || '.'), 'snapshot-manifest.json'), 'utf8'));
+      const summary = `CURRENT_DAY_VERIFIED asOf=${result.asOf} files=${result.publicFilesMatched}/7 bundle=true entry=true attempts=${result.attempts} publication=${manifest.publication?.status ?? 'complete'}`;
       console.log(summary);
       if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `${summary}\n`);
     }).catch(error => { console.error(error.message); process.exitCode = 1; });

@@ -86,8 +86,9 @@ export function parseSheetIds(secret) {
   return ids;
 }
 
-export function trialPublicInput({ aggregates, annualTeams, targetDate, fiscalYear }) {
-  const teams = Object.fromEntries(TEAM_IDS.map((team) => [team, aggregates[team].today]));
+export function trialPublicInput({ aggregates, annualTeams, targetDate, fiscalYear, todayStatus = 'ok' }) {
+  if (!['ok', 'unavailable'].includes(todayStatus)) throw new Error('TRIAL_TODAY_STATUS_INVALID');
+  const teams = todayStatus === 'ok' ? Object.fromEntries(TEAM_IDS.map((team) => [team, aggregates[team].today])) : null;
   const annual = Object.fromEntries(TEAM_IDS.map((team) => [team, {
     admissions: annualTeams[team].admissions,
     trials: annualTeams[team].trials,
@@ -95,7 +96,7 @@ export function trialPublicInput({ aggregates, annualTeams, targetDate, fiscalYe
   return {
     snapshot: { asOf: targetDate, id: `${targetDate}-trial-001` },
     timezone: 'Asia/Tokyo',
-    today: { status: 'ok', date: targetDate, teams },
+    today: { status: todayStatus, date: targetDate, teams },
     annual: { status: 'ok', fiscalYear, teams: annual },
   };
 }

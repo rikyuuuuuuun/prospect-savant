@@ -17,6 +17,7 @@ async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'prospect-trial-publication-'));
   const teams = Object.entries(rates).map(([id, admissionRate]) => ({ id, benchmark: { admissionRate } }));
   await writeFile(join(root, 'data.js'), `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify({ teams })});\n`, 'utf8');
+  await writeFile(join(root, 'snapshot-manifest.json'), JSON.stringify({asOf: '2026-08-21'}));
   return root;
 }
 
@@ -73,4 +74,15 @@ test('rejects public data contaminated with a URL even when its manifest is refr
     assert.equal(result.ok, false);
     assert(result.errors.some((error) => error.includes('prohibited URL')));
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('publication health cannot claim complete with withheld counts or a mismatched date', async () => {
+  const root = await fixture();
+  try {
+    await publishTrialData({ rootDir: root, input: input({today: {date:'2026-08-21', status:'unavailable', teams:null}}) });
+    for (const [asOf, status, valid] of [['2026-08-21','partial',true], ['2026-08-21','complete',false], ['2026-08-22','partial',false]]) {
+      await writeFile(join(root, 'snapshot-manifest.json'), JSON.stringify({asOf, publication:{status}}));
+      assert.equal((await validatePublishedTrialData(root)).ok, valid);
+    }
+  } finally { await rm(root, {recursive:true, force:true}); }
 });

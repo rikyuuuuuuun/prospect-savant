@@ -142,6 +142,14 @@ export async function validatePublishedTrialData(rootDir = process.cwd()) {
   const data = parseFrozenJson(source, TRIAL_DATA_FILE);
   const errors = [];
   const add = (condition, message) => { if (!condition) errors.push(message); };
+  const snapshot = JSON.parse(await readFile(resolve(rootDir, 'snapshot-manifest.json'), 'utf8'));
+  if (snapshot.publication !== undefined) {
+    const expected = data.today?.status === 'unavailable' ? 'partial' : 'complete';
+    add(snapshot.publication && Object.keys(snapshot.publication).join() === 'status' &&
+      snapshot.publication.status === expected, 'publication status must match daily trial availability');
+    add(data.today?.date === snapshot.asOf, 'trial date must match snapshot asOf');
+    add(data.annual?.status === 'ok', 'partial publication must retain verified annual data');
+  }
   add(manifest.schemaVersion === 1, 'trial manifest schemaVersion must be 1');
   add(manifest.file === TRIAL_DATA_FILE, 'trial manifest file must be trial-data.js');
   add(manifest.sha1 === gitBlobSha(source), 'trial-data.js: manifest blob hash mismatch');
