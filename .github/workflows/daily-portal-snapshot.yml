@@ -9,9 +9,9 @@ on:
     paths:
       - '.github/workflows/daily-portal-snapshot.yml'
   workflow_run:
-    workflows: ['Publish Prospect Savant', 'Deploy Savant display']
+    workflows: ['Publish Prospect Savant', 'Deploy Savant display', 'Recover Prospect Savant Daily Publish']
     types: [completed]
-    branches: [main]
+    branches: [main, 'automation/savant-recovery-*']
 
 permissions:
   contents: read
@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        scope: ${{ fromJSON(github.event_name == 'workflow_run' && '["savant"]' || '["projects","portal","trials","savant"]') }}
+        scope: ${{ fromJSON((github.event_name == 'workflow_run' || github.event_name == 'push') && '["savant"]' || '["projects","portal","trials","savant"]') }}
     permissions:
       id-token: write
     steps:
