@@ -267,7 +267,7 @@ async function fetchTeamTrialSheets(team, spreadsheetId, token, requestJson) {
   } };
 }
 
-export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions, allowUnavailable = false }) {
+export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions, allowUnavailable = false, logger = console.warn }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
   const fiscalYear = fiscalYearFor(targetDate);
@@ -295,6 +295,8 @@ export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccount
     }
   } catch (error) {
     if (!allowUnavailable || !isDailyTrialSourceFailure(error)) throw error;
+    // isDailyTrialSourceFailure accepts only fixed anonymous error codes.
+    logger(`TRIAL_DAILY_SOURCE_FAILURE code=${String(error.message).trim()}`);
     result = unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_DAILY_SOURCE_UNAVAILABLE' });
   }
   // Even a partial publication must prove the canonical cohort stayed unchanged.
