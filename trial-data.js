@@ -1,18 +1,13 @@
 window.PROSPECT_TRIAL_DATA = Object.freeze({
   "schemaVersion": 1,
-  "snapshotId": "2026-10-08-trial-001",
+  "snapshotId": "2026-10-09-trial-001",
   "timezone": "Asia/Tokyo",
   "sourceKind": "private-sheets-readonly-anonymous-aggregate-v2",
   "today": {
-    "status": "ok",
-    "date": "2026-10-08",
-    "total": 7,
-    "teams": {
-      "A": 0,
-      "B": 2,
-      "C": 1,
-      "D": 4
-    }
+    "status": "unavailable",
+    "date": "2026-10-09",
+    "total": null,
+    "teams": null
   },
   "annual": {
     "status": "ok",
@@ -24,7 +19,7 @@ window.PROSPECT_TRIAL_DATA = Object.freeze({
       },
       "B": {
         "admissions": 101,
-        "trials": 126
+        "trials": 128
       },
       "C": {
         "admissions": 62,
