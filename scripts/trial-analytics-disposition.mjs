@@ -129,7 +129,7 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
       }
       dailyReceipt.receiptRows++;
       if (!receiptGroups.has(receipt)) receiptGroups.set(receipt, []);
-      receiptGroups.get(receipt).push({ sheet, date });
+      receiptGroups.get(receipt).push({ sheet, date, emptyDate: empty(value) });
     }
   }
   for (const [receipt, matches] of receiptGroups) {
@@ -149,6 +149,14 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
     }
     check(text(row[23]) === '反映済', 'WORKFLOW_UNRESOLVED');
     const date = trialDate(row[14]);
+    // A single cleared row can leave a receipt note after its reservation day.
+    // It has no date to count today. Canonical 14/09 history remains independently
+    // reconciled before this function; never change or exclude that history here.
+    // Today's/future receipts, nonempty invalid dates and ambiguous copies still fail.
+    if (date && date < targetDate && matches.length === 1 && matches[0].emptyDate) {
+      dailyReceipt.supersededRows++;
+      continue;
+    }
     const exact = matches.filter(match => match.date && match.date === date);
     // Central intake is reconciled against canonical 09 before this aggregate.
     // Only one physical row at that date may represent the receipt. Older

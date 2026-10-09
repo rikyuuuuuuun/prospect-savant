@@ -336,3 +336,54 @@ test('a future receipt absent from the venue source cannot erase verified today 
     assert.throws(()=>assertDailyTrialAvailability(bad));
   }
 });
+
+
+test('a single cleared historical receipt note cannot affect today; current and future blanks still block', () => {
+  const past = intakeRow('FORM-synthetic-cleared-past', { date: '2026-08-21' });
+  const physical = sourceSheet([{ receipt: past[0], date: '' }, {}]);
+  const result = read([past], [physical]);
+  assert.equal(result.aggregates.A.today, 1); // unrelated manual booking preserved
+  assert.equal(result.dailyReceipt.supersededRows, 1);
+  assert.equal(result.dailyReceipt.eligibleRows, 0);
+  assert.equal(result.dailyReceipt.receiptRows, 1);
+  assert.doesNotMatch(JSON.stringify(result), /FORM-|予約|spreadsheet|https:/);
+  for (const date of [TARGET, '2026-08-23', '']) {
+    const active = intakeRow('FORM-synthetic-active-blank', { date });
+    assert.throws(() => read([active], [sourceSheet([{ receipt: active[0], date: '' }])]), /SOURCE_DATE_MISMATCH/);
+  }
+  for (const date of ['not-a-date', '2026-02-30', ' ', serial(TARGET)]) {
+    assert.throws(() => read([past], [sourceSheet([{ receipt: past[0], date }])]), /SOURCE_DATE_MISMATCH/);
+  }
+  assert.throws(() => read([past], [sourceSheet([{ receipt: past[0], date: '' }, { receipt: past[0], date: '' }])]), /SOURCE_DATE_MISMATCH/);
+  assert.throws(() => read([past], [sourceSheet([{ receipt: past[0], date: '' }], { book: 'other' })]), /ROUTE_MISMATCH/);
+  const pending = past.slice(); pending[23] = '未処理';
+  assert.throws(() => read([pending], [physical]), /WORKFLOW_UNRESOLVED/);
+});
+
+test('cleared historical notes require canonical quality and unchanged source readback', async () => {
+  const row = intakeRow('FORM-synthetic-cleared-history', { date: '2026-08-21' });
+  const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
+    trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused' };
+  for (const scenario of ['valid', 'missing-history', 'changed-readback']) {
+    const fixture = requestFixture({ intakeRows: [row], experienceRows: scenario === 'missing-history' ? [] : [experienceRow(row)] });
+    let reads = 0;
+    const requestJson = async raw => {
+      const url = new URL(raw);
+      if (url.pathname.endsWith('/spreadsheets/a') && url.searchParams.get('includeGridData') === 'true') {
+        reads++;
+        return gridTrialResponse(['体験予約日', scenario === 'changed-readback' && reads > 1 ? serial(TARGET) : ''],
+          ['', 'LINE受付ID=' + row[0]]);
+      }
+      return fixture(raw);
+    };
+    if (scenario === 'valid') {
+      const result = await fetchPrivateTrialAggregate({ ...options, requestJson });
+      assert.equal(result.aggregates.A.today, 0);
+      assert.equal(result.dailyReceipt.supersededRows, 1);
+      assert.equal(reads, 2);
+    } else {
+      await assert.rejects(fetchPrivateTrialAggregate({ ...options, requestJson }),
+        scenario === 'missing-history' ? /QUALITY_BLOCKED/ : /SOURCE_CHANGED_DURING_READ/);
+    }
+  }
+});
