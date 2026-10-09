@@ -332,3 +332,18 @@ test('a changing anonymous source is reread at most three times and never writte
     assert.equal(fullReads,6);await assert.rejects(()=>access(join(dir,'source.json')));
   } finally {await rm(dir,{recursive:true,force:true})}
 });
+
+
+test('deferred daily failure retains an anonymous cause for diagnosis', async () => {
+  const logs = [];
+  const result = await fetchPrivateTrialAggregate({
+    ...testSourceOptions(async (url) => {
+      if (String(url).includes('/spreadsheets/c?')) throw new Error('GOOGLE_SHEETS_403');
+      return successfulTrialRequest(url);
+    }),
+    allowUnavailable: true, logger: message => logs.push(message),
+  });
+  assert.equal(result.status, 'unavailable');
+  assert.deepEqual(logs, ['TRIAL_DAILY_SOURCE_FAILURE code=TRIAL_SOURCE_UNAVAILABLE_C_GOOGLE_SHEETS_403']);
+  assert.doesNotMatch(logs.join(''), /https?:|private-id|token/);
+});
