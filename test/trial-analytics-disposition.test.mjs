@@ -339,7 +339,7 @@ test('a future receipt absent from the venue source cannot erase verified today 
 
 
 test('a single cleared historical receipt note cannot affect today; current and future blanks still block', () => {
-  const past = intakeRow('FORM-synthetic-cleared-past', { date: serial('2026-08-21') });
+  const past = intakeRow('FORM-synthetic-cleared-past', { date: '2026-08-21' });
   const physical = sourceSheet([{ receipt: past[0], date: '' }, {}]);
   const result = read([past], [physical]);
   assert.equal(result.aggregates.A.today, 1); // unrelated manual booking preserved
@@ -347,7 +347,7 @@ test('a single cleared historical receipt note cannot affect today; current and 
   assert.equal(result.dailyReceipt.eligibleRows, 0);
   assert.equal(result.dailyReceipt.receiptRows, 1);
   assert.doesNotMatch(JSON.stringify(result), /FORM-|予約|spreadsheet|https:/);
-  for (const date of [serial(TARGET), serial('2026-08-23'), '']) {
+  for (const date of [TARGET, '2026-08-23', '']) {
     const active = intakeRow('FORM-synthetic-active-blank', { date });
     assert.throws(() => read([active], [sourceSheet([{ receipt: active[0], date: '' }])]), /SOURCE_DATE_MISMATCH/);
   }
@@ -361,7 +361,7 @@ test('a single cleared historical receipt note cannot affect today; current and 
 });
 
 test('cleared historical notes require canonical quality and unchanged source readback', async () => {
-  const row = intakeRow('FORM-synthetic-cleared-history', { date: serial('2026-08-21') });
+  const row = intakeRow('FORM-synthetic-cleared-history', { date: '2026-08-21' });
   const options = { spreadsheetId: 'savant', serviceAccountJson: '{"client_email":"service@example.invalid","private_key":"unused","token_uri":"https://token.invalid"}',
     trialSheetIdsJson: '{"A":"a","B":"b","C":"c","D":"d"}', targetDate: TARGET, getToken: async () => 'unused' };
   for (const scenario of ['valid', 'missing-history', 'changed-readback']) {
