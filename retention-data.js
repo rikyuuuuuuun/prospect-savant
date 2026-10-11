@@ -16,15 +16,15 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
   "overall": {
     "label": "全体",
     "rates": [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null
+      99.7,
+      98.1,
+      93.6,
+      86.1,
+      78.5,
+      69.2,
+      56.5,
+      38.1,
+      31.3
     ],
     "samples": [
       1807,
@@ -41,15 +41,15 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
   "teams": {
     "A": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        99.7,
+        98.6,
+        95,
+        88.6,
+        82.7,
+        70.5,
+        58.2,
+        41.2,
+        31.3
       ],
       "samples": [
         650,
@@ -65,14 +65,14 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     },
     "B": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        100,
+        98.6,
+        94.3,
+        86.8,
+        79.3,
+        74.3,
+        58.4,
+        32.9,
         null
       ],
       "samples": [
@@ -89,13 +89,13 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     },
     "C": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        99.2,
+        97.1,
+        90.2,
+        80.5,
+        70.5,
+        58.7,
+        47.9,
         null,
         null
       ],
@@ -113,13 +113,13 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     },
     "D": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        100,
+        97.1,
+        93.4,
+        86.6,
+        78.1,
+        68.8,
+        58.8,
         null,
         null
       ],

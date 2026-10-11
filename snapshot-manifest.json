@@ -5,10 +5,10 @@
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readback-sha256:ec602719f5c1e3ffc1e06a79f91d71e80eb92bbda82f3199c70c95b06faa1891",
   "files": {
-    "data.js": "9c40c969e00f6cac969445f777f6cc5f6c731c2a",
+    "data.js": "3e4bfb3c7e8c44505608cccabea898cab6e7bae2",
     "event-data.js": "34d25fe1031cfdcef80fca2298dd0e0eaf5ec4ac",
-    "retention-data.js": "fd223c95137084a32f2bb2a0a709a61f577a5376",
-    "school-age-data.js": "d4084dce0e3ae8b3c850c5702698511199d12367"
+    "retention-data.js": "17b7d12ceb8c09d27cdf130383c70742e9d48b58",
+    "school-age-data.js": "fb4187aaed917f870eaa0373eb74c4e172ddd879"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
@@ -50,6 +50,6 @@
     "denominatorDate": "2026-08-09"
   },
   "publication": {
-    "status": "partial"
+    "status": "complete"
   }
 }
