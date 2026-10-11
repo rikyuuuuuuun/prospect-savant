@@ -1,4 +1,5 @@
 import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
+import { RETENTION_DEFINITION, readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -136,6 +137,12 @@ function updateData(data, ranges, asOf) {
   const admissions = admissionsFromSource(ranges.memberMaster, asOf);
   const eventSummary = teamRows(ranges.events, 3);
   const oldData = structuredClone(data);
+  const availability = readRetentionAvailability(ranges.memberMaster, ranges.retention, asOf);
+  if (availability) {
+    data.retentionAvailability = availability;
+    data.metricDefinitions = { ...data.metricDefinitions, retention: RETENTION_DEFINITION };
+  }
+  else delete data.retentionAvailability;
   assert(asOf >= oldData.asOf, 'SOURCE_ASOF_OLDER_THAN_PUBLIC');
 
   data.snapshotId = `savant-${asOf}-0730-trial-ytd-v1`;
@@ -159,15 +166,22 @@ function updateData(data, ranges, asOf) {
     assert(round(source[6], 0) === annual[id].score, `ANNUAL_SCORE_RECONCILIATION_REQUIRED_${id}`);
     team.members = requiredNumber(source[1], `TEAM_MEMBERS_${id}`);
     team.monthlyDelta = null;
-    team.overall = round(source[13], 0);
-    team.rank = requiredNumber(source[14], `TEAM_RANK_${id}`);
+    const retentionUnavailable = availability?.teams[id].scoreAvailable === false;
+    if (retentionUnavailable) {
+      assert(emptySourceValue(source[4]) && emptySourceValue(source[13]) && emptySourceValue(source[14]), `RETENTION_WITHHELD_SCORE_CONFLICT_${id}`);
+      team.overall = null;
+      team.rank = null;
+    } else {
+      team.overall = round(requiredNumber(source[13], `TEAM_OVERALL_${id}`), 0);
+      team.rank = requiredNumber(source[14], `TEAM_RANK_${id}`);
+    }
     team.status = String(source[15]);
-    team.metrics.retention = round(source[4], 0);
+    team.metrics.retention = retentionUnavailable ? null : round(requiredNumber(source[4], `TEAM_RETENTION_${id}`), 0);
     team.metrics.admission = round(source[6], 0);
     team.metrics.event = round(source[9], 0);
     team.metrics.growth = round(source[10], 0);
     team.metrics.family = round(source[11], 0);
-    team.benchmark.retention12mRate = percentage(retentionSource[5], `RETENTION_12M_RATE_${id}`);
+    team.benchmark.retention12mRate = retentionRate(retentionSource[5], `RETENTION_12M_RATE_${id}`, availability?.teams[id].unknownWithdrawals > 0, percentage);
     team.benchmark.retention12mSample = requiredNumber(retentionSource[6], `RETENTION_12M_SAMPLE_${id}`);
     team.benchmark.admissionRate = annual[id].rate;
     team.benchmark.admissionPreviousRate = annual[id].previousRate;
@@ -175,6 +189,13 @@ function updateData(data, ranges, asOf) {
     team.benchmark.eventRate = percentage(eventSource[2], `EVENT_RATE_${id}`);
     team.benchmark.repeatRate = percentage(eventSource[7], `EVENT_REPEAT_RATE_${id}`);
   }
+  if (availability && TEAM_IDS.some(id => !availability.teams[id].scoreAvailable)) {
+    for (const team of data.teams) {
+      team.rank = null;
+      team.status = team.metrics.retention === null ? '定着力確認中' : '総合順位確認中';
+    }
+  }
+  data.quality.completeness = Math.round(data.teams.reduce((sum, team) => sum + Object.values(team.metrics).filter(Number.isFinite).length, 0) / (TEAM_IDS.length * 5) * 100);
   const members = data.teams.reduce((sum, team) => sum + team.members, 0);
   assert(members === data.headline.members, 'SOURCE_HEADLINE_MEMBER_MISMATCH');
   const annualTotal = TEAM_IDS.reduce((sum, id) => ({
@@ -201,7 +222,7 @@ function updateData(data, ranges, asOf) {
   return annual;
 }
 
-function updateRetentionCurve(curve, range, snapshotId, asOf) {
+function updateRetentionCurve(curve, range, snapshotId, asOf, availability) {
   const rows = new Map(range.slice(4).map((row) => [Number(row[0]), row]));
   curve.snapshotId = snapshotId;
   curve.asOf = asOf;
@@ -212,30 +233,30 @@ function updateRetentionCurve(curve, range, snapshotId, asOf) {
       const row = rows.get(month);
       assert(row, 'SOURCE_RETENTION_CURVE_INCOMPLETE');
       const sample = requiredNumber(row[sampleColumn], `RETENTION_SAMPLE_${team}_${month}`);
-      return sample >= curve.minimumSample ? percentage(row[rateColumn], `RETENTION_RATE_${team}_${month}`) : null;
+      return sample >= curve.minimumSample ? retentionRate(row[rateColumn], `RETENTION_RATE_${team}_${month}`, availability?.teams[team].unknownWithdrawals > 0, percentage) : null;
     });
     curve.teams[team].samples = curve.months.map((month) => requiredNumber(rows.get(month)[sampleColumn], `RETENTION_SAMPLE_${team}_${month}`));
   }
   curve.overall.rates = curve.months.map((month) => {
     const row = rows.get(month);
     const sample = requiredNumber(row[10], `RETENTION_SAMPLE_ALL_${month}`);
-    return sample >= curve.minimumSample ? percentage(row[5], `RETENTION_RATE_ALL_${month}`) : null;
+    return sample >= curve.minimumSample ? retentionRate(row[5], `RETENTION_RATE_ALL_${month}`, availability && TEAM_IDS.some(id => availability.teams[id].unknownWithdrawals > 0), percentage) : null;
   });
   curve.overall.samples = curve.months.map((month) => requiredNumber(rows.get(month)[10], `RETENTION_SAMPLE_ALL_${month}`));
 }
 
-function updateSchoolAge(schoolAge, range, snapshotId, asOf) {
+function updateSchoolAge(schoolAge, range, snapshotId, asOf, availability) {
   const rows = teamRows(range, 3);
   const all = range.slice(4).find((row) => row?.[0] === '合計');
   assert(all, 'SOURCE_SCHOOL_AGE_TOTAL_MISSING');
   schoolAge.snapshotId = snapshotId;
   schoolAge.asOf = asOf;
-  const update = (target, row) => {
+  const update = (target, row, withheld) => {
     target.samples = [1, 3, 5, 7].map((index) => requiredNumber(row[index], 'SCHOOL_AGE_SAMPLE'));
-    target.rates = [2, 4, 6, 8].map((index, position) => target.samples[position] >= schoolAge.minimumSample ? percentage(row[index], 'SCHOOL_AGE_RATE') : null);
+    target.rates = [2, 4, 6, 8].map((index, position) => target.samples[position] >= schoolAge.minimumSample ? retentionRate(row[index], 'SCHOOL_AGE_RATE', withheld, percentage) : null);
   };
-  for (const id of TEAM_IDS) update(schoolAge.teams[id], rows.get(id));
-  update(schoolAge.overall, all);
+  for (const id of TEAM_IDS) update(schoolAge.teams[id], rows.get(id), availability?.teams[id].unknownWithdrawals > 0);
+  update(schoolAge.overall, all, availability && TEAM_IDS.some(id => availability.teams[id].unknownWithdrawals > 0));
 }
 
 function updateEventHistory(events, range, snapshotId, asOf) {
@@ -321,8 +342,8 @@ async function publishInto(root, snapshot) {
   if (snapshot.withdrawalHistory) data.withdrawalHistory = applyWithdrawalBaseline(snapshot.withdrawalHistory, data);
   else delete data.withdrawalHistory;
   updateEventHistory(events, ranges.events, data.snapshotId, asOf);
-  updateRetentionCurve(retention, ranges.curve, data.snapshotId, asOf);
-  updateSchoolAge(schoolAge, ranges.schoolAge, data.snapshotId, asOf);
+  updateRetentionCurve(retention, ranges.curve, data.snapshotId, asOf, data.retentionAvailability);
+  updateSchoolAge(schoolAge, ranges.schoolAge, data.snapshotId, asOf, data.retentionAvailability);
   const output = {
     'data.js': jsonSource('PROSPECT_SAVANT_DATA', data),
     'event-data.js': jsonSource('PROSPECT_EVENT_HISTORY', events),
@@ -340,7 +361,7 @@ async function publishInto(root, snapshot) {
     memberSourceSnapshotId: memberReceipt.snapshotId,
     operationalMemberDefinition: memberReceipt.definitionId,
     sourceKind: 'private-sheets-readonly-anonymous-aggregate-v1',
-    publication: { status: ranges.trialAggregate.status === 'unavailable' ? 'partial' : 'complete' },
+    publication: { status: ranges.trialAggregate.status === 'unavailable' || data.teams.some(team => team.metrics.retention === null) ? 'partial' : 'complete' },
     files: Object.fromEntries(Object.entries(output).map(([file, content]) => [file, gitBlobSha(content)])),
   };
   await writeFile(join(root, 'snapshot-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');

@@ -162,7 +162,8 @@ export function buildMetricEvidence({ data, ranges, retentionCurve, eventHistory
   const event = buildEventEvidence(eventHistory);
   for (const id of TEAM_IDS) {
     const team = teams.get(id);
-    assertEvidence(Math.abs(retention[id].weightedIndex - metricScore(team, 'retention')) <= 0.6, `RETENTION_EVIDENCE_SCORE_MISMATCH_${id}`);
+    const retentionScore = metricScore(team, 'retention');
+    assertEvidence(retention[id].weightedIndex === null ? retentionScore === null : retentionScore !== null && Math.abs(retention[id].weightedIndex - retentionScore) <= 0.6, `RETENTION_EVIDENCE_SCORE_MISMATCH_${id}`);
     assertEvidence(Math.abs(admission[id].relativeScore - metricScore(team, 'admission')) <= 0.6, `ADMISSION_EVIDENCE_SCORE_MISMATCH_${id}`);
     assertEvidence(Math.abs(growth[id].relativeScore - metricScore(team, 'growth')) <= 0.6, `GROWTH_EVIDENCE_SCORE_MISMATCH_${id}`);
     assertEvidence(Math.abs(family[id].calculatedScore - metricScore(team, 'family')) <= 0.6, `FAMILY_EVIDENCE_SCORE_MISMATCH_${id}`);

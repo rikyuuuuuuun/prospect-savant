@@ -25,19 +25,61 @@ const RANGES = {
   quality: "'99_データ品質'!A1:F20",
 };
 
+function withUnknownRetention(ranges) {
+  for (const row of ranges[RANGES.memberMaster].slice(1, 5)) row[30] = '0件実移動確認／10件実日時不明';
+  for (const row of ranges[RANGES.teams].slice(4, 8)) for (const col of [4, 13, 14]) row[col] = '';
+  for (const row of ranges[RANGES.retention].slice(4, 8)) for (let col = 1; col < 17; col += 2) row[col] = '';
+  for (const row of ranges[RANGES.curve].slice(4)) for (let col = 1; col <= 5; col++) row[col] = '';
+  for (const row of ranges[RANGES.schoolAge].slice(4)) for (const col of [2, 4, 6, 8]) row[col] = '';
+}
+
+test('confirmed unknown withdrawal dates withhold retention without stopping other verified data', async () => {
+  const [data, events, curve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'savant-retention-unavailable-'));
+  try {
+    for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
+    const ranges = explanationSourceRows(data, events, curve, schoolAge, trial);
+    withUnknownRetention(ranges);
+    const sourcePath = join(dir, 'source.json');
+    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
+    await publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath });
+    const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
+    const retained = parsePublicSource(await readFile(join(dir, 'retention-data.js'), 'utf8'), 'retention-data.js');
+    assert.equal(published.quality.completeness, 80);
+    for (const team of published.teams) {
+      assert.equal(team.overall, null);
+      assert.equal(team.rank, null);
+      assert.equal(team.metrics.retention, null);
+      assert.equal(team.benchmark.retention12mRate, null);
+      assert.equal(team.members, data.teams.find(t => t.id === team.id).members);
+      assert.equal(team.metrics.admission, data.teams.find(t => t.id === team.id).metrics.admission);
+      assert.ok(retained.teams[team.id].rates.every(rate => rate === null));
+      assert.match(team.note, /定着力.*確認中/);
+      assert.doesNotMatch(team.note, /null点/);
+    }
+    assert.equal(JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'))).publication.status, 'partial');
+    // Corrupted/unexplained values remain a hard failure; original public files stay intact.
+    const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
+    ranges[RANGES.retention][4][5] = '#REF!';
+    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
+    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /RETENTION_UNKNOWN_RATE_PRESENT_A/);
+    assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8'))), before);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 test('late explanation failure leaves all original public files byte-identical', async () => {
   const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
   const dir = await mkdtemp(join(tmpdir(), 'savant-explanation-failure-'));
   try {
     for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
-    const ranges = sourceRows(data, events, retentionCurve, schoolAge, trial);
-    for (const range of ["'07_成長力'!P4:W9", "'08_家庭継続力'!A1:O31", "'90_配点設定'!A1:J50"]) ranges[range] = [['invalid metric input']];
+    const ranges = explanationSourceRows(data, events, retentionCurve, schoolAge, trial);
+    ranges["'07_成長力'!P4:W9"] = [['invalid metric input']];
     const sourcePath = join(dir, 'source.json');
     await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today: 0}])) } }));
     // The core snapshot is valid; only the later explanation phase rejects it.
     await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
-    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /(?:RETENTION|FAMILY|GROWTH|WEIGHT|METRIC)/);
+    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /GROWTH_EVIDENCE_HEADER_MISSING/);
     assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8'))), before);
   } finally { await rm(dir, {recursive:true, force:true}); }
 });
@@ -54,6 +96,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, team.rank, team.status])];
   source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, team.members, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
   source[RANGES.retention] = [[], [], [], [], ...data.teams.map((team) => [team.id, '', '', '', '', team.benchmark.retention12mRate / 100, team.benchmark.retention12mSample])];
+  if (data.retentionAvailability) source[RANGES.retention] = [[], [], [], ['チーム', '3か月\n継続率'], ...data.teams.map(team => [team.id, ...team.metricEvidence.retention.periods.flatMap(period => [period.rate === null ? '' : period.rate / 100, period.sample])])];
   source[RANGES.admission] = [[], [], [], [], ...data.teams.map((team) => {
     const annual = trial.annual.teams[team.id];
     const previousRate = conversion[team.id].previousAdmissions / conversion[team.id].previousTrials;
@@ -72,12 +115,12 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   ])];
   source[RANGES.schoolAge] = [[], [], [], [], ...['A', 'B', 'C', 'D'].map((id) => {
     const team = schoolAge.teams[id];
-    return [id, team.samples[0], (team.rates[0] || 0) / 100, team.samples[1], (team.rates[1] || 0) / 100, team.samples[2], (team.rates[2] || 0) / 100, team.samples[3], (team.rates[3] || 0) / 100];
-  }), ['合計', schoolAge.overall.samples[0], schoolAge.overall.rates[0] / 100, schoolAge.overall.samples[1], schoolAge.overall.rates[1] / 100, schoolAge.overall.samples[2], schoolAge.overall.rates[2] / 100, schoolAge.overall.samples[3], schoolAge.overall.rates[3] / 100]];
+    return [id, ...team.samples.flatMap((sample, i) => [sample, team.rates[i] === null ? '' : team.rates[i] / 100])];
+  }), ['合計', ...schoolAge.overall.samples.flatMap((sample, i) => [sample, schoolAge.overall.rates[i] === null ? '' : schoolAge.overall.rates[i] / 100])]];
   source[RANGES.curve] = [[], [], [], [], ...retentionCurve.months.map((month, index) => [
     month,
-    (retentionCurve.teams.A.rates[index] || 0) / 100, (retentionCurve.teams.B.rates[index] || 0) / 100, (retentionCurve.teams.C.rates[index] || 0) / 100, (retentionCurve.teams.D.rates[index] || 0) / 100,
-    (retentionCurve.overall.rates[index] || 0) / 100,
+    ...['A','B','C','D'].map(id => retentionCurve.teams[id].rates[index] === null ? '' : retentionCurve.teams[id].rates[index] / 100),
+    retentionCurve.overall.rates[index] === null ? '' : retentionCurve.overall.rates[index] / 100,
     retentionCurve.teams.A.samples[index], retentionCurve.teams.B.samples[index], retentionCurve.teams.C.samples[index], retentionCurve.teams.D.samples[index], retentionCurve.overall.samples[index],
   ])];
   source[RANGES.memberMaster] = [
@@ -85,6 +128,10 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
     ...data.teams.map((team) => ['A', 'B', 'C', 'D'].includes(team.id) && [team.id, team.members, '', '', '', team.members, trial.annual.teams[team.id].trials, trial.annual.teams[team.id].admissions, trial.annual.teams[team.id].admissions]),
   ];
   source[RANGES.memberMaster].push(['合計', data.headline.members]);
+  if (data.retentionAvailability) for (const row of source[RANGES.memberMaster].slice(1, 5)) {
+    const receipt = data.retentionAvailability.teams[row[0]];
+    row[30] = `${receipt.confirmedWithdrawals}件実移動確認／${receipt.unknownWithdrawals}件実日時不明`;
+  }
   source["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback(data.asOf, Object.fromEntries(data.teams.map(t => [t.id, t.members])));
   source["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate(data.asOf);
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
@@ -389,6 +436,6 @@ test('partial publication updates the complete bundle and recovers daily counts 
     await writeFile(sourcePath,JSON.stringify(snapshot));
     await publishPrivateSavantWithExplanations({rootDir:dir,sourcePath});
     assert.equal((await read('trial-data.js')).today.total,3);
-    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,'complete');
+    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,data.teams.some(team => team.metrics.retention === null) ? 'partial' : 'complete');
   } finally { await rm(dir,{recursive:true,force:true}); }
 });

@@ -1,4 +1,5 @@
 import { validateWithdrawalHistory } from './withdrawal-history.mjs';
+import { validateRetentionAvailability } from './retention-availability.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAnnualConversion } from './annual-conversion-source.mjs';
 import { percentileScore } from './metric-retention-evidence.mjs';
@@ -91,6 +92,8 @@ export async function validateSnapshot(rootDir = process.cwd()) {
 
   const data = parseFrozenJson(sources['data.js'], 'data.js');
   const events = parseFrozenJson(sources['event-data.js'], 'event-data.js');
+  try { if (data.retentionAvailability) validateRetentionAvailability(data, parseFrozenJson(sources['retention-data.js'], 'retention-data.js'), parseFrozenJson(sources['school-age-data.js'], 'school-age-data.js')); }
+  catch (error) { add(errors, false, error.message); }
 
   add(errors, data.asOf === manifest.asOf, 'data.js asOf must match manifest');
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
@@ -138,10 +141,17 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   const weights = new Map((data.weights || []).map((weight) => [weight.key, weight.value]));
   if (data.scoreVersion === 'v7-operational-member-denominator' && weights.size) {
     for (const team of data.teams || []) {
+      const withheld = data.retentionAvailability?.teams?.[team.id]?.scoreAvailable === false;
+      for (const key of weights.keys()) add(errors, key === 'retention' && withheld ? team.metrics?.[key] === null : Number.isFinite(team.metrics?.[key]), `team ${team.id}: ${key} must be a verified score`);
+      if (withheld) {
+        add(errors, team.overall === null, `team ${team.id}: incomplete overall must be null`);
+        continue;
+      }
       const overall = [...weights].reduce((sum, [key, weight]) => sum + (team.metrics?.[key] || 0) * weight / 100, 0);
       add(errors, team.overall === Math.floor(overall), `team ${team.id}: overall must equal weighted metrics`);
     }
-    const ranks = [...(data.teams || [])].sort((left, right) => right.overall - left.overall).map((team) => team.id);
+    const incomplete = data.teams.some(team => data.retentionAvailability?.teams?.[team.id]?.scoreAvailable === false);
+    const ranks = incomplete ? [] : [...(data.teams || [])].sort((left, right) => right.overall - left.overall).map((team) => team.id);
     for (const [index, id] of ranks.entries()) {
       const expectedRank = data.metricDefinitions?.family === 'referral-volume-rate-v2'
         ? 1 + data.teams.filter(team => team.overall > dataTeams.get(id).overall).length : index + 1;
