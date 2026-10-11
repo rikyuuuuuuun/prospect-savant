@@ -73,13 +73,13 @@ test('late explanation failure leaves all original public files byte-identical',
   try {
     for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
-    const ranges = sourceRows(data, events, retentionCurve, schoolAge, trial);
-    for (const range of ["'07_成長力'!P4:W9", "'08_家庭継続力'!A1:O31", "'90_配点設定'!A1:J50"]) ranges[range] = [['invalid metric input']];
+    const ranges = explanationSourceRows(data, events, retentionCurve, schoolAge, trial);
+    ranges["'07_成長力'!P4:W9"] = [['invalid metric input']];
     const sourcePath = join(dir, 'source.json');
     await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today: 0}])) } }));
     // The core snapshot is valid; only the later explanation phase rejects it.
     await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
-    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /(?:RETENTION|FAMILY|GROWTH|WEIGHT|METRIC)/);
+    await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /GROWTH_EVIDENCE_HEADER_MISSING/);
     assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8'))), before);
   } finally { await rm(dir, {recursive:true, force:true}); }
 });
