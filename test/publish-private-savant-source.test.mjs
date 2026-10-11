@@ -130,7 +130,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   source[RANGES.memberMaster].push(['合計', data.headline.members]);
   if (data.retentionAvailability) for (const row of source[RANGES.memberMaster].slice(1, 5)) {
     const receipt = data.retentionAvailability.teams[row[0]];
-    row[30] = `${receipt.confirmedWithdrawals}件実移動確認／${receipt.unknownWithdrawals}件実日時不明`;
+    row[30] = receipt.historicalWithdrawals === undefined ? `${receipt.confirmedWithdrawals}件実移動確認／${receipt.unknownWithdrawals}件実日時不明` : `${receipt.confirmedWithdrawals}件実移動確認／${receipt.historicalWithdrawals}件過去基準維持／${receipt.billingWithdrawals}件課金停止確認／${receipt.unknownWithdrawals}件退会日不明`;
   }
   source["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback(data.asOf, Object.fromEntries(data.teams.map(t => [t.id, t.members])));
   source["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate(data.asOf);

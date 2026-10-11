@@ -1,5 +1,5 @@
 import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
-import { RETENTION_DEFINITION, readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
+import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -140,7 +140,7 @@ function updateData(data, ranges, asOf) {
   const availability = readRetentionAvailability(ranges.memberMaster, ranges.retention, asOf);
   if (availability) {
     data.retentionAvailability = availability;
-    data.metricDefinitions = { ...data.metricDefinitions, retention: RETENTION_DEFINITION };
+    data.metricDefinitions = { ...data.metricDefinitions, retention: availability.definition };
   }
   else delete data.retentionAvailability;
   assert(asOf >= oldData.asOf, 'SOURCE_ASOF_OLDER_THAN_PUBLIC');
