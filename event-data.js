@@ -1,6 +1,6 @@
 window.PROSPECT_EVENT_HISTORY = Object.freeze({
-  "snapshotId": "savant-2026-10-10-0730-trial-ytd-v1",
-  "asOf": "2026-10-10",
+  "snapshotId": "savant-2026-10-11-0730-trial-ytd-v1",
+  "asOf": "2026-10-11",
   "latestEventId": "event-2026-high",
   "scoringVersion": "v7-operational-member-denominator",
   "memberDefinition": {

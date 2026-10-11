@@ -1,6 +1,6 @@
 window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
-  "snapshotId": "savant-2026-10-10-0730-trial-ytd-v1",
-  "asOf": "2026-10-10",
+  "snapshotId": "savant-2026-10-11-0730-trial-ytd-v1",
+  "asOf": "2026-10-11",
   "minimumSample": 20,
   "milestones": [
     "年長→小1",
@@ -11,10 +11,10 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
   "overall": {
     "label": "全体",
     "rates": [
-      77.7,
-      72.2,
-      33.4,
-      4.2
+      null,
+      null,
+      null,
+      null
     ],
     "samples": [
       179,
@@ -26,10 +26,10 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
   "teams": {
     "A": {
       "rates": [
-        81.8,
-        73.1,
-        31.2,
-        4.3
+        null,
+        null,
+        null,
+        null
       ],
       "samples": [
         66,
@@ -40,9 +40,9 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
     },
     "B": {
       "rates": [
-        77.6,
-        72.5,
-        28,
+        null,
+        null,
+        null,
         null
       ],
       "samples": [
@@ -54,9 +54,9 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
     },
     "C": {
       "rates": [
-        71.1,
-        64.2,
-        51.4,
+        null,
+        null,
+        null,
         null
       ],
       "samples": [
@@ -69,7 +69,7 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
     "D": {
       "rates": [
         null,
-        83.3,
+        null,
         null,
         null
       ],
