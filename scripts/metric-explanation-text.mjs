@@ -37,6 +37,7 @@ function peerCrossingText(teamId, period, previousPeriod, currentEvidence, previ
 }
 
 function explainRetention(id, current, previous, currentAll, previousAll, currentScore, previousScore, previousLabel) {
+  if (!Number.isFinite(currentScore)) return '【定着力】継続率を確定できる比較データが不足しているため確認中です。空欄を0点や前回値で補わず、総合点・順位と前回比も保留します。';
   const scored = current?.periods?.filter((period) => period.scored && Number.isFinite(period.relativeScore)) || [];
   const basis = scored.length ? scored.map(retentionPeriodText).join('、') : '比較可能な期間がありません';
   let text = `【定着力】${basis}。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果${currentScore}点です。`;

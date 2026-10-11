@@ -1068,9 +1068,10 @@
         const memberDeltaLabel = `前月末比 純増減${memberDeltaEstimated ? "（推定）" : ""}`;
         const memberDeltaComparable = data.memberDeltaDefinition === "previous-month-end-v1";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
-        const scoreColor = (score) => score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
-        const heatColor = (score) => score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
-        const strongest = (team) => [...metricKeys].sort((a,b) => team.metrics[b] - team.metrics[a]);
+        const scoreColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
+        const heatColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
+        const displayScore = (score) => Number.isFinite(score) ? score : "—";
+        const strongest = (team) => metricKeys.filter(key => Number.isFinite(team.metrics[key])).sort((a,b) => team.metrics[b] - team.metrics[a]);
         const svgNamespace = "http://www.w3.org/2000/svg";
         const retentionState = { selected: "ALL", resizeFrame: 0, observer: null };
         const schoolAgeState = { selected: "ALL", resizeFrame: 0, observer: null };
@@ -1112,6 +1113,7 @@
         const referralComparable = () =>
           (data.metricDefinitions?.family || 'legacy-family') === (data.comparison?.metricDefinitions?.family || 'legacy-family')
           && (data.metricDefinitions?.family !== 'referral-volume-rate-v2' || data.admissions?.fiscalYear === data.comparison?.admissions?.fiscalYear);
+        const retentionComparable = () => (data.metricDefinitions?.retention || "legacy-retention") === (data.comparison?.metricDefinitions?.retention || "legacy-retention");
         // Compare displayed percentages, never relative scores. Evidence is retained by the daily publisher.
         const rateChange = (team, key) => {
           const comparison = data.comparison;
@@ -1126,7 +1128,10 @@
               || before.asOf !== date || now.asOf !== data.asOf) return null;
           const fiscalYear = value => Number(value.slice(0, 4)) - (Number(value.slice(5, 7)) < 4 ? 1 : 0);
           let oldValue;
-          if (key === "retention12mRate") oldValue = before.retention?.periods?.find(item => item.key === "m12")?.rate;
+          if (key === "retention12mRate") {
+            if (!retentionComparable()) return null;
+            oldValue = before.retention?.periods?.find(item => item.key === "m12")?.rate;
+          }
           if (key === "admissionRate") {
             if (fiscalYear(date) !== fiscalYear(data.asOf)) return null;
             oldValue = before.admission?.rate;
@@ -1166,7 +1171,7 @@
           data.teams.forEach((team) => {
             const previous = previousTeams.get(team.id);
             if (!previous) return;
-            const overallDelta = scoreComparable && referralComparable() ? team.overall - previous.overall : 0;
+            const overallDelta = scoreComparable && referralComparable() && retentionComparable() && Number.isFinite(team.overall) && Number.isFinite(previous.overall) ? team.overall - previous.overall : 0;
             if (overallDelta) {
               items.push({
                 teamId: team.id,
@@ -1181,6 +1186,8 @@
             }
 
             metricKeys.forEach((key) => {
+              if (key === "retention" && !retentionComparable()) return;
+              if (!Number.isFinite(team.metrics[key]) || !Number.isFinite(previous.metrics[key])) return;
               if ((key === "event" && !scoreComparable) || (key === "family" && !referralComparable())) return;
               const delta = team.metrics[key] - previous.metrics[key];
               if (!delta) return;
@@ -1744,7 +1751,7 @@
             .filter((index) => index >= 0 && series.rates[index] !== null && series.rates[index] !== undefined);
           if (lastIndex >= 0 && !pointIndexes.includes(lastIndex)) pointIndexes.push(lastIndex);
           const prefix = retentionState.selected === "ALL" ? "全体基準" : series.label;
-          document.getElementById("curve-summary").textContent = `${prefix}｜${pointIndexes.map((index) => curvePointText(series, index)).join("　/　")}`;
+          document.getElementById("curve-summary").textContent = `${prefix}｜${pointIndexes.length ? pointIndexes.map((index) => curvePointText(series, index)).join("　/　") : "確認中：継続率を確定できるデータがありません"}`;
         };
 
         const showCurveTooltip = (series, index, x, y, chartHeight) => {
@@ -2109,7 +2116,7 @@
           const prefix = schoolAgeState.selected === "ALL" ? "全体基準" : series.label;
           document.getElementById("school-age-summary").textContent = pointIndexes.length
             ? `${prefix}｜${pointIndexes.map((index) => schoolAgePointText(series, index)).join("　/　")}`
-            : `${prefix}｜表示できる対象数の節目がありません`;
+            : `${prefix}｜確認中：継続率を確定できるデータがありません`;
         };
 
         const showSchoolAgeTooltip = (series, index, x, y, chartHeight) => {
@@ -2360,26 +2367,26 @@
           const newAdmissionCount = newAdmissionsByTeam.get(team.id);
           const order = strongest(team);
           const previousTeam = data.comparison?.teams?.find((item) => item.id === team.id);
-          const overallChange = data.scoreVersion === data.comparison?.scoreVersion && referralComparable() && previousTeam ? team.overall - previousTeam.overall : 0;
+          const overallChange = data.scoreVersion === data.comparison?.scoreVersion && referralComparable() && retentionComparable() && previousTeam && Number.isFinite(team.overall) && Number.isFinite(previousTeam.overall) ? team.overall - previousTeam.overall : 0;
           const strengthLabels = order.slice(0, 2).map((key) => data.metricLabels[key]).join("・");
           const priorityLabel = data.metricLabels[order[order.length - 1]];
           const deltaClass = memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
-            const change = previousTeam && (key !== "family" || referralComparable()) && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
+            const change = previousTeam && Number.isFinite(score) && Number.isFinite(previousTeam.metrics[key]) && (key !== "retention" || retentionComparable()) && (key !== "family" || referralComparable()) && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
               ? score - previousTeam.metrics[key]
               : 0;
             const changeMarkup = change
               ? `<small class="${deltaTone(change)}">${formatDelta(change)}</small>`
               : "";
-            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track"><span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span></div><span class="metric-score">${score}${changeMarkup}</span></div>`;
+            return `<div class="metric-row"><span class="metric-label">${data.metricLabels[key]}</span><div class="metric-track">${Number.isFinite(score) ? `<span class="metric-marker" style="--position:${score};--marker:${scoreColor(score)}"></span>` : ""}</div><span class="metric-score">${displayScore(score)}${changeMarkup}</span></div>`;
           }).join("");
           return `
-            <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、総合${team.overall}点${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">
+            <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、${Number.isFinite(team.overall) ? `総合${team.overall}点` : "総合点確認中"}${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">
               <div class="team-card-head">
-                <div class="score-ring" style="--score:${team.overall};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${team.overall}</strong><span>OVERALL</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
+                <div class="score-ring" style="--score:${team.overall ?? 0};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${displayScore(team.overall)}</strong><span>${Number.isFinite(team.overall) ? "OVERALL" : "確認中"}</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
                 <div>
-                  <div class="rank-line">RANK ${team.rank} · ${team.status}</div>
+                  <div class="rank-line">${Number.isFinite(team.rank) ? `RANK ${team.rank}` : "順位確認中"} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
                   ${newAdmissionCount ? `<span class="admission-badge">新規入会 +${newAdmissionCount}</span>` : ""}
                   <p class="team-meta">${memberDeltaLabel} <span class="${deltaClass}">${formatDelta(memberDeltaComparable ? team.monthlyDelta : null)}${memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? "名" : ""}</span></p>
@@ -2388,11 +2395,12 @@
               </div>
               <div class="metric-list">${metrics}</div>
               <div class="benchmark-grid">
-                <div class="benchmark"><strong>${team.benchmark.retention12mRate.toFixed(1)}%</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
+                <div class="benchmark"><strong>${Number.isFinite(team.benchmark.retention12mRate) ? team.benchmark.retention12mRate.toFixed(1) + "%" : "確認中"}</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
                 <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度 体験→入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span><span class="benchmark-sample">${annualRealAdmissionSample(team)}</span>前年同期間 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
                 <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
+              ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">過去の実退会日時が未確認のため、定着力・継続率・総合評価を保留しています。他の指標は基準日まで更新済みです。</p>' : ""}
               <p class="rate-comparison-note">割合の増減：${escapeHtml(data.comparison?.previousAsOfLabel || "比較元なし")} → ${escapeHtml(data.asOfLabel)}。ポイントは割合の差です。定義・年度の変更や比較データ不足は比較対象外。</p>
               ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
             </article>`;
@@ -2414,7 +2422,7 @@
         initializeSchoolAgeChart();
 
         const tableHeaders = metricKeys.map((key) => `<th scope="col">${data.metricLabels[key]}</th>`).join("");
-        const tableRows = data.teams.map((team) => `<tr><td>${team.id} TEAM</td>${metricKeys.map((key) => `<td><span class="heat-pill" style="background:${heatColor(team.metrics[key])}">${team.metrics[key]}</span></td>`).join("")}<td><span class="heat-pill" style="background:${heatColor(team.overall)}">${team.overall}</span></td></tr>`).join("");
+        const tableRows = data.teams.map((team) => `<tr><td>${team.id} TEAM</td>${metricKeys.map((key) => `<td><span class="heat-pill" style="background:${heatColor(team.metrics[key])}">${displayScore(team.metrics[key])}</span></td>`).join("")}<td><span class="heat-pill" style="background:${heatColor(team.overall)}">${displayScore(team.overall)}</span></td></tr>`).join("");
         document.getElementById("comparison-table").innerHTML = `<thead><tr><th scope="col">チーム</th>${tableHeaders}<th scope="col">総合</th></tr></thead><tbody>${tableRows}</tbody>`;
 
         document.getElementById("method-list").innerHTML = data.methodology.map((item, index) => `<div class="method-item"><span class="method-number">${index + 1}</span><div><strong>${item.title}</strong><p>${item.body}</p></div></div>`).join("");

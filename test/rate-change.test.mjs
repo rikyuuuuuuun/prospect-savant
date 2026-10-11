@@ -22,6 +22,15 @@ test('current percentages compare against dated evidence, not scores; new referr
   assert.match(run(fixture, 'retention12mRate'), /前日比 変化なし/);
   assert.match(run(fixture, 'referralRate'), /比較対象外/);
 });
+
+test('retention definition changes and withheld rates never become a decrease to zero', () => {
+  const data = structuredClone(fixture);
+  data.metricDefinitions.retention = 'confirmed-roster-withdrawal-v1';
+  assert.match(run(data, 'retention12mRate'), /比較対象外/);
+  data.comparison.metricDefinitions.retention = data.metricDefinitions.retention;
+  data.teams[0].benchmark.retention12mRate = null;
+  assert.match(run(data, 'retention12mRate'), /比較対象外/);
+});
 test('increase, decrease and unchanged use displayed percentage-point precision', () => {
   const data = structuredClone(fixture);
   data.teams[0].benchmark.admissionRate = 87.3;
