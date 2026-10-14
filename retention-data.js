@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-14-0730-trial-ytd-v1",
-  "asOf": "2026-10-14",
+  "snapshotId": "savant-2026-10-15-0730-trial-ytd-v1",
+  "asOf": "2026-10-15",
   "minimumSample": 20,
   "months": [
     1,
@@ -20,22 +20,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       98,
       93.6,
       86.1,
-      78.6,
-      69.2,
+      78.7,
+      69.3,
       56.5,
       38.3,
-      31.3
+      31.7
     ],
     "samples": [
       1810,
-      1754,
-      1504,
+      1756,
+      1506,
       1447,
-      1372,
-      1066,
+      1374,
+      1070,
       942,
       446,
-      160
+      164
     ]
   },
   "teams": {
@@ -46,21 +46,21 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         95.1,
         88.6,
         82.7,
-        70.4,
+        70.3,
         58.1,
         41.1,
-        31.3
+        31.7
       ],
       "samples": [
         650,
         626,
-        548,
+        549,
         527,
-        502,
-        450,
+        503,
+        451,
         422,
         280,
-        160
+        164
       ]
     },
     "B": {
@@ -70,7 +70,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         94.3,
         86.8,
         79.4,
-        74.3,
+        74.4,
         58.4,
         33.7,
         null
@@ -81,7 +81,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         438,
         425,
         407,
-        342,
+        344,
         320,
         166,
         0
@@ -93,8 +93,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         97.1,
         90.3,
         80.5,
-        71.1,
-        59.1,
+        71.2,
+        59.3,
         47.9,
         null,
         null
@@ -104,8 +104,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         376,
         319,
         308,
-        294,
-        225,
+        295,
+        226,
         165,
         0,
         0
@@ -125,8 +125,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         251,
-        244,
-        199,
+        246,
+        200,
         187,
         169,
         49,
