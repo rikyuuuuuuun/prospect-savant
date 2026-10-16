@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-15-0730-trial-ytd-v1",
-  "asOf": "2026-10-15",
+  "snapshotId": "savant-2026-10-16-0730-trial-ytd-v1",
+  "asOf": "2026-10-16",
   "minimumSample": 20,
   "months": [
     1,
@@ -21,19 +21,19 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       93.6,
       86.1,
       78.7,
-      69.3,
-      56.5,
+      69.1,
+      56.4,
       38.3,
       31.7
     ],
     "samples": [
       1810,
-      1756,
-      1506,
+      1758,
+      1510,
       1447,
       1374,
-      1070,
-      942,
+      1072,
+      943,
       446,
       164
     ]
@@ -46,7 +46,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         95.1,
         88.6,
         82.7,
-        70.3,
+        70.1,
         58.1,
         41.1,
         31.7
@@ -54,10 +54,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         650,
         626,
-        549,
+        551,
         527,
         503,
-        451,
+        452,
         422,
         280,
         164
@@ -78,7 +78,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         526,
         508,
-        438,
+        439,
         425,
         407,
         344,
@@ -94,8 +94,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         90.3,
         80.5,
         71.2,
-        59.3,
-        47.9,
+        59,
+        47.6,
         null,
         null
       ],
@@ -105,8 +105,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         319,
         308,
         295,
-        226,
-        165,
+        227,
+        166,
         0,
         0
       ]
@@ -114,7 +114,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "D": {
       "rates": [
         100,
-        96.7,
+        96.8,
         93.5,
         86.6,
         78.1,
@@ -125,8 +125,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         251,
-        246,
-        200,
+        248,
+        201,
         187,
         169,
         49,
