@@ -28,3 +28,13 @@ The shared-login portal stores a separate Savant HTML bundle. Verifying Pages al
 The portal refresh workflow also listens to successful `Recover Prospect Savant Daily Publish` completion, including validated `automation/savant-recovery-*` pulse branches. Recovery waits for its canonical publisher and live Pages verification before completing, so this refresh occurs after the new bundle is available. Failed recovery runs do not refresh. Workflow-run and workflow-maintenance push events refresh only Savant; scheduled/manual all-scope refreshes remain unchanged. Existing OIDC authentication, retry budget and previous-snapshot retention remain intact.
 
 After repairing this path, verify the portal's saved `asOf` and rendered dashboard, not just the publisher result.
+
+## 2026-10-18 外部トリガーの再導入（所有者委任による判断）
+
+2026-09-29は「GPT監視のpulseに一本化」としていたが、以下の実測から再導入した。
+
+- 2026-10-06〜10-17、schedule起動の遅延は毎日2〜4.5時間（06:07枠が08:26〜08:50、07:30枠が09:13〜12:07に起動）。当日の初回公開は08:50〜11:31にばらついた。
+- `workflow_dispatch` はscheduleのような遅延を受けない。Workerは既存の回復workflowをdispatchするだけで、公開経路は正規publisherの1本のまま。当日公開済みならno-opになる。
+- Cron TriggersはWorkers Paidに含まれ、追加費用はかからない。
+
+同時に、06:07枠の失敗原因はschedule遅延ではなくGoogle Sheetsの429（分単位の読取quota）だったため、429のbackoffを分の境界を越える長さにし、待機ループでも再試行するよう修正した。

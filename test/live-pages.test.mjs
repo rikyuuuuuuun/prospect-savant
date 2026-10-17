@@ -41,6 +41,16 @@ test('persistent R5 block expires without accepting the source', async () => {
   await assert.rejects(waitForPrivateSource({ capture: async () => { captures++; throw Error('SOURCE_QUALITY_BLOCKED_R5'); }, probe: s => s, waitMinutes: 5, now: () => clock, sleep: async ms => clock += ms, logger: () => {} }), /SOURCE_QUALITY_BLOCKED_R5/);
   assert.equal(captures, 2);
 });
+test('an exhausted Sheets quota read is retried on the next wait cycle; schema errors still stop at once', async () => {
+  let captures = 0, clock = 0;
+  const result = await waitForPrivateSource({ capture: async () => { if (++captures === 1) throw Error('GOOGLE_SHEETS_429'); return { ready: true }; }, probe: s => s, waitMinutes: 10, now: () => clock, sleep: async ms => clock += ms, logger: () => {} });
+  assert.deepEqual(result, { attempts: 2, ready: true });
+  clock = 0;
+  await assert.rejects(waitForPrivateSource({ capture: async () => { throw Error('GOOGLE_SHEETS_503'); }, probe: s => s, waitMinutes: 5, now: () => clock, sleep: async ms => clock += ms, logger: () => {} }), /GOOGLE_SHEETS_503/);
+  let schemaCaptures = 0;
+  await assert.rejects(waitForPrivateSource({ capture: async () => { schemaCaptures++; throw Error('SOURCE_SCHEMA_INVALID'); }, probe: s => s, waitMinutes: 60, now: () => 0, sleep: async () => {}, logger: () => {} }), /SOURCE_SCHEMA_INVALID/);
+  assert.equal(schemaCaptures, 1);
+});
 test('diagnostic with zero wait never retries a quality block', async () => {
   await assert.rejects(waitForPrivateSource({ capture: async () => { throw Error('SOURCE_QUALITY_BLOCKED_R5'); }, probe: s => s, sleep: () => { throw Error('must not sleep'); } }), /SOURCE_QUALITY_BLOCKED_R5/);
 });
