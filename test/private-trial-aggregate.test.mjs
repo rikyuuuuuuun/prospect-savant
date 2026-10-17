@@ -299,7 +299,15 @@ test('retries attempt-local timeout and network failures without exposing a requ
     sleep: async (delay) => quotaDelays.push(delay), random: () => 0, logger: () => {},
   })('https://sheets.invalid/private-id', 'token');
   assert.equal(quotaAttempts, 2);
-  assert.deepEqual(quotaDelays, [4_000]);
+  // A retry-after shorter than the quota window is raised to the 15s minimum.
+  assert.deepEqual(quotaDelays, [15_000]);
+
+  const exhaustedDelays = [];
+  await assert.rejects(createRetriableGoogleJson({
+    requestJson: async () => { throw new Error('GOOGLE_SHEETS_429'); },
+    sleep: async (delay) => exhaustedDelays.push(delay), random: () => 0, logger: () => {},
+  })('https://sheets.invalid/private-id', 'token'), /GOOGLE_SHEETS_429/);
+  assert.deepEqual(exhaustedDelays, [15_000, 30_000, 60_000]);
 
   await assert.rejects(
     () => googleJson('https://sheets.invalid/private-id', 'token', {

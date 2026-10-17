@@ -34,6 +34,9 @@ const RANGES = [
 const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
 const GOOGLE_SHEETS_TIMEOUT_MS = 15_000;
 const GOOGLE_SHEETS_MAX_RETRY_DELAY_MS = 30_000;
+// Sheets read quota is per minute; a 429 retry must cross the window, not retry within it.
+const GOOGLE_SHEETS_QUOTA_INITIAL_DELAY_MS = 15_000;
+const GOOGLE_SHEETS_QUOTA_MAX_RETRY_DELAY_MS = 65_000;
 const GOOGLE_SHEETS_RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 const MONTHLY_AS_OF_RANGE_INDEX = 2;
 const MONTHLY_AS_OF_COLUMN_INDEX = 21;
@@ -130,11 +133,12 @@ function transientSheetsFailure(error) {
 }
 
 function retryDelayMilliseconds(failure, attempt, random) {
-  const initialDelay = failure.status === 429 ? 2_000 : 1_000;
+  const quota = failure.status === 429;
+  const initialDelay = quota ? GOOGLE_SHEETS_QUOTA_INITIAL_DELAY_MS : 1_000;
   const exponentialDelay = initialDelay * (2 ** (attempt - 1));
   const jitter = Math.floor(random() * 1_001);
   return Math.min(
-    GOOGLE_SHEETS_MAX_RETRY_DELAY_MS,
+    quota ? GOOGLE_SHEETS_QUOTA_MAX_RETRY_DELAY_MS : GOOGLE_SHEETS_MAX_RETRY_DELAY_MS,
     Math.max(exponentialDelay + jitter, failure.retryAfterMs || 0),
   );
 }
