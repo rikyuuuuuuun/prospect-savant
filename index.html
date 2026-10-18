@@ -906,20 +906,17 @@
       .bt-myteam { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
       .bt-myteam button { min-width: 44px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; letter-spacing: 0; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
       .bt-myteam button[aria-pressed="true"] { background: var(--navy-800); border-color: var(--navy-800); color: #fff; box-shadow: inset 0 -3px 0 var(--bt-c, transparent); }
-      .bt-streak { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--navy-800); font-size: 12px; font-weight: 800; }
-      .bt-streak b { font-size: 16px; font-variant-numeric: tabular-nums; }
 
       .bt-ticker { position: relative; overflow: hidden; margin-bottom: 18px; border-radius: 12px; background: var(--navy-900); color: #fff; box-shadow: var(--shadow); }
       .bt-ticker:focus-visible { outline: 3px solid rgba(52, 117, 167, 0.38); outline-offset: 3px; }
       .bt-ticker-label { position: absolute; z-index: 2; inset: 0 auto 0 0; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--red-deep); font-size: 11px; font-weight: 900; letter-spacing: .14em; }
-      .bt-ticker-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: bt-blink 1.4s infinite; }
+      
       .bt-ticker-track { display: flex; width: max-content; gap: 44px; padding: 12px 0 12px 130px; animation: bt-marquee var(--bt-dur, 40s) linear infinite; font-size: 13px; white-space: nowrap; }
       .bt-ticker:hover .bt-ticker-track, .bt-ticker:focus-within .bt-ticker-track { animation-play-state: paused; }
       .bt-ticker-item b { color: #fff; }
       .bt-ticker-item em { font-style: normal; color: #b7c8d6; }
       .bt-ticker-item .up { color: #8fd9b6; } .bt-ticker-item .down { color: #f2a19c; }
       @keyframes bt-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-      @keyframes bt-blink { 50% { opacity: .25; } }
 
       .bt-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
       .bt-card { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
@@ -1020,7 +1017,6 @@
       .bt-podium div.lead { background: #fff; box-shadow: inset 0 0 0 2px var(--bt-c); }
       .bt-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
       .bt-full { grid-column: 1 / -1; }
-      .bt-confetti { position: fixed; inset: 0; z-index: 60; width: 100%; height: 100%; pointer-events: none; }
 
       @media (max-width: 980px) {
         .bt-grid { grid-template-columns: minmax(0, 1fr); }
@@ -1070,7 +1066,7 @@
     <nav class="dashboard-nav" aria-label="分析メニュー" hidden>
       <div class="container dashboard-nav-inner">
         <div class="view-controls" aria-label="表示する分析">
-          <button type="button" data-view="battle" aria-pressed="true">今日のバトル</button>
+          <button type="button" data-view="standings" aria-pressed="true">チーム順位</button>
           <button type="button" data-view="overview" aria-pressed="false">チーム概要</button>
           <button type="button" data-view="composition" aria-pressed="false">会員構成</button>
           <button type="button" data-view="admissions" aria-pressed="false">実入会の推移</button>
@@ -1086,35 +1082,34 @@
         <div><p class="eyebrow">EXPLORE YOUR TEAM</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
         <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option></select><span>各グラフでも個別に選べます</span></label>
       </div>
-      <section class="section" id="battle-section" aria-labelledby="battle-title">
+      <section class="section" id="standings-section" aria-labelledby="standings-title">
         <div class="section-heading">
-          <div><p class="eyebrow" style="color:var(--blue-deep)">TODAY'S STANDINGS</p><h2 id="battle-title">今日の順位バトル</h2></div>
-          <p>総合点の順位、部門別の首位、2チームの直接対決。毎日の公開値だけで、いまの勝ち負けと逆転までの距離を表示します。</p>
+          <div><p class="eyebrow" style="color:var(--blue-deep)">STANDINGS</p><h2 id="standings-title">チーム順位</h2></div>
+          <p>日次公開値に基づく総合順位と部門別首位、チーム間の比較です。各チームの現在位置と、上位との差を示します。</p>
         </div>
         <div class="bt-topline">
-          <div class="bt-myteam" id="bt-myteam" role="group" aria-label="マイチームを選択">MY TEAM</div>
-          <div class="bt-streak" id="bt-streak" hidden></div>
+          <div class="bt-myteam" id="bt-myteam" role="group" aria-label="所属チームを選択">所属チーム</div>
         </div>
-        <div class="bt-ticker" id="bt-ticker" tabindex="0" aria-label="今日のヘッドライン。ホバーまたはフォーカスで一時停止">
-          <div class="bt-ticker-label">TODAY</div>
+        <div class="bt-ticker" id="bt-ticker" tabindex="0" aria-label="前回公開からの主な変化。ホバーまたはフォーカスで一時停止">
+          <div class="bt-ticker-label">UPDATES</div>
           <div class="bt-ticker-track" id="bt-ticker-track"></div>
         </div>
         <div class="bt-grid">
           <article class="bt-card">
-            <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合ランキング</h3></div><button type="button" class="bt-btn" id="bt-replay">もう一度再生</button></div>
+            <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合順位</h3></div><button type="button" class="bt-btn" id="bt-replay">再表示</button></div>
             <div class="bt-race" id="bt-race"></div>
             <p class="bt-note" id="bt-race-note"></p>
           </article>
           <article class="bt-card bt-mission" id="bt-mission">
-            <div class="bt-card-head"><div><p class="eyebrow">MY TEAM MISSION</p><h3>マイチーム指令</h3></div><span>逆転・防衛に効く指標</span></div>
+            <div class="bt-card-head"><div><p class="eyebrow">FOCUS METRICS</p><h3>所属チームの重点指標</h3></div><span>総合点への影響度順</span></div>
             <div id="bt-mission-body" aria-live="polite"></div>
           </article>
           <article class="bt-card bt-full">
-            <div class="bt-card-head"><div><p class="eyebrow">CATEGORY LEADERS</p><h3>部門別トップ</h3></div><span>2位との差が5点以内は「接戦」</span></div>
+            <div class="bt-card-head"><div><p class="eyebrow">CATEGORY LEADERS</p><h3>部門別首位</h3></div><span>2位との差が5点以内は「僅差」</span></div>
             <div class="bt-titles" id="bt-titles"></div>
           </article>
           <article class="bt-card">
-            <div class="bt-card-head"><div><p class="eyebrow">HEAD TO HEAD</p><h3>直接対決</h3></div><span>5指標でどちらが勝ち越すか</span></div>
+            <div class="bt-card-head"><div><p class="eyebrow">COMPARISON</p><h3>チーム間比較</h3></div><span>5指標の優劣</span></div>
             <div class="bt-vs-pick">
               <select id="bt-vs-left" aria-label="左のチーム"></select>
               <button type="button" class="bt-btn" id="bt-vs-swap" aria-label="左右を入れ替え">⇄</button>
@@ -1124,7 +1119,7 @@
             <div class="bt-vs-rows" id="bt-vs-rows"></div>
           </article>
           <article class="bt-card">
-            <div class="bt-card-head"><div><p class="eyebrow">ADMISSION RACE</p><h3>年度 入会レース</h3></div>
+            <div class="bt-card-head"><div><p class="eyebrow">ADMISSIONS</p><h3>年度入会推移</h3></div>
               <div class="bt-seg" id="bt-admit-mode" role="group" aria-label="表示単位">
                 <button type="button" data-mode="count" aria-pressed="true">人数</button>
                 <button type="button" data-mode="rate" aria-pressed="false">会員100人あたり</button>
@@ -1135,7 +1130,7 @@
               <div class="bt-month" aria-live="polite"><strong id="bt-month">4月</strong><span id="bt-month-sub">4月からの累計</span></div>
             </div>
             <div class="bt-slider">
-              <button type="button" class="bt-btn" id="bt-play">▶ 再生</button>
+              <button type="button" class="bt-btn" id="bt-play">▶ 推移を表示</button>
               <input type="range" id="bt-month-range" min="0" max="0" value="0" aria-label="表示する月">
             </div>
             <div class="bt-podium" id="bt-podium"></div>
@@ -2752,7 +2747,7 @@
       (() => {
         "use strict";
         const data = window.PROSPECT_SAVANT_DATA;
-        const section = document.getElementById("battle-section");
+        const section = document.getElementById("standings-section");
         if (!data || !section || !Array.isArray(data.teams)) return;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
@@ -2813,7 +2808,7 @@
           return "";
         };
 
-        /* ---------- My team & streak ---------- */
+        /* ---------- Own team & last visit ---------- */
         let myTeam = store.get("savant-my-team");
         if (!teamIds.includes(myTeam)) myTeam = null;
         const myTeamBox = document.getElementById("bt-myteam");
@@ -2822,18 +2817,11 @@
         const todayJst = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
         const visit = store.get("savant-visit") || {};
         if (visit.last !== todayJst) {
-          const yesterday = new Date(Date.now() - 864e5).toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
-          visit.streak = visit.last === yesterday ? (visit.streak || 0) + 1 : 1;
           visit.previousSeen = visit.seen || null;
           visit.last = todayJst;
         }
         visit.seen = { asOf: data.asOf, scoreVersion: data.scoreVersion, overall: Object.fromEntries(teams.map(team => [team.id, team.overall])) };
         store.set("savant-visit", visit);
-        const streakEl = document.getElementById("bt-streak");
-        if (visit.streak >= 1) {
-          streakEl.hidden = false;
-          streakEl.innerHTML = `<span>連続チェック</span><b>${num(visit.streak)}</b><span>日目</span>`;
-        }
 
         /* ---------- Count-up helper ---------- */
         const countUp = (el, to, { digits = 0, prefix = "", duration = 1400 } = {}) => {
@@ -2859,21 +2847,21 @@
             const overallDelta = prev && Number.isFinite(prev.overall) ? team.overall - prev.overall : null;
             let move = "";
             if (prevRank !== null) {
-              move = prevRank > rank ? `<span class="bt-move up">▲${prevRank - rank} UP</span>`
-                : prevRank < rank ? `<span class="bt-move down">▼${rank - prevRank} DOWN</span>`
-                : `<span class="bt-move">→ 前回と同順位</span>`;
+              move = prevRank > rank ? `<span class="bt-move up">▲${prevRank - rank}</span>`
+                : prevRank < rank ? `<span class="bt-move down">▼${rank - prevRank}</span>`
+                : `<span class="bt-move">前回同順位</span>`;
             }
             const above = standings.filter(other => other.overall > team.overall).sort((a, b) => a.overall - b.overall)[0];
             const below = standings.filter(other => other.overall < team.overall).sort((a, b) => b.overall - a.overall)[0];
             const tied = standings.filter(other => other.id !== team.id && other.overall === team.overall);
-            const gapText = tied.length ? `${tied.map(other => teamName(other.id)).join("・")}と<b>同点</b>で並走中`
-              : above ? `${rankOf(above.id)}位 ${teamName(above.id)}まで <b>${num(above.overall - team.overall)}点</b>${below ? `　／　後続 ${teamName(below.id)}と <b>${num(team.overall - below.overall)}点差</b>` : ""}`
-              : below ? `首位キープ。2位 ${teamName(below.id)}と <b>${num(team.overall - below.overall)}点差</b>` : "";
+            const gapText = tied.length ? `${tied.map(other => teamName(other.id)).join("・")}と<b>同点</b>`
+              : above ? `${rankOf(above.id)}位 ${teamName(above.id)}との差 <b>${num(above.overall - team.overall)}点</b>${below ? `　／　下位 ${teamName(below.id)}との差 <b>${num(team.overall - below.overall)}点</b>` : ""}`
+              : below ? `2位 ${teamName(below.id)}との差 <b>${num(team.overall - below.overall)}点</b>` : "";
             const mine = team.id === myTeam;
             return `<div class="bt-lane${mine ? " is-mine" : ""}" data-rank="${rank}" style="--bt-c:${teamColor(team.id)};--bt-s:${savantColor(team.overall)}">
               <div class="bt-rank">${rank}<small>${rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : `${rank}TH`}</small></div>
               <div class="bt-lane-body">
-                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">MY TEAM</span>` : ""}${move}</div>
+                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">所属</span>` : ""}${move}</div>
                 <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
                 <div class="bt-gap">${gapText}</div>
               </div>
@@ -2906,7 +2894,7 @@
         const renderMission = () => {
           missionEl.style.setProperty("--bt-c", myTeam ? teamColor(myTeam) : "transparent");
           if (!myTeam) {
-            missionBody.innerHTML = `<p class="bt-mission-empty">上の <b>MY TEAM</b> で自分のチームを選ぶと、ライバルとの点差と「どの指標を伸ばせば逆転できるか」をここに表示します。選択はこの端末だけに保存されます。</p>`;
+            missionBody.innerHTML = `<p class="bt-mission-empty">上の <b>所属チーム</b> を選択すると、上位チームとの差と、総合点への影響が大きい指標を表示します。選択内容はこの端末にのみ保存されます。</p>`;
             return;
           }
           const mine = byId[myTeam];
@@ -2920,17 +2908,17 @@
             const edges = metricEdge(mine, rival);
             const gap = Math.abs(mine.overall - rival.overall);
             if (above) {
-              lead = `<p>${rank - 1}位 <b>${esc(teamName(above.id))}</b> まであと <b>${num(gap)}点</b>。差が大きい指標ほど、詰めたときの総合への効き目が大きくなります。</p>`;
+              lead = `<p>${rank - 1}位 <b>${esc(teamName(above.id))}</b> との差は <b>${num(gap)}点</b>。総合点への影響が大きい指標から順に示します。</p>`;
               items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
-                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点ビハインド（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact, 1)}点分）` }));
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点差（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact, 1)}点分）` }));
             } else {
-              lead = `<p><b>首位をキープ中。</b>2位 <b>${esc(teamName(below.id))}</b> とは <b>${num(gap)}点差</b>。相手が上回っている指標が追い上げポイントです。</p>`;
+              lead = `<p><b>現在首位。</b>2位 <b>${esc(teamName(below.id))}</b> との差は <b>${num(gap)}点</b>。2位が上回っている指標を示します。</p>`;
               items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
-                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact, 1)}点分の追い上げ材料）` }));
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact, 1)}点分）` }));
             }
             const strong = edges.filter(edge => edge.diff > 0).sort((a, b) => b.impact - a.impact)[0];
-            if (strong) items.push({ score: mine.metrics[strong.key], html: `武器は <b>${esc(labels[strong.key])}</b>：${esc(teamName(rival.id))}より ${num(strong.diff)}点上（総合で約${num(strong.impact, 1)}点のリード）` });
-            if (above && below) items.push({ score: mine.overall, html: `防衛ライン：後ろの ${esc(teamName(below.id))} とは <b>${num(mine.overall - below.overall)}点差</b>` });
+            if (strong) items.push({ score: mine.metrics[strong.key], html: `優位な指標：<b>${esc(labels[strong.key])}</b>（${esc(teamName(rival.id))}より ${num(strong.diff)}点上・総合で約${num(strong.impact, 1)}点分）` });
+            if (above && below) items.push({ score: mine.overall, html: `下位 ${esc(teamName(below.id))} との差 <b>${num(mine.overall - below.overall)}点</b>` });
           }
           missionBody.innerHTML = `<div class="bt-mission-big"><strong>${rank}<small style="font-size:20px">位</small></strong><span>${esc(teamName(myTeam))}・総合 ${num(mine.overall)}点</span></div>${lead}
             <ul class="bt-mission-list">${items.map(item => `<li style="--bt-s:${savantColor(item.score)}"><i style="color:${savantInk(item.score)}">${num(item.score)}</i><span>${item.html}</span></li>`).join("")}</ul>`;
@@ -2947,7 +2935,7 @@
             const champs = order.filter(team => value(team) === top);
             const next = order.find(team => value(team) < top);
             const gap = next ? top - value(next) : null;
-            const tag = champs.length > 1 ? `<span class="bt-hot">同点首位</span>` : gap !== null && gap <= 5 ? `<span class="bt-hot">接戦</span>` : gap !== null && gap >= 20 ? `<span class="bt-safe">独走</span>` : "";
+            const tag = champs.length > 1 ? `<span class="bt-hot">同点首位</span>` : gap !== null && gap <= 5 ? `<span class="bt-hot">僅差</span>` : gap !== null && gap >= 20 ? `<span class="bt-safe">大差</span>` : "";
             return `<div class="bt-title" style="--bt-s:${savantColor(top)}">
               <div class="bt-bubble" style="color:${savantInk(top)}">${num(top)}</div>
               <div><div class="bt-title-label">${esc(cat.label)}</div>
@@ -2992,9 +2980,9 @@
             return `<div><div class="bt-vs-row-head"><span class="${a > b ? "win" : ""}">${num(a)}${a > b ? " ◀" : ""}</span><b>${esc(labels[key])}<small style="color:var(--muted);font-weight:700"> ・配点${weights[key]}％</small></b><span class="${b > a ? "win" : ""}">${b > a ? "▶ " : ""}${num(b)}</span></div>
               <div class="bt-tug" role="img" aria-label="${esc(labels[key])} ${esc(teamName(L.id))} ${num(a)}点 対 ${esc(teamName(R.id))} ${num(b)}点"><i style="flex-grow:${a / total};background:${teamColor(L.id)}"></i><i style="flex-grow:${b / total};background:${teamColor(R.id)}"></i></div></div>`;
           }).join("");
-          const verdict = lw > rw ? `${teamName(L.id)} の勝ち越し` : rw > lw ? `${teamName(R.id)} の勝ち越し` : "五分";
+          const verdict = lw > rw ? `${teamName(L.id)} が優位` : rw > lw ? `${teamName(R.id)} が優位` : "同数";
           document.getElementById("bt-vs-score").innerHTML = `<div><strong style="color:${teamColor(L.id)}">${lw}</strong><span>${esc(teamName(L.id))}・総合${num(L.overall)}</span></div>
-            <div class="verdict">${esc(verdict)}<br><span>${num(metricKeys.length - lw - rw)}指標で引き分け</span></div>
+            <div class="verdict">${esc(verdict)}<br><span>${num(metricKeys.length - lw - rw)}指標で同点</span></div>
             <div><strong style="color:${teamColor(R.id)}">${rw}</strong><span>${esc(teamName(R.id))}・総合${num(R.overall)}</span></div>`;
           document.getElementById("bt-vs-rows").innerHTML = rows;
         };
@@ -3045,12 +3033,12 @@
           rangeEl.value = String(monthIndex);
           const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[monthIndex]) || 0 })).sort((a, b) => b.value - a.value);
           const top = monthly[0]?.value || 0;
-          document.getElementById("bt-podium").innerHTML = monthly.map(item => `<div class="${top > 0 && item.value === top ? "lead" : ""}" style="--bt-c:${teamColor(item.id)}"><b><span class="bt-dot"></span>${esc(teamName(item.id))}</b><strong>${num(item.value)}</strong>${esc(monthLabel(monthIndex))}の入会${top > 0 && item.value === top ? "・月間トップ" : ""}</div>`).join("");
+          document.getElementById("bt-podium").innerHTML = monthly.map(item => `<div class="${top > 0 && item.value === top ? "lead" : ""}" style="--bt-c:${teamColor(item.id)}"><b><span class="bt-dot"></span>${esc(teamName(item.id))}</b><strong>${num(item.value)}</strong>${esc(monthLabel(monthIndex))}の入会${top > 0 && item.value === top ? "・当月最多" : ""}</div>`).join("");
         };
         const stopPlay = () => {
           clearInterval(playTimer);
           playTimer = null;
-          playBtn.textContent = "▶ 再生";
+          playBtn.textContent = "▶ 推移を表示";
         };
         const startPlay = () => {
           if (lastIndex < 0) return;
@@ -3086,12 +3074,12 @@
           const items = [];
           const leader = standings[0];
           const second = standings.find(team => team.overall < leader.overall);
-          items.push(`<b>総合首位 ${esc(teamName(leader.id))}</b> ${num(leader.overall)}点${second ? ` <em>2位 ${esc(teamName(second.id))}と${num(leader.overall - second.overall)}点差</em>` : ""}`);
+          items.push(`<b>総合1位 ${esc(teamName(leader.id))}</b> ${num(leader.overall)}点${second ? ` <em>2位 ${esc(teamName(second.id))}と${num(leader.overall - second.overall)}点差</em>` : ""}`);
           if (comparable) {
             standings.forEach(team => {
               const prevRank = prevRankOf(team.id);
               const rank = rankOf(team.id);
-              if (prevRank !== null && prevRank !== rank) items.push(`<b>${esc(teamName(team.id))}</b> <span class="${prevRank > rank ? "up" : "down"}">${prevRank}位 → ${rank}位 ${prevRank > rank ? "▲浮上" : "▼後退"}</span>`);
+              if (prevRank !== null && prevRank !== rank) items.push(`<b>${esc(teamName(team.id))}</b> <span class="${prevRank > rank ? "up" : "down"}">${prevRank}位 → ${rank}位 ${prevRank > rank ? "▲上昇" : "▼下降"}</span>`);
               const prev = prevById[team.id];
               metricKeys.forEach(key => {
                 const now = team.metrics?.[key];
@@ -3109,69 +3097,34 @@
           if (admissionsComparable) {
             teamIds.forEach(id => {
               const added = (data.admissions.teams?.[id]?.cumulative ?? 0) - (comparison.admissions.teams?.[id]?.cumulative ?? 0);
-              if (added > 0) items.push(`<b>${esc(teamName(id))}</b> に新しい仲間 <span class="up">+${num(added)}人</span> <em>年度累計${num(data.admissions.teams[id].cumulative)}人</em>`);
+              if (added > 0) items.push(`<b>${esc(teamName(id))}</b> 新規入会 <span class="up">+${num(added)}人</span> <em>年度累計${num(data.admissions.teams[id].cumulative)}人</em>`);
             });
           }
           if (lastIndex >= 0) {
             const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[lastIndex]) || 0 })).sort((a, b) => b.value - a.value);
-            if (monthly[0].value > 0) items.push(`<b>${esc(monthLabel(lastIndex))}の入会トップ ${esc(teamName(monthly[0].id))}</b> ${num(monthly[0].value)}人${monthly[1] ? ` <em>2位 ${esc(teamName(monthly[1].id))} ${num(monthly[1].value)}人</em>` : ""}`);
+            if (monthly[0].value > 0) items.push(`<b>${esc(monthLabel(lastIndex))}の入会最多 ${esc(teamName(monthly[0].id))}</b> ${num(monthly[0].value)}人${monthly[1] ? ` <em>2位 ${esc(teamName(monthly[1].id))} ${num(monthly[1].value)}人</em>` : ""}`);
           }
           let closest = null;
           for (let i = 0; i < standings.length - 1; i += 1) {
             const gap = standings[i].overall - standings[i + 1].overall;
             if (!closest || gap < closest.gap) closest = { gap, a: standings[i], b: standings[i + 1] };
           }
-          if (closest) items.push(`<b>最接戦</b> ${esc(teamName(closest.a.id))} vs ${esc(teamName(closest.b.id))} <em>${closest.gap === 0 ? "同点" : `${num(closest.gap)}点差`}</em>`);
+          if (closest) items.push(`<b>最小差</b> ${esc(teamName(closest.a.id))} vs ${esc(teamName(closest.b.id))} <em>${closest.gap === 0 ? "同点" : `${num(closest.gap)}点差`}</em>`);
           metricKeys.forEach(key => {
             const order = leaderOf(key);
-            if (order.length > 1 && order[0].metrics[key] - order[1].metrics[key] <= 5 && order[0].metrics[key] !== order[1].metrics[key]) items.push(`<b>${esc(labels[key])}</b> 首位争い ${esc(teamName(order[0].id))} ${num(order[0].metrics[key])} vs ${esc(teamName(order[1].id))} ${num(order[1].metrics[key])}`);
+            if (order.length > 1 && order[0].metrics[key] - order[1].metrics[key] <= 5 && order[0].metrics[key] !== order[1].metrics[key]) items.push(`<b>${esc(labels[key])}</b> 首位差5点以内 ${esc(teamName(order[0].id))} ${num(order[0].metrics[key])} vs ${esc(teamName(order[1].id))} ${num(order[1].metrics[key])}`);
           });
           const seen = visit.previousSeen;
           if (seen && seen.asOf !== data.asOf && seen.scoreVersion === data.scoreVersion) {
             const moves = teamIds.filter(id => Number.isFinite(seen.overall?.[id]) && seen.overall[id] !== byId[id].overall)
               .map(id => `${esc(id)} <span class="${byId[id].overall > seen.overall[id] ? "up" : "down"}">${signed(byId[id].overall - seen.overall[id])}</span>`);
-            items.push(`<b>あなたの前回チェック（${esc(seen.asOf.slice(5).replace("-", "/"))}）から</b> ${moves.length ? moves.join("　") : "<em>総合点は変化なし</em>"}`);
+            items.push(`<b>前回閲覧（${esc(seen.asOf.slice(5).replace("-", "/"))}）から</b> ${moves.length ? moves.join("　") : "<em>総合点は変化なし</em>"}`);
           }
           if (!comparable) items.push(`<em>スコア版・定義の変更により、今日は前回比較を表示していません</em>`);
           const track = document.getElementById("bt-ticker-track");
           const html = items.map(item => `<span class="bt-ticker-item">${item}</span>`).join("");
           track.innerHTML = `${html}<span aria-hidden="true" style="display:contents">${html}</span>`;
           track.style.setProperty("--bt-dur", `${Math.max(24, items.length * 6)}s`);
-        };
-
-        /* ---------- Celebration (once per snapshot) ---------- */
-        const confetti = () => {
-          if (reduceMotion) return;
-          const canvas = document.createElement("canvas");
-          canvas.className = "bt-confetti";
-          canvas.setAttribute("aria-hidden", "true");
-          document.body.append(canvas);
-          const ctx = canvas.getContext("2d");
-          const ratio = window.devicePixelRatio || 1;
-          canvas.width = innerWidth * ratio;
-          canvas.height = innerHeight * ratio;
-          ctx.scale(ratio, ratio);
-          const colors = ["#a82f2b", "#c8403b", "#245b86", "#3475a7", "#d9e1e8", "#0d2238"];
-          const parts = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .35, vx: (Math.random() - .5) * 13, vy: -Math.random() * 13 - 4, s: 4 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .3, c: colors[Math.floor(Math.random() * colors.length)] }));
-          const start = performance.now();
-          const frame = now => {
-            ctx.clearRect(0, 0, innerWidth, innerHeight);
-            parts.forEach(p => { p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); });
-            if (now - start < 2600) requestAnimationFrame(frame); else canvas.remove();
-          };
-          requestAnimationFrame(frame);
-        };
-        const maybeCelebrate = () => {
-          if (!myTeam) return;
-          const key = `${data.snapshotId}:${myTeam}`;
-          if (store.get("savant-celebrated") === key) return;
-          const prevRank = prevRankOf(myTeam);
-          const rank = rankOf(myTeam);
-          const added = admissionsComparable ? (data.admissions.teams?.[myTeam]?.cumulative ?? 0) - (comparison.admissions.teams?.[myTeam]?.cumulative ?? 0) : 0;
-          if ((prevRank !== null && rank < prevRank) || added > 0) {
-            store.set("savant-celebrated", key);
-            setTimeout(confetti, 900);
-          }
         };
 
         /* ---------- Wiring ---------- */
@@ -3188,7 +3141,7 @@
         };
         myTeamBox.addEventListener("click", event => {
           const button = event.target.closest("button[data-team]");
-          if (button) { setMyTeam(button.dataset.team); maybeCelebrate(); }
+          if (button) setMyTeam(button.dataset.team);
         });
         document.getElementById("bt-replay").addEventListener("click", playRace);
 
@@ -3207,7 +3160,6 @@
           if (played) return;
           played = true;
           playRace();
-          maybeCelebrate();
         };
         const playAdmit = () => { if (lastIndex > 0) startPlay(); };
         const whenVisible = (el, callback) => {
@@ -3243,7 +3195,7 @@
         const comparison = document.getElementById('comparison-title').closest('section');
         const sections = [...main.querySelectorAll(':scope > section')];
         const groups = {
-          battle: [document.getElementById('battle-section')],
+          standings: [document.getElementById('standings-section')],
           overview: [document.getElementById('movement-section'), profiles, comparison],
           composition: [document.getElementById('composition-section')],
           admissions: [document.getElementById('admission-history-section')],
@@ -3253,7 +3205,7 @@
           all: sections
         };
         const descriptions = {
-          battle: '総合の順位、部門別トップ、直接対決、入会レース。MY TEAMを選ぶと逆転・防衛のポイントを表示します。',
+          standings: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。',
           overview: 'まずは変化とチームの数値を確認。集計の詳しい説明は各カードから開けます。',
           composition: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。',
           admissions: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。',
@@ -3263,15 +3215,15 @@
           all: 'すべての情報を続けて表示しています。上のメニューで目的別に絞り込めます。'
         };
         // Reorder existing nodes, preserving their data, listeners, and unavailable-data states.
-        [...groups.battle, ...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        [...groups.standings, ...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
         const controls = document.querySelector('.view-controls');
         const selectView = (view, focus = false) => {
-          if (!groups[view]) view = 'battle';
+          if (!groups[view]) view = 'standings';
           sections.forEach(section => section.classList.toggle('view-hidden', !groups[view].includes(section)));
           controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
           document.getElementById('workspace-title').textContent = controls.querySelector(`[data-view="${view}"]`).textContent;
           document.getElementById('workspace-description').textContent = descriptions[view];
-          document.querySelector('.team-picker').hidden = view === 'reference' || view === 'battle';
+          document.querySelector('.team-picker').hidden = view === 'reference' || view === 'standings';
           if (focus) document.getElementById('workspace-title').focus({preventScroll: true});
           window.dispatchEvent(new Event('resize'));
         };
@@ -3285,11 +3237,11 @@
         });
         const readHash = () => {
           const hash = location.hash.slice(1);
-          if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'battle');
+          if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'standings');
           else {
             const target = document.getElementById(hash);
             const view = Object.keys(groups).find(key => key !== 'all' && groups[key].some(section => section.contains(target)));
-            selectView(view || 'battle');
+            selectView(view || 'standings');
             target?.scrollIntoView({block: 'start'});
           }
         };
