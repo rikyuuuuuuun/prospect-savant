@@ -3691,12 +3691,10 @@
           const last = h.months.reduce((acc, _, i) => ids.some(id => finite(h.teams?.[id]?.[i])) ? i : acc, -1);
           if (last < 0) return;
           const months = h.months.slice(0, last + 1);
-          const partial = String(data.asOf).slice(0, 7) === h.months[last];
           const monthly = id => months.map((_, i) => Number(h.teams?.[id]?.[i]) || 0);
           const cum = id => monthly(id).reduce((acc, v) => [...acc, (acc.at(-1) || 0) + v], []);
           const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
           const totalRank = [...ids].sort((a, b) => totals[b] - totals[a]);
-          const fullMonths = partial ? months.length - 1 : months.length;
           const conversion = data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear ? data.admissionConversion : null;
           const conv = id => {
             const team = id === 'ALL'
@@ -3712,13 +3710,6 @@
             const publishedDelta = published?.admissionYoYDelta;
             return { ...team, rate: finite(publishedRate) ? publishedRate : rate, previousRate: finite(publishedPrevious) ? publishedPrevious : previousRate, delta: finite(publishedDelta) ? publishedDelta : finite(previousRate) ? rate - previousRate : null };
           };
-          const series = ids.map(id => ({ id, values: cum(id) }));
-          const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
-          const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
-          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th></tr></thead><tbody>
-            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td></tr>`).join('')}
-            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td></tr>
-          </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
           const convRows = conversion ? (() => {
             const overall = conv('ALL');
             const diffs = ids.map(id => conv(id) && overall ? conv(id).rate - overall.rate : null).filter(finite);
@@ -3758,9 +3749,11 @@
           compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
             + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
             + (monthlyConversion ? block('月別の体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）・体験した月ごと`, monthlyConversion) : '')
-            + block('月別の入会者数', `各月の入会人数${partial ? `（${monthLabel(months.at(-1))}は途中）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthly(id) })) })}${legend(ids)}${details('数値を表で見る', table)}`)
-            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`);
-          addToggle(section, compare);
+;
+          // The per-team bar + cumulative-line charts read best for the monthly trend, so they stay visible first
+          // and the cross-team blocks follow them instead of replacing them.
+          compare.classList.add('cx-above');
+          (section.querySelector('#admission-history-content') || section.querySelector('.section-heading')).after(compare);
         })();
 
         /* ---------- 退会の推移 ---------- */
