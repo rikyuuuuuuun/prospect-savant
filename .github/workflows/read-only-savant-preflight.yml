@@ -9,6 +9,7 @@ on:
       - 'scripts/source-freshness-gate.mjs'
       - 'scripts/trial-analytics-disposition.mjs'
       - 'scripts/publish-private-savant-source.mjs'
+      - 'scripts/trial-conversion-history.mjs'
 permissions:
   contents: read
 jobs:

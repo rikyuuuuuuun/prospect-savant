@@ -3691,12 +3691,10 @@
           const last = h.months.reduce((acc, _, i) => ids.some(id => finite(h.teams?.[id]?.[i])) ? i : acc, -1);
           if (last < 0) return;
           const months = h.months.slice(0, last + 1);
-          const partial = String(data.asOf).slice(0, 7) === h.months[last];
           const monthly = id => months.map((_, i) => Number(h.teams?.[id]?.[i]) || 0);
           const cum = id => monthly(id).reduce((acc, v) => [...acc, (acc.at(-1) || 0) + v], []);
           const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
           const totalRank = [...ids].sort((a, b) => totals[b] - totals[a]);
-          const fullMonths = partial ? months.length - 1 : months.length;
           const conversion = data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear ? data.admissionConversion : null;
           const conv = id => {
             const team = id === 'ALL'
@@ -3712,13 +3710,6 @@
             const publishedDelta = published?.admissionYoYDelta;
             return { ...team, rate: finite(publishedRate) ? publishedRate : rate, previousRate: finite(publishedPrevious) ? publishedPrevious : previousRate, delta: finite(publishedDelta) ? publishedDelta : finite(previousRate) ? rate - previousRate : null };
           };
-          const series = ids.map(id => ({ id, values: cum(id) }));
-          const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
-          const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
-          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th></tr></thead><tbody>
-            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td></tr>`).join('')}
-            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td></tr>
-          </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
           const convRows = conversion ? (() => {
             const overall = conv('ALL');
             const diffs = ids.map(id => conv(id) && overall ? conv(id).rate - overall.rate : null).filter(finite);
@@ -3736,11 +3727,33 @@
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
           const conversionCharts = conversion ? `<div class="cx-grid2"><div><p class="cx-sub">体験した人数と、そのうち入会した人数</p>${hbars(ids.map(id => conv(id) ? { id, base: conv(id).trials, value: conv(id).admissions, display: `${num(conv(id).rate, 1)}%`, sub: `体験${num(conv(id).trials)}→入会${num(conv(id).admissions)}`, title: `体験${conv(id).trials}人のうち入会${conv(id).admissions}人` } : { id, value: null, display: '—' }))}<p class="cx-note">薄い棒が体験人数、濃い棒が体験からの入会。右の数字が体験→入会率です。</p></div><div><p class="cx-sub">体験→入会率の前年比較</p>${dumbbell([...ids, 'ALL'].map(id => ({ id, prev: conv(id)?.previousRate, now: conv(id)?.rate, delta: conv(id)?.delta })))}</div></div>` : '';
+          // Monthly trial cohorts: published only when they add up to the annual counts above (validate-snapshot).
+          const mc = data.admissionConversionHistory;
+          const monthlyConversion = conversion && mc?.status === 'ok' && mc.asOf === data.asOf && mc.fiscalYear === h.fiscalYear && JSON.stringify(mc.months) === JSON.stringify(h.months) ? (() => {
+            const cm = mc.months.slice(0, mc.months.reduce((acc, _, i) => finite(mc.total.trials[i]) ? i : acc, -1) + 1);
+            const cmPartial = String(data.asOf).slice(0, 7) === cm.at(-1);
+            const pick = (id, key) => id === 'ALL' ? mc.total[key] : mc.teams[id][key];
+            const rateAt = (id, i) => pick(id, 'trials')[i] > 0 ? pick(id, 'admissions')[i] / pick(id, 'trials')[i] * 100 : null;
+            const labels = cm.map(monthLabel);
+            const rateChart = lineChart({ labels, series: [...ids, 'ALL'].map(id => ({ id, values: cm.map((_, i) => rateAt(id, i)) })), yMax: 100, yFormat: v => `${num(v)}%`, endFormat: v => `${num(v, 1)}%` });
+            const trialBars = groupedBars({ labels, series: ids.map(id => ({ id, values: cm.map((_, i) => pick(id, 'trials')[i]) })) });
+            const cell = (id, i) => {
+              const t = pick(id, 'trials')[i], a = pick(id, 'admissions')[i];
+              return t > 0 ? `<td>${num(a / t * 100, 1)}%<small>体験${num(t)}→入会${num(a)}</small></td>` : '<td class="cx-na">体験なし</td>';
+            };
+            const sumOf = (id, key) => pick(id, key).reduce((n, v) => n + (v ?? 0), 0);
+            const tableRow = id => `<tr${id === 'ALL' ? ' class="is-overall"' : ''} data-team="${id}">${rowHead(id)}${cm.map((_, i) => cell(id, i)).join('')}<td class="cx-total">${num(sumOf(id, 'admissions') / sumOf(id, 'trials') * 100, 1)}%<small>体験${num(sumOf(id, 'trials'))}→入会${num(sumOf(id, 'admissions'))}</small></td></tr>`;
+            const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${cm.map((m, i) => `<th scope="col">${monthLabel(m)}${cmPartial && i === cm.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">年度累計</th></tr></thead><tbody>${ids.map(tableRow).join('')}${tableRow('ALL')}</tbody></table></div>`;
+            return `<div class="cx-grid2"><div><p class="cx-sub">体験→入会率（体験した月ごと）</p>${rateChart}${legend([...ids, 'ALL'])}</div><div><p class="cx-sub">体験人数</p>${trialBars}${legend(ids)}</div></div><p class="cx-note">体験した月ごとに、その月に体験した人のうち入会した割合です（入会した月ではありません）。月別の合計は上の年度累計と一致します。直近の月は入会の判断がまだ進んでいる途中のため、後から率が上がることがあります。体験人数が少ない月は率が大きく振れます。</p>${details('数値を表で見る', table)}`;
+          })() : '';
           compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
             + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
-            + block('月別の入会者数', `各月の入会人数${partial ? `（${monthLabel(months.at(-1))}は途中）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthly(id) })) })}${legend(ids)}${details('数値を表で見る', table)}`)
-            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`);
-          addToggle(section, compare);
+            + (monthlyConversion ? block('月別の体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）・体験した月ごと`, monthlyConversion) : '')
+;
+          // The per-team bar + cumulative-line charts read best for the monthly trend, so they stay visible first
+          // and the cross-team blocks follow them instead of replacing them.
+          compare.classList.add('cx-above');
+          (section.querySelector('#admission-history-content') || section.querySelector('.section-heading')).after(compare);
         })();
 
         /* ---------- 退会の推移 ---------- */
