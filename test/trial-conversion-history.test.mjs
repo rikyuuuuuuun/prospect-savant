@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTrialConversionHistory, validateTrialConversionHistory, fetchTrialConversionHistory, unavailableTrialConversionHistory, trialConversionFailureReason } from '../scripts/trial-conversion-history.mjs';
+import { profileTrialColumns, trialConversionDiagnostic, buildTrialConversionHistory, validateTrialConversionHistory, fetchTrialConversionHistory, unavailableTrialConversionHistory, trialConversionFailureReason } from '../scripts/trial-conversion-history.mjs';
 
 const serial = date => (Date.parse(date) - Date.UTC(1899, 11, 30)) / 86400000;
 const rows = list => ({
@@ -108,7 +108,19 @@ test('private fetch discovers columns by header, skips other columns and gates o
 
 test('private fetch rejects missing or duplicated headers and concurrent changes', async () => {
   const run = options => fetchTrialConversionHistory({ spreadsheetId: 'savant', token: 'unused', asOf: '2026-09-06', conversion: expected, requestJson: source(options).requestJson });
-  await assert.rejects(() => run({ header: ['突合ID', '体験日', 'チーム', '出席'] }), /SCHEMA_INVALID/);
-  await assert.rejects(() => run({ header: ['体験日', 'チーム', '出席', '入会', '入会'] }), /SCHEMA_INVALID/);
+  await assert.rejects(() => run({ header: ['突合ID', '体験日', 'チーム', '出席'] }), /HEADER_MISSING_ADMITTED/);
+  await assert.rejects(() => run({ header: ['体験日', 'チーム', '出席', '入会', '入会'] }), /HEADER_DUPLICATE_ADMITTED/);
   await assert.rejects(() => run({ change: true }), /SOURCE_CHANGED_DURING_READ/);
+});
+
+test('diagnostics report a fixed code and value-type counts, never cell text', () => {
+  const columns = rows([[serial('2026-05-01'), 'A', '済', true], ['', 'B', true, false], ['2026/05/02', 'C', true, '山田'], [serial('2026-05-03'), '会場', '鈴木', true]]);
+  const profile = profileTrialColumns(columns);
+  assert.deepEqual(profile, { teamRows: 3, attended: { string: 1, true: 2 }, admitted: { true: 1, false: 1, string: 1 }, attendedDates: { empty: 1, dateString: 1 } });
+  const error = new Error('TRIAL_CONVERSION_HISTORY_ATTENDANCE_VALUE_INVALID'); error.profile = profile;
+  const line = trialConversionDiagnostic(error);
+  assert.match(line, /^detail=ATTENDANCE_VALUE_INVALID profile=/);
+  for (const text of ['済', '山田', '鈴木', '会場']) assert.equal(line.includes(text), false);
+  assert.equal(trialConversionDiagnostic(new Error('unexpected 山田')), 'detail=OTHER');
+  assert.equal(trialConversionFailureReason(new Error('TRIAL_CONVERSION_HISTORY_HEADER_MISSING_ATTENDED')), 'SCHEMA_INVALID');
 });

@@ -116,7 +116,7 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
   const keys = ['date', 'team', 'attended', 'admitted'];
   const columns = keys.map(key => {
     const found = header.flatMap((value, index) => String(value ?? '').trim() === TRIAL_CONVERSION_HEADERS[key] ? [index] : []);
-    check(found.length === 1, 'SCHEMA_INVALID');
+    check(found.length === 1, `HEADER_${found.length ? 'DUPLICATE' : 'MISSING'}_${key.toUpperCase()}`);
     return columnLetter(found[0]);
   });
   const url = batchUrl(id, columns.map(column => `'${TITLE}'!${column}${HEADER_ROW}:${column}${grid.rowCount}`));
@@ -124,7 +124,8 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
     const raw = await requestJson(url, token);
     check(raw.valueRanges?.length === 4, 'SOURCE_INCOMPLETE');
     const [dates, teams, attended, admitted] = raw.valueRanges.map(range => range?.values?.[0] || []);
-    return buildTrialConversionHistory({ dates, teams, attended, admitted, asOf });
+    try { return buildTrialConversionHistory({ dates, teams, attended, admitted, asOf }); }
+    catch (error) { error.profile = profileTrialColumns({ dates, teams, attended, admitted }); throw error; }
   };
   const history = await capture();
   validateTrialConversionHistory(history, { asOf, admissionConversion: conversion });
@@ -133,11 +134,30 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
   return history;
 }
 
+const kind = value => value === true ? 'true' : value === false ? 'false' : value === '' || value == null ? 'empty'
+  : typeof value === 'number' ? 'number' : typeof value === 'string' ? (/^\d{4}[/-]\d{1,2}[/-]\d{1,2}$/.test(value.trim()) ? 'dateString' : 'string') : 'other';
+const tally = values => values.reduce((acc, value) => ({ ...acc, [kind(value)]: (acc[kind(value)] || 0) + 1 }), {});
+
+/** Value-type counts only: no cell text, row number or person-level value leaves this function. */
+export function profileTrialColumns({ dates, teams, attended, admitted }) {
+  const rows = Array.from({ length: Math.max(dates.length, teams.length, attended.length, admitted.length) - 1 }, (_, i) => i + 1);
+  const inTeam = rows.filter(i => IDS.includes(teams[i]));
+  return { teamRows: inTeam.length, attended: tally(inTeam.map(i => attended[i])), admitted: tally(inTeam.map(i => admitted[i])),
+    attendedDates: tally(inTeam.filter(i => attended[i] === true).map(i => dates[i])) };
+}
+
+/** Fixed error code plus anonymous counts for the run log. */
+export function trialConversionDiagnostic(error) {
+  const code = String(error?.message || '');
+  const detail = /^(TRIAL_CONVERSION_HISTORY_[A-Z_]+|GOOGLE_SHEETS_[A-Z0-9_]+)$/.test(code) ? code.replace(/^TRIAL_CONVERSION_HISTORY_/, '') : 'OTHER';
+  return `detail=${detail}${error?.profile ? ` profile=${JSON.stringify(error.profile)}` : ''}`;
+}
+
 /** Optional analysis: a failed gate publishes as unavailable, never as zero or a stale series. */
 export function trialConversionFailureReason(error) {
   const code = String(error?.message || '');
   if (/^TRIAL_CONVERSION_HISTORY_ANNUAL_/.test(code)) return 'ANNUAL_MISMATCH';
   if (code === 'TRIAL_CONVERSION_HISTORY_SOURCE_CHANGED_DURING_READ') return 'SOURCE_CHANGED';
-  if (/^TRIAL_CONVERSION_HISTORY_(SCHEMA|HEADER|SOURCE_GRID|SOURCE_LINK)_INVALID$|_VALUE_INVALID$|TRIAL_DATE_INVALID$/.test(code)) return 'SCHEMA_INVALID';
+  if (/^TRIAL_CONVERSION_HISTORY_(SCHEMA|HEADER|SOURCE_GRID|SOURCE_LINK)_INVALID$|^TRIAL_CONVERSION_HISTORY_HEADER_(MISSING|DUPLICATE)_|_VALUE_INVALID$|TRIAL_DATE_INVALID$/.test(code)) return 'SCHEMA_INVALID';
   return 'SOURCE_UNAVAILABLE';
 }

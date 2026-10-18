@@ -2,7 +2,7 @@ import { unavailableDailyTrial, isDailyTrialSourceFailure } from './daily-trial-
 import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
-import { fetchTrialConversionHistory, trialConversionFailureReason, unavailableTrialConversionHistory } from './trial-conversion-history.mjs';
+import { fetchTrialConversionHistory, trialConversionDiagnostic, trialConversionFailureReason, unavailableTrialConversionHistory } from './trial-conversion-history.mjs';
 import { fetchMemberComposition, unavailableComposition } from './member-composition.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
@@ -347,7 +347,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   } catch (error) {
     // The monthly breakdown is optional; the verified annual counts still publish.
     trialConversionHistory = unavailableTrialConversionHistory(asOf, trialConversionFailureReason(error));
-    console.warn(`TRIAL_CONVERSION_HISTORY_DEFERRED reason=${trialConversionHistory.reason}`);
+    console.warn(`TRIAL_CONVERSION_HISTORY_DEFERRED reason=${trialConversionHistory.reason} ${trialConversionDiagnostic(error)}`);
   }
   let memberComposition;
   try {
