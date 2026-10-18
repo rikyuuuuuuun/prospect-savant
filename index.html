@@ -869,6 +869,38 @@
       .withdrawal-method { margin-top:20px; font-size:12px; line-height:1.8; }
       .withdrawal-method summary { cursor:pointer; font-weight:700; padding:12px 0; }
       @media(max-width:780px) { .withdrawal-grid { grid-template-columns:1fr; } .withdrawal-card { padding:14px; } }
+      .composition-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+      .composition-toolbar p { margin:5px 0 0; color:var(--muted); font-size:12px; }
+      .composition-switches { display:flex; flex-wrap:wrap; gap:6px; }
+      .composition-switches button { border:1px solid var(--line); background:white; color:var(--navy-800); border-radius:8px; padding:8px 13px; font-size:12px; font-weight:700; cursor:pointer; }
+      .composition-switches button[aria-pressed="true"] { background:var(--navy-800); border-color:var(--navy-800); color:white; }
+      .composition-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:20px 0; }
+      .composition-stat { background:white; border:1px solid var(--line); border-radius:14px; padding:20px; }
+      .composition-stat span,.composition-stat small { display:block; color:var(--muted); font-size:11px; }
+      .composition-stat strong { display:block; font-size:29px; margin:6px 0; line-height:1.3; font-variant-numeric:tabular-nums; }
+      .composition-stat strong em { font-size:13px; font-weight:400; font-style:normal; }
+      .composition-charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+      .composition-chart { background:white; padding:22px; border:1px solid var(--line); border-radius:var(--radius); min-width:0; }
+      .composition-chart h3 { margin:0; font-size:17px; }
+      .composition-chart > p { margin:5px 0 20px; font-size:11px; color:var(--muted); }
+      .composition-bars { display:grid; gap:11px; }
+      .composition-bar { display:grid; grid-template-columns:82px minmax(30px,1fr) 112px; align-items:center; gap:10px; font-size:12px; }
+      .composition-track { height:11px; background:#edf2f6; border-radius:5px; overflow:hidden; }
+      .composition-fill { display:block; height:100%; background:var(--composition-color,var(--blue)); border-radius:5px; }
+      .composition-bar[data-unknown="true"] .composition-fill { background:#8793a0; }
+      .composition-value { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+      .composition-value small { font-size:10px; color:var(--muted); margin-left:5px; }
+      .composition-table-wrap { margin-top:20px; overflow-x:auto; background:white; border:1px solid var(--line); border-radius:14px; }
+      .composition-table { width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap; }
+      .composition-table caption { text-align:left; padding:20px; font-weight:700; font-size:15px; }
+      .composition-table th,.composition-table td { text-align:right; border-top:1px solid var(--line); padding:14px 18px; }
+      .composition-table th:first-child,.composition-table td:first-child { text-align:left; }
+      .composition-table tr[data-selected="true"] { background:#edf4f9; }
+      .composition-table button { border:0; background:none; padding:4px 0; color:var(--blue-deep); text-decoration:underline; font-weight:700; cursor:pointer; }
+      .composition-method { margin-top:18px; background:white; border:1px solid var(--line); border-radius:12px; padding:16px 20px; font-size:12px; color:var(--muted); line-height:1.8; }
+      .composition-method summary { font-weight:700; cursor:pointer; color:var(--ink); }
+      .composition-empty { background:white; padding:24px; border:1px solid var(--line); border-radius:14px; color:var(--muted); }
+      @media(max-width:780px) { .composition-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } .composition-charts { grid-template-columns:1fr; } .composition-chart { padding:18px 14px; } .composition-stat { padding:15px; } .composition-bar { grid-template-columns:70px minmax(25px,1fr) 105px; gap:7px; font-size:11px; } }
     </style>
   </head>
   <body>
@@ -897,6 +929,7 @@
       <div class="container dashboard-nav-inner">
         <div class="view-controls" aria-label="表示する分析">
           <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
+          <button type="button" data-view="composition" aria-pressed="false">会員構成</button>
           <button type="button" data-view="admissions" aria-pressed="false">実入会の推移</button>
           <button type="button" data-view="retention" aria-pressed="false">定着・継続</button>
           <button type="button" data-view="events" aria-pressed="false">イベント</button>
@@ -964,6 +997,11 @@
         </div>
         <div class="team-tools" id="team-filters" aria-label="表示チームを選択"></div>
         <div class="team-grid" id="team-grid"></div>
+      </section>
+
+      <section class="section" id="composition-section" aria-labelledby="composition-title">
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MEMBER COMPOSITION</p><h2 id="composition-title">会員構成</h2></div><p>全体・A〜Dの学年相当、在籍期間、男女比などを人数と割合で確認できます。</p></div>
+        <div id="composition-content"></div>
       </section>
 
       <section class="section" id="admission-history-section" aria-labelledby="admission-history-title">
@@ -1927,6 +1965,76 @@
           updateRetentionSelection(retentionState.selected);
         };
 
+        const initializeMemberComposition = () => {
+          const root = document.getElementById('composition-content');
+          const c = data.memberComposition;
+          if (!c || c.status !== 'ok' || c.asOf !== data.asOf) {
+            root.innerHTML = '<p class="composition-empty">会員構成は確認中です。集計元の確認が完了すると表示されます。</p>';
+            return;
+          }
+          let selected = 'ALL', mode = 'ratio';
+          const ids = ['ALL', 'A', 'B', 'C', 'D'];
+          const labels = {
+            grade: {preschool:'未就園相当',k1:'年少',k2:'年中',k3:'年長',p1:'小学1年',p2:'小学2年',p3:'小学3年',p4:'小学4年',p5:'小学5年',p6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年',h1:'高校1年',h2:'高校2年',h3:'高校3年',adult:'高校卒業相当以上',unknown:'不明'},
+            gender: {male:'男子',female:'女子',other:'その他',unknown:'不明'},
+            tenure: {lt3:'3か月未満',m3to6:'3〜6か月未満',m6to12:'6〜12か月未満',y1to2:'1〜2年未満',y2to3:'2〜3年未満',y3to5:'3〜5年未満',y5plus:'5年以上',unknown:'不明'},
+            age: {lt5:'5歳未満',a5to6:'5〜6歳',a7to9:'7〜9歳',a10to12:'10〜12歳',a13to15:'13〜15歳',a16plus:'16歳以上',unknown:'不明'},
+            status: {active:'在籍',paused:'休会',scheduled:'退会予定',unknown:'不明'},
+          };
+          const titles = {grade:'学年相当',tenure:'在籍期間',gender:'男女比',age:'年齢層',status:'在籍状態',entryYear:'入会年度'};
+          const notes = {grade:'当年度の学年相当を生年月日から算出',tenure:'入会日から基準日までの経過期間（休会期間を含む）',gender:'登録されている性別。未登録・不一致は不明',age:'基準日時点の満年齢',status:'複数契約がある場合は在籍中の契約を優先',entryYear:'現在の会員を入会日の年度（4月〜翌3月）で分類'};
+          const rowFor = id => id === 'ALL' ? c.overall : c.teams[id];
+          const labelFor = id => id === 'ALL' ? '全体' : `${id} TEAM`;
+          const rate = (count, total) => total ? `${(count / total * 100).toFixed(1)}%` : '—';
+          const tenureText = months => Number.isFinite(months) ? `${(months / 12).toFixed(1)}年` : '—';
+          const render = () => {
+            const row = rowFor(selected), total = row.members;
+            const color = selected === 'ALL' ? 'var(--navy-800)' : `var(--team-${selected.toLowerCase()})`;
+            const stats = [
+              ['運用会員数', `${formatNumber.format(total)}<em> 名</em>`, `${escapeHtml(data.asOfLabel)}時点`],
+              ['平均在籍期間', `${tenureText(row.summary.meanTenureMonths)}`, `中央値 ${tenureText(row.summary.medianTenureMonths)} ／ 判明 ${row.summary.knownTenure}名`],
+              ['入会3か月未満', `${row.tenure.lt3}<em> 名 · ${rate(row.tenure.lt3,total)}</em>`, '新しく加わった会員の割合'],
+              ['在籍3年以上', `${row.tenure.y3to5 + row.tenure.y5plus}<em> 名 · ${rate(row.tenure.y3to5 + row.tenure.y5plus,total)}</em>`, '長く通っている会員の割合'],
+            ];
+            const charts = ['grade','tenure','gender','age','status','entryYear'].map(key => {
+              let entries = Object.entries(row[key]);
+              if (key === 'entryYear') {
+                const years = new Set([...Object.keys(c.overall.entryYear),...Object.values(c.teams).flatMap(team => Object.keys(team.entryYear))]);
+                entries = [...years].sort((a,b) => a === 'unknown' ? 1 : b === 'unknown' ? -1 : Number(b)-Number(a)).map(year => [year,row.entryYear[year] || 0]);
+              }
+              // Preserve every category, including zero, so team switching keeps comparable axes.
+              const maximum = mode === 'ratio' ? total : Math.max(1,...entries.map(([,count]) => count));
+              const bars = entries.map(([bucket,count]) => {
+                const label = key === 'entryYear' ? bucket === 'unknown' ? '不明' : `${bucket}年度` : labels[key][bucket];
+                const width = maximum ? count / maximum * 100 : 0;
+                return `<div class="composition-bar" data-unknown="${bucket === 'unknown'}"><span>${escapeHtml(label)}</span><div class="composition-track" aria-hidden="true"><span class="composition-fill" style="width:${width}%"></span></div><span class="composition-value">${formatNumber.format(count)}名<small>${rate(count,total)}</small></span></div>`;
+              }).join('');
+              return `<article class="composition-chart" style="--composition-color:${color}"><h3>${titles[key]}</h3><p>${notes[key]}</p><div class="composition-bars" role="group" aria-label="${labelFor(selected)}の${titles[key]}">${bars}</div></article>`;
+            }).join('');
+            root.innerHTML = `
+              <div class="composition-toolbar"><div><strong id="composition-selected-label" aria-live="polite">${labelFor(selected)} · ${formatNumber.format(total)}名</strong><p>割合は選択した全会員が分母です。不明も含めて100%になります（四捨五入差あり）。</p></div><div class="composition-switches" aria-label="棒グラフの表示基準"><button type="button" data-composition-mode="ratio" aria-pressed="${mode==='ratio'}">割合で見る</button><button type="button" data-composition-mode="count" aria-pressed="${mode==='count'}">人数で見る</button></div></div>
+              <div class="composition-switches" id="composition-filters" aria-label="会員構成の表示チーム">${ids.map(id=>`<button type="button" data-composition-team="${id}" aria-pressed="${selected===id}">${labelFor(id)}</button>`).join('')}</div>
+              <div class="composition-summary">${stats.map(([label,value,note])=>`<div class="composition-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join('')}</div>
+              <div class="composition-charts">${charts}</div>
+              <div class="composition-table-wrap"><table class="composition-table"><caption>全体・チーム比較</caption><thead><tr><th scope="col">対象</th><th scope="col">会員数</th><th scope="col">平均在籍</th><th scope="col">3か月未満</th><th scope="col">3年以上</th><th scope="col">女子比率</th><th scope="col">性別不明</th></tr></thead><tbody>${ids.map(id=>{const t=rowFor(id);return `<tr data-selected="${selected===id}"><th scope="row"><button type="button" data-composition-team="${id}">${labelFor(id)}</button></th><td>${formatNumber.format(t.members)}名</td><td>${tenureText(t.summary.meanTenureMonths)}</td><td>${rate(t.tenure.lt3,t.members)}</td><td>${rate(t.tenure.y3to5+t.tenure.y5plus,t.members)}</td><td>${rate(t.gender.female,t.members)}</td><td>${t.gender.unknown}名</td></tr>`;}).join('')}</tbody></table></div>
+              <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>人物単位の運用会員（在籍・休会・退会予定）が対象です。重複契約は1人にまとめ、承認済みの所属補正を反映しています。平均・中央値は入会日が判明している会員だけで計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録・矛盾のある属性は不明として表示します。未登録の会費ペイ外会員も人数から除外しません。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
+          };
+          root.addEventListener('click', event => {
+            const button=event.target.closest('button');
+            if (!button) return;
+            const target=button.dataset.compositionTeam;
+            const nextMode=button.dataset.compositionMode;
+            if (target && ids.includes(target)) selected=target;
+            else if (['ratio','count'].includes(nextMode)) mode=nextMode;
+            else return;
+            render();
+            const next=target ? root.querySelector(`#composition-filters [data-composition-team="${target}"]`) : root.querySelector(`[data-composition-mode="${mode}"]`);
+            next?.focus({preventScroll:true});
+          });
+          render();
+        };
+        initializeMemberComposition();
+
         const withdrawalReference = (row, teamMembers) => {
           const monthly = Number.isSafeInteger(row.denominator) && row.denominator > 0 && row.missingEntry === 0;
           const denominator = monthly ? row.denominator : teamMembers;
@@ -2447,6 +2555,7 @@
         const sections = [...main.querySelectorAll(':scope > section')];
         const groups = {
           overview: [document.getElementById('movement-section'), profiles, comparison],
+          composition: [document.getElementById('composition-section')],
           admissions: [document.getElementById('admission-history-section')],
           retention: [document.getElementById('withdrawal-section'), document.getElementById('retention-section'), document.getElementById('school-age-section')],
           events: [document.getElementById('event-section')],
@@ -2455,6 +2564,7 @@
         };
         const descriptions = {
           overview: 'まずは変化とチームの数値を確認。集計の詳しい説明は各カードから開けます。',
+          composition: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。',
           admissions: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。',
           retention: '入会後の定着と、進級・進学の節目の継続率を確認できます。',
           events: '開催回を選んで参加状況を比較。推移の点からも詳細に切り替えられます。',
@@ -2462,7 +2572,7 @@
           all: 'すべての情報を続けて表示しています。上のメニューで目的別に絞り込めます。'
         };
         // Reorder existing nodes, preserving their data, listeners, and unavailable-data states.
-        [...groups.overview, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        [...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
         const controls = document.querySelector('.view-controls');
         const selectView = (view, focus = false) => {
           if (!groups[view]) view = 'overview';
@@ -2494,7 +2604,7 @@
         };
         document.getElementById('dashboard-team').addEventListener('change', event => {
           const team = event.target.value;
-          [['team-filters','data-filter'],['admission-history-filters','data-admission-team'],['withdrawal-filters','data-withdrawal-team'],['retention-filters','data-curve-filter'],['school-age-filters','data-school-filter'],['event-filters','data-event-filter']].forEach(([id, attr]) => {
+          [['team-filters','data-filter'],['composition-filters','data-composition-team'],['admission-history-filters','data-admission-team'],['withdrawal-filters','data-withdrawal-team'],['retention-filters','data-curve-filter'],['school-age-filters','data-school-filter'],['event-filters','data-event-filter']].forEach(([id, attr]) => {
             document.querySelector(`#${id} [${attr}="${team}"]`)?.click();
           });
         });

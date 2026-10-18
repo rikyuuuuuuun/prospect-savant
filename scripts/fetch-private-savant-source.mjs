@@ -2,6 +2,7 @@ import { unavailableDailyTrial, isDailyTrialSourceFailure } from './daily-trial-
 import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
+import { fetchMemberComposition, unavailableComposition } from './member-composition.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -339,7 +340,18 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions, allowUnavailable: true });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  let memberComposition;
+  try {
+    memberComposition = await fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts: memberReceipt.counts, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  } catch (error) {
+    // Optional analysis is unavailable rather than zero; verified core data can still publish.
+    const code = String(error?.message || '').replace(/^MEMBER_COMPOSITION_/, '');
+    const reason = ['SOURCE_CHANGED', 'ROSTER_UNRESOLVED', 'COUNT_MISMATCH', 'SCHEMA_INVALID'].includes(code) ? code : 'SOURCE_UNAVAILABLE';
+    memberComposition = unavailableComposition(asOf, reason);
+    console.warn(`MEMBER_COMPOSITION_DEFERRED reason=${reason}`);
+  }
   const privateSnapshot = {
+    memberComposition,
     withdrawalHistory,
     admissionHistory,
     fetchedAt: new Date().toISOString(),

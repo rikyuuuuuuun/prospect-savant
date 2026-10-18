@@ -2,6 +2,7 @@ import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
+import { validateMemberComposition } from './member-composition.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -328,6 +329,8 @@ async function publishInto(root, snapshot) {
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
+  if (snapshot.memberComposition) data.memberComposition = validateMemberComposition(snapshot.memberComposition, data);
+  else delete data.memberComposition;
   data.admissionConversion = assertAnnualConversionSource(snapshot, asOf);
   const conversionTotals = Object.values(data.admissionConversion.teams).reduce((sum, value) => ({
     trials: sum.trials + value.trials, admissions: sum.admissions + value.admissions,

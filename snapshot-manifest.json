@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1",
+  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1-composition-v1",
   "asOf": "2026-10-18",
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readback-sha256:6ce7f5125817490f8a1caa2d7aba4ffeff074d3ad3dbd41a099f3d39b24b60da",
   "files": {
-    "data.js": "910589541f24ff2bae298f118e62e6e2122b205c",
-    "event-data.js": "134fcb6129fb28f616c2fb0c254a98824ce3d648",
-    "retention-data.js": "a3a3c74dfa3d0a4762bbb947220047a1cd8e8903",
-    "school-age-data.js": "9cbc5c9f4ffbabed1e48abdcefaffaa83d05f8e7"
+    "data.js": "179bef3ae38da06fdf5e9b6fc4620ac978802837",
+    "event-data.js": "1c8ec08cd4b271e0742086510995ea3b643d10e2",
+    "retention-data.js": "df7e690069faaa424e4ae2aa22aa90be3b5712e3",
+    "school-age-data.js": "eed96216a028390136cf1d0c5c6196129d290d6e"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,
