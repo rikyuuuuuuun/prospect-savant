@@ -1171,6 +1171,77 @@
         .cmp-seg { width: 100%; }
         .cmp-seg button { flex: 1; padding: 0 8px; }
       }
+      /* ---- Team comparison blocks shared by admissions, retention, events, reference ---- */
+      .cx-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 14px; }
+      .cx-toolbar p { margin: 0; color: var(--muted); font-size: 11px; }
+      .cx-compare-on > :not(.section-heading):not(.cx-toolbar):not(.cx-compare) { display: none !important; }
+      .cx-section:not(.cx-compare-on) > .cx-compare { display: none; }
+      .cx-compare { display: grid; gap: 16px; margin-bottom: 16px; }
+      .cx-block { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+      .cx-block-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+      .cx-block-head h3 { margin: 0; font-size: 17px; }
+      .cx-block-head p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+      .cx-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      .cx-kpi { min-width: 0; padding: 14px; border: 1px solid #e6ecf1; border-top: 3px solid var(--cx-c); border-radius: 12px; background: #fafcfd; transition: opacity .2s; }
+      .cx-kpi-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 900; }
+      .cx-kpi-head span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+      .cx-kpi strong { display: block; margin-top: 6px; font-size: 28px; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+      .cx-kpi strong small { margin-left: 3px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0; }
+      .cx-kpi dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 10px 0 0; font-size: 11px; }
+      .cx-kpi dt { color: var(--muted); }
+      .cx-kpi dd { margin: 0; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .cx-chart { position: relative; width: 100%; }
+      .cx-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+      .cx-chart .grid line { stroke: #e3e9ef; }
+      .cx-chart .axis text { fill: #68788a; font-size: 11px; }
+      .cx-chart .line { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; transition: opacity .2s; }
+      .cx-chart .pt { stroke: #fff; stroke-width: 2; transition: opacity .2s; }
+      .cx-chart .end { font-size: 12px; font-weight: 800; transition: opacity .2s; }
+      .cx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; color: #34485a; font-size: 12px; font-weight: 700; }
+      .cx-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-legend i { width: 14px; height: 3px; border-radius: 2px; background: var(--cx-c); }
+
+      .cx-table-wrap { overflow-x: auto; border: 1px solid #e6ecf1; border-radius: 12px; }
+      .cx-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+      .cx-table th, .cx-table td { padding: 10px 8px; border-bottom: 1px solid #edf1f5; text-align: center; white-space: nowrap; }
+      .cx-table tbody tr:last-child > * { border-bottom: 0; }
+      .cx-table thead th { position: sticky; top: 0; background: #f6f8fa; color: #526578; font-size: 11px; font-weight: 800; }
+      .cx-table th[scope="row"] { position: sticky; left: 0; z-index: 1; background: #fff; text-align: left; font-weight: 900; }
+      .cx-table th[scope="row"] i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cx-c); }
+      .cx-table tr.is-overall th[scope="row"], .cx-table tr.is-overall td { background: #f6f8fa; color: #34485a; font-weight: 700; }
+      .cx-table td.cx-cell { background: var(--cx-bg, transparent); color: var(--cx-ink, inherit); font-weight: 800; }
+      .cx-table td small { display: block; margin-top: 1px; font-size: 9px; font-weight: 700; opacity: .85; }
+      .cx-table td.cx-total { font-weight: 900; border-left: 1px solid #e3e9ef; }
+      .cx-table td.cx-na { color: #a3afbb; font-weight: 600; }
+      .cx-table tr { transition: opacity .2s; }
+      .cx-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+      .cx-key span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-key i { width: 22px; height: 10px; border-radius: 3px; }
+      .cx-note { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      .cx-caution { margin: 0 0 12px; padding: 12px 14px; border-radius: 10px; background: #fff8e8; color: #755521; font-size: 12px; line-height: 1.7; }
+
+      .cx-stack-row { display: grid; grid-template-columns: 60px minmax(0, 1fr) 48px; align-items: center; gap: 10px; margin-top: 8px; transition: opacity .2s; }
+      .cx-stack-row b { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+      .cx-stack-row b i { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-c); }
+      .cx-stack-row strong { text-align: right; font-size: 18px; font-variant-numeric: tabular-nums; }
+      .cx-stack-bar { position: relative; display: flex; height: 30px; overflow: hidden; border-radius: 6px; background: #edf2f6; }
+      .cx-stack-bar span { display: grid; place-items: center; min-width: 0; overflow: hidden; background: var(--cx-c); color: var(--cx-ink, #fff); font-size: 10px; font-weight: 800; white-space: nowrap; box-shadow: inset -1px 0 0 rgba(255,255,255,.7); }
+
+      .cx-dim { opacity: .3; }
+      .cx-table tr.cx-dim { opacity: 1; }
+      .cx-table tr.cx-dim > * { opacity: .3; }
+
+      @media (max-width: 980px) { .cx-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 560px) {
+        .cx-block { padding: 16px; }
+        .cx-kpi strong { font-size: 24px; }
+        .cx-table { font-size: 11px; }
+        .cx-table th, .cx-table td { padding: 9px 6px; }
+        .cx-stack-row { grid-template-columns: 40px minmax(0, 1fr) 36px; gap: 8px; }
+        .cx-stack-row strong { font-size: 15px; }
+      }
+      @media print { .cx-toolbar { display: none !important; } }
     </style>
   </head>
   <body>
@@ -2986,7 +3057,7 @@
           if (!button) return;
           const filter = button.dataset.filter;
           document.querySelectorAll("#team-filters button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
-          document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
+          document.querySelectorAll("#team-grid [data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
         });
 
         initializeMovement();
@@ -3458,6 +3529,289 @@
       })();
     </script>
 
+    <script>
+      // Team comparison layer: adds side-by-side views to each analysis without touching the original renderers.
+      (() => {
+        "use strict";
+        const data = window.PROSPECT_SAVANT_DATA;
+        if (!data) return;
+        const events = window.PROSPECT_EVENT_HISTORY;
+        const curve = window.PROSPECT_RETENTION_CURVE;
+        const school = window.PROSPECT_SCHOOL_AGE_RETENTION;
+        const ids = ['A', 'B', 'C', 'D'];
+        const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
+        const membersOf = Object.fromEntries((data.teams || []).map(team => [team.id, team.members]));
+        const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch]);
+        const num = (value, digits = 0) => Number(value).toLocaleString('ja-JP', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        const finite = value => typeof value === 'number' && Number.isFinite(value);
+        const monthLabel = month => `${Number(String(month).slice(5, 7))}月`;
+        const rowHead = id => `<th scope="row"><i style="--cx-c:${colorOf(id)}"></i>${id === 'ALL' ? '全体' : `${id} TEAM`}</th>`;
+
+        // Savant language: red = better than the reference, blue = worse, neutral near zero.
+        const diverging = (diff, maxAbs, higherIsBetter = true) => {
+          if (!finite(diff) || !maxAbs) return { bg: 'transparent', ink: 'inherit' };
+          const t = Math.min(1, Math.abs(diff) / maxAbs);
+          const good = higherIsBetter ? diff > 0 : diff < 0;
+          const to = good ? [168, 47, 43] : [36, 91, 134];
+          const from = [244, 246, 248];
+          return { bg: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t * 0.9)).join(',')})`, ink: t > 0.55 ? '#fff' : '#142235' };
+        };
+        const sequential = (value, max) => {
+          if (!finite(value) || !max) return { bg: 'transparent', ink: 'inherit' };
+          const t = Math.min(1, value / max);
+          const from = [244, 246, 248], to = [23, 57, 87];
+          return { bg: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t * 0.92)).join(',')})`, ink: t > 0.5 ? '#fff' : '#142235' };
+        };
+        const divergingKey = (good = '全体より高い', bad = '全体より低い') => `<div class="cx-key"><span><i style="background:rgb(168,47,43)"></i>${good}</span><span><i style="background:rgb(244,246,248);border:1px solid #dbe3ea"></i>全体と同程度</span><span><i style="background:rgb(36,91,134)"></i>${bad}</span></div>`;
+
+        const scopes = [];
+        const scope = el => { el.classList.add('cx-scope'); scopes.push(el); return el; };
+
+        // Toggle between the new comparison and the original per-team view.
+        const addToggle = (section, compare, labels = ['チームを比較', 'チーム別に見る'], hint = '') => {
+          const bar = document.createElement('div');
+          bar.className = 'cx-toolbar';
+          bar.innerHTML = `<div class="cmp-seg" role="group" aria-label="表示方法"><button type="button" data-cx="compare" aria-pressed="true">${labels[0]}</button><button type="button" data-cx="single" aria-pressed="false">${labels[1]}</button></div>${hint ? `<p>${hint}</p>` : ''}`;
+          section.classList.add('cx-section', 'cx-compare-on');
+          section.querySelector('.section-heading').after(bar, compare);
+          bar.addEventListener('click', event => {
+            const button = event.target.closest('[data-cx]');
+            if (!button) return;
+            section.classList.toggle('cx-compare-on', button.dataset.cx === 'compare');
+            bar.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            window.dispatchEvent(new Event('resize'));
+          });
+        };
+        // Comparison shown above the original content (for analyses that already overlay all teams).
+        const addAbove = (section, compare) => {
+          section.classList.add('cx-section', 'cx-compare-on');
+          section.querySelector('.section-heading').after(compare);
+        };
+        const block = (title, note, body, extra = '') => `<div class="cx-block"><div class="cx-block-head"><div><h3>${title}</h3>${note ? `<p>${note}</p>` : ''}</div>${extra}</div>${body}</div>`;
+
+        // Simple multi-line chart; series = [{ id, values }], x labels per index.
+        const niceStep = raw => { const mag = 10 ** Math.floor(Math.log10(raw || 1)); return [1, 2, 2.5, 5, 10].map(f => f * mag).find(step => step >= raw) || 10 * mag; };
+        const lineChart = ({ labels, series, yMax: dataMax, yFormat = v => num(v), endFormat = yFormat, height = 260 }) => {
+          const step = niceStep(dataMax / 5);
+          const yMax = Math.max(step, Math.ceil(dataMax / step) * step);
+          const W = 760, H = height, L = 44, R = 70, T = 14, B = 30;
+          const x = i => L + (labels.length <= 1 ? 0 : i * (W - L - R) / (labels.length - 1));
+          const y = v => T + (H - T - B) * (1 - v / yMax);
+          const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step);
+          const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>`).join('');
+          const yAxis = ticks.map(t => `<text x="${L - 8}" y="${y(t) + 4}" text-anchor="end">${yFormat(t)}</text>`).join('');
+          const xAxis = labels.map((label, i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(label)}</text>`).join('');
+          // Spread end labels so they do not overlap.
+          const ends = series.map(s => { const last = s.values.reduce((acc, v, i) => finite(v) ? i : acc, -1); return { s, last, yy: last >= 0 ? y(s.values[last]) : null }; }).filter(e => e.last >= 0).sort((a, b) => a.yy - b.yy);
+          for (let i = 1; i < ends.length; i += 1) if (ends[i].yy - ends[i - 1].yy < 15) ends[i].yy = ends[i - 1].yy + 15;
+          const lines = series.map(s => {
+            const pts = s.values.map((v, i) => finite(v) ? [x(i), y(v), v, i] : null);
+            const segments = [];
+            let current = [];
+            pts.forEach(p => { if (p) current.push(p); else if (current.length) { segments.push(current); current = []; } });
+            if (current.length) segments.push(current);
+            const path = segments.map(seg => `<path class="line" d="${seg.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('')}" stroke="${colorOf(s.id)}" ${s.id === 'ALL' ? 'stroke-dasharray="5 4" stroke-width="2"' : ''}/>`).join('');
+            const dots = pts.filter(Boolean).map(p => `<circle class="pt" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${s.id === 'ALL' ? 3 : 4}" fill="${colorOf(s.id)}"><title>${esc(`${s.id === 'ALL' ? '全体' : `${s.id} TEAM`} ${labels[p[3]]}: ${endFormat(p[2])}`)}</title></circle>`).join('');
+            return `<g data-team="${s.id}">${path}${dots}</g>`;
+          }).join('');
+          const endLabels = ends.map(e => `<text class="end" data-team="${e.s.id}" x="${x(e.last) + 9}" y="${e.yy + 4}" fill="${colorOf(e.s.id)}">${e.s.id === 'ALL' ? '全体' : e.s.id} ${endFormat(e.s.values[e.last])}</text>`).join('');
+          return `<div class="cx-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="チーム別の推移"><g class="grid">${grid}</g><g class="axis">${yAxis}${xAxis}</g>${lines}${endLabels}</svg></div>`;
+        };
+        const legend = list => `<div class="cx-legend">${list.map(id => `<span data-team="${id}"><i style="--cx-c:${colorOf(id)}"></i>${id === 'ALL' ? '全体（破線）' : `${id} TEAM`}</span>`).join('')}</div>`;
+
+        /* ---------- 実入会の推移 ---------- */
+        (() => {
+          const section = document.getElementById('admission-history-section');
+          const h = data.admissionHistory;
+          if (!section || !h?.months) return;
+          const last = h.months.reduce((acc, _, i) => ids.some(id => finite(h.teams?.[id]?.[i])) ? i : acc, -1);
+          if (last < 0) return;
+          const months = h.months.slice(0, last + 1);
+          const partial = String(data.asOf).slice(0, 7) === h.months[last];
+          const monthly = id => months.map((_, i) => Number(h.teams?.[id]?.[i]) || 0);
+          const cum = id => monthly(id).reduce((acc, v) => [...acc, (acc.at(-1) || 0) + v], []);
+          const per100 = (value, id) => membersOf[id] ? value / membersOf[id] * 100 : null;
+          const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
+          const rank = metric => [...ids].sort((a, b) => metric(b) - metric(a));
+          const totalRank = rank(id => totals[id]);
+          const rateRank = rank(id => per100(totals[id], id));
+          const fullMonths = partial ? months.length - 1 : months.length;
+          const kpis = ids.map(id => {
+            const avg = fullMonths ? monthly(id).slice(0, fullMonths).reduce((a, b) => a + b, 0) / fullMonths : null;
+            return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>累計 ${totalRank.indexOf(id) + 1}位</span></div><strong>${num(totals[id])}<small>人</small></strong>
+              <dl><dt>会員100人あたり</dt><dd>${num(per100(totals[id], id), 1)}人（${rateRank.indexOf(id) + 1}位）</dd><dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
+          }).join('');
+          let mode = 'count';
+          const chart = () => {
+            const series = ids.map(id => ({ id, values: cum(id).map(v => mode === 'rate' ? per100(v, id) : v) }));
+            const max = Math.max(...series.flatMap(s => s.values.filter(finite)), 1);
+            return lineChart({ labels: months.map(monthLabel), series, yMax: max, yFormat: v => num(v), endFormat: v => mode === 'rate' ? `${num(v, 1)}` : `${num(v)}人` });
+          };
+          const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th><th scope="col">100人あたり</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td><td class="cx-total">${num(per100(totals[id], id), 1)}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td><td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0) / ids.reduce((s, id) => s + (membersOf[id] || 0), 0) * 100, 1)}</td></tr>
+          </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          const seg = `<div class="cmp-seg" role="group" aria-label="累計の単位"><button type="button" data-unit="count" aria-pressed="true">人数</button><button type="button" data-unit="rate" aria-pressed="false">会員100人あたり</button></div>`;
+          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）。100人あたりは${esc(data.asOfLabel)}時点の運用会員数で割った参考値`, `<div class="cx-kpis">${kpis}</div>`)
+            + block('累計の推移', '4月からの累計を同じグラフで比較', `<div data-chart>${chart()}</div>${legend(ids)}`, seg)
+            + block('月別の入会者数', 'チーム×月の一覧', table);
+          compare.addEventListener('click', event => {
+            const button = event.target.closest('[data-unit]');
+            if (!button) return;
+            mode = button.dataset.unit;
+            button.parentElement.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            compare.querySelector('[data-chart]').innerHTML = chart();
+            applyFocus();
+          });
+          addToggle(section, compare);
+        })();
+
+        /* ---------- 退会の推移 ---------- */
+        (() => {
+          const section = document.getElementById('withdrawal-section');
+          const h = data.withdrawalHistory;
+          if (!section || !h?.months || h.asOf !== data.asOf) return;
+          const last = h.months.reduce((acc, _, i) => ids.some(id => h.teams?.[id]?.months?.[i]) ? i : acc, -1);
+          if (last < 0) return;
+          const months = h.months.slice(0, last + 1);
+          const partial = String(data.asOf).slice(0, 7) === h.months[last];
+          // Same reference rule as the per-team cards: month-start denominator when complete, otherwise the snapshot members.
+          const reference = (row, members) => {
+            if (!row) return null;
+            const monthly = Number.isSafeInteger(row.denominator) && row.denominator > 0 && row.missingEntry === 0;
+            const denominator = monthly ? row.denominator : members;
+            const numerator = monthly ? row.cohortCount : row.count;
+            return Number.isSafeInteger(denominator) && denominator > 0 ? 100 * numerator / denominator : null;
+          };
+          const rows = id => months.map((_, i) => h.teams?.[id]?.months?.[i] || null);
+          const known = id => rows(id).reduce((s, row) => s + (row?.count || 0), 0);
+          const rateOf = id => months.map((_, i) => reference(rows(id)[i], membersOf[id]));
+          const allMembers = ids.reduce((s, id) => s + (membersOf[id] || 0), 0);
+          const overallRate = months.map((_, i) => { const count = ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0); return allMembers ? 100 * count / allMembers : null; });
+          const diffs = ids.flatMap(id => rateOf(id).map((v, i) => finite(v) && finite(overallRate[i]) ? v - overallRate[i] : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 0.5);
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">判明合計</th><th scope="col">会員100人あたり</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${rows(id).map((row, i) => { const rate = rateOf(id)[i]; const c = diverging(finite(rate) && finite(overallRate[i]) ? rate - overallRate[i] : null, maxAbs, false); return row ? `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(row.count)}人<small>${finite(rate) ? `${num(rate, 2)}%` : '—'}</small></td>` : '<td class="cx-na">—</td>'; }).join('')}<td class="cx-total">${num(known(id))}人</td><td class="cx-total">${membersOf[id] ? num(known(id) / membersOf[id] * 100, 1) : '—'}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0))}人<small>${finite(overallRate[i]) ? `${num(overallRate[i], 2)}%` : '—'}</small></td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0))}人</td><td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0) / allMembers * 100, 1)}</td></tr>
+          </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          const unassigned = Number(h.unassigned) || 0;
+          compare.innerHTML = block('月別の退会（判明分）', '上段：退会月が判明した人数　下段：会員数に対する割合（参考）', `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>${table}<p class="cx-note">割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`);
+          addToggle(section, compare);
+        })();
+
+        /* ---------- 入会後の定着曲線・学齢節目（既存グラフは全チーム重ね表示のため、比較表を上に追加） ---------- */
+        const rateMatrix = ({ section, source, labels, title, note, colLabel }) => {
+          if (!section || !source?.teams || !source.overall) return;
+          const overall = source.overall.rates || [];
+          const diffs = ids.flatMap(id => (source.teams[id]?.rates || []).map((v, i) => finite(v) && finite(overall[i]) ? v - overall[i] : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+          const cell = (id, i) => {
+            const team = id === 'ALL' ? source.overall : source.teams[id];
+            const rate = team?.rates?.[i];
+            const sample = team?.samples?.[i];
+            if (!finite(rate)) return `<td class="cx-na">—<small>${finite(sample) ? `対象${num(sample)}名` : ''}</small></td>`;
+            if (id === 'ALL') return `<td>${num(rate, 1)}%<small>対象${num(sample)}名</small></td>`;
+            const diff = rate - overall[i];
+            const c = diverging(diff, maxAbs, true);
+            return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}" title="対象${num(sample)}名">${num(rate, 1)}%<small>${diff >= 0 ? '+' : '−'}${num(Math.abs(diff), 1)}pt</small></td>`;
+          };
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${labels.map(label => `<th scope="col">${esc(label)}</th>`).join('')}</tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${labels.map((_, i) => cell(id, i)).join('')}</tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${labels.map((_, i) => cell('ALL', i)).join('')}</tr></tbody></table></div>${divergingKey()}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          compare.innerHTML = block(title, note, `${table}<p class="cx-note">各セルの下段は全体との差（ポイント）。対象${num(source.minimumSample || 20)}名未満は「—」で、対象人数のみ表示します。${colLabel}</p>`);
+          addAbove(section, compare);
+        };
+        if (curve) {
+          const show = [3, 6, 12, 24, 36, 48];
+          const index = show.map(m => curve.months.indexOf(m)).filter(i => i >= 0);
+          rateMatrix({
+            section: document.getElementById('retention-section'),
+            source: { minimumSample: curve.minimumSample, overall: { rates: index.map(i => curve.overall.rates[i]), samples: index.map(i => curve.overall.samples[i]) }, teams: Object.fromEntries(ids.map(id => [id, { rates: index.map(i => curve.teams[id]?.rates?.[i]), samples: index.map(i => curve.teams[id]?.samples?.[i]) }])) },
+            labels: index.map(i => `${curve.months[i]}か月`),
+            title: '経過月ごとの継続率の比較',
+            note: '入会から各経過月の時点で在籍している割合',
+            colLabel: '下のグラフでは全経過月の曲線を確認できます。'
+          });
+        }
+        if (school) rateMatrix({ section: document.getElementById('school-age-section'), source: school, labels: school.milestones, title: '節目ごとの継続率の比較', note: '進級・進学の節目をまたいで在籍が続いた割合', colLabel: '節目ごとに対象となる会員層は異なります。' });
+
+        /* ---------- イベント ---------- */
+        (() => {
+          const section = document.getElementById('event-section');
+          if (!section || !Array.isArray(events?.events) || !events.events.length) return;
+          const list = [...events.events].sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)));
+          const short = event => event.shortName || event.name;
+          const evaluated = (event, id) => !(id === 'D' && String(event.startDate) < String(data.quality?.dEvaluationStart || '2025-04-01'));
+          const diffs = list.flatMap(event => ids.map(id => finite(event.teams?.[id]?.rate) && finite(event.total?.rate) && evaluated(event, id) ? event.teams[id].rate - event.total.rate : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+          const scores = events.teams || {};
+          const scoreRank = [...ids].sort((a, b) => (scores[b]?.score ?? -1) - (scores[a]?.score ?? -1));
+          const kpis = ids.map(id => {
+            const s = scores[id] || {};
+            const latest = list.at(-1)?.teams?.[id];
+            return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>イベント力 ${scoreRank.indexOf(id) + 1}位</span></div><strong>${finite(s.averageRate) ? num(s.averageRate, 1) : '—'}<small>% 平均参加率</small></strong>
+              <dl><dt>継続参加率</dt><dd>${finite(s.repeatRate) ? `${num(s.repeatRate, 1)}%` : '—'}</dd><dt>イベント力</dt><dd>${finite(s.score) ? `${num(s.score)}点` : '—'}</dd><dt>直近（${esc(short(list.at(-1)))}）</dt><dd>${latest ? `${num(latest.participants)}人・${num(latest.rate, 1)}%` : '—'}</dd></dl></div>`;
+          }).join('');
+          const series = ids.map(id => ({ id, values: list.map(event => evaluated(event, id) && finite(event.teams?.[id]?.rate) ? event.teams[id].rate : null) }));
+          series.push({ id: 'ALL', values: list.map(event => event.total?.rate ?? null) });
+          const yMax = Math.max(...series.flatMap(s => s.values.filter(finite)), 10);
+          const chart = lineChart({ labels: list.map(short), series, yMax, yFormat: v => `${num(v)}%`, endFormat: v => `${num(v, 1)}%` });
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${list.map(event => `<th scope="col">${esc(short(event))}<br><small>${esc(String(event.startDate).slice(0, 7).replace('-', '/'))}</small></th>`).join('')}<th scope="col">平均</th><th scope="col">継続</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${list.map(event => { const t = event.teams?.[id]; if (!evaluated(event, id)) return '<td class="cx-na">対象外<small>発足前</small></td>'; if (!t || !finite(t.rate)) return '<td class="cx-na">—</td>'; const c = diverging(t.rate - event.total.rate, maxAbs, true); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}" title="${num(t.participants)}人 ／ 開催時会員${num(t.members)}名">${num(t.rate, 1)}%<small>${num(t.participants)}人</small></td>`; }).join('')}<td class="cx-total">${finite(scores[id]?.averageRate) ? `${num(scores[id].averageRate, 1)}%` : '—'}</td><td class="cx-total">${finite(scores[id]?.repeatRate) ? `${num(scores[id].repeatRate, 1)}%` : '—'}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${list.map(event => `<td>${finite(event.total?.rate) ? `${num(event.total.rate, 1)}%` : '—'}<small>${finite(event.total?.participants) ? `${num(event.total.participants)}人` : ''}</small></td>`).join('')}<td class="cx-total">—</td><td class="cx-total">—</td></tr>
+          </tbody></table></div>${divergingKey()}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          compare.innerHTML = block('イベント参加の実績', `開催済みの対象イベント${list.length}件。イベント力＝平均参加率${events.scoreWeights?.participation ?? 70}％＋継続参加率${events.scoreWeights?.repeat ?? 30}％`, `<div class="cx-kpis">${kpis}</div>`)
+            + block('開催回ごとの参加率', '各チームの参加率（開催日時点の会員数が分母）。破線は全体', `${chart}${legend([...ids, 'ALL'])}`)
+            + block('開催回×チームの一覧', '上段：参加率　下段：参加人数。色は同じ開催回の全体参加率との差', `${table}<p class="cx-note">Dチームは${(start => `${start.slice(0, 4)}年${Number(start.slice(5, 7))}月`)(String(data.quality?.dEvaluationStart || '2025-04-01'))}の発足前のイベントを評価対象外としています。大会参加者限定の練習は含みません。</p>`);
+          addToggle(section, compare, ['チームを比較', '開催回ごとに見る']);
+        })();
+
+        /* ---------- 指標・データ：総合点の内訳 ---------- */
+        (() => {
+          const section = document.getElementById('method-title')?.closest('section');
+          const teams = (data.teams || []).filter(team => finite(team.overall));
+          if (!section || !teams.length) return;
+          const weights = data.weights || [];
+          const ramp = i => { const t = weights.length <= 1 ? 1 : i / (weights.length - 1); const from = [36, 91, 134], to = [13, 34, 56]; const mid = [111, 155, 191]; const a = t < .5 ? mid : from, b = t < .5 ? from : to; const k = t < .5 ? t / .5 : (t - .5) / .5; return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(',')})`; };
+          const colors = weights.map((_, i) => ramp(i));
+          const max = 100;
+          const rows = [...teams].sort((a, b) => b.overall - a.overall).map(team => {
+            const parts = weights.map((w, i) => { const value = (team.metrics?.[w.key] ?? 0) * w.value / 100; return `<span style="flex:${value} 1 0;--cx-c:${colors[i]}" title="${esc(`${w.label} ${team.metrics?.[w.key] ?? '—'}点 × ${w.value}% = ${num(value, 1)}点`)}">${value >= 6 ? num(value, 1) : ''}</span>`; }).join('');
+            const used = weights.reduce((s, w) => s + (team.metrics?.[w.key] ?? 0) * w.value / 100, 0);
+            return `<div class="cx-stack-row" data-team="${team.id}" style="--cx-c:${colorOf(team.id)}"><b><i></i>${team.id}</b><div class="cx-stack-bar" role="img" aria-label="${esc(`${team.id} TEAM 総合${team.overall}点の内訳`)}">${parts}<span style="flex:${Math.max(0, max - used)} 1 0;--cx-c:transparent"></span></div><strong>${num(team.overall)}</strong></div>`;
+          }).join('');
+          const key = `<div class="cx-legend">${weights.map((w, i) => `<span><i style="--cx-c:${colors[i]};height:10px;width:14px"></i>${esc(w.label)}（${w.value}％）</span>`).join('')}</div>`;
+          const metricKeys = weights.map(w => w.key);
+          const savant = score => { const s = Math.max(0, Math.min(100, score)); const [a, b] = s <= 50 ? [[36, 91, 134], [217, 225, 232]] : [[217, 225, 232], [168, 47, 43]]; const t = s <= 50 ? s / 50 : (s - 50) / 50; return { bg: `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`, ink: s > 32 && s < 68 ? '#142235' : '#fff' }; };
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${weights.map(w => `<th scope="col">${esc(w.label)}<br><small>配点${w.value}％</small></th>`).join('')}<th scope="col">総合</th></tr></thead><tbody>
+            ${[...teams].sort((a, b) => b.overall - a.overall).map(team => `<tr data-team="${team.id}">${rowHead(team.id)}${metricKeys.map(k => { const v = team.metrics?.[k]; if (!finite(v)) return '<td class="cx-na">—</td>'; const c = savant(v); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}<small>総合へ ${num(v * (weights.find(w => w.key === k)?.value || 0) / 100, 1)}</small></td>`; }).join('')}<td class="cx-total">${num(team.overall)}</td></tr>`).join('')}
+          </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>0（低い）</span><span><i style="background:rgb(217,225,232)"></i>50</span><span><i style="background:rgb(168,47,43)"></i>100（高い）</span></div>`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合点（100点満点）', `${rows}${key}`)
+            + block('指標スコアと総合への寄与', '上段：指標スコア（0〜100）　下段：総合点への寄与（スコア×配点）', table);
+          addAbove(section, compare);
+        })();
+
+        // Highlight the team chosen in "チームをまとめて切り替え" across every comparison.
+        const picker = document.getElementById('dashboard-team');
+        const applyFocus = () => {
+          const focus = picker && picker.value !== 'ALL' ? picker.value : '';
+          scopes.forEach(el => el.querySelectorAll('[data-team]').forEach(item => item.classList.toggle('cx-dim', Boolean(focus) && item.dataset.team !== 'ALL' && item.dataset.team !== focus)));
+        };
+        picker?.addEventListener('change', applyFocus);
+        applyFocus();
+      })();
+    </script>
     <script>
       (() => {
         const data = window.PROSPECT_SAVANT_DATA || {};

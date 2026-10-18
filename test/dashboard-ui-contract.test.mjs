@@ -51,3 +51,20 @@ test('member composition opens in side-by-side team comparison and keeps the sin
   assert.match(source, /id="composition-filters"/);
   for (const title of ['チームの特徴', '主要指標の比較', '構成比の比較']) assert.ok(source.includes(`<h3>${title}</h3>`));
 });
+
+test('every analysis except the overview offers a side-by-side team comparison', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  for (const title of ['年度の入会実績', '累計の推移', '月別の入会者数', '月別の退会（判明分）', '経過月ごとの継続率の比較', '節目ごとの継続率の比較', 'イベント参加の実績', '開催回×チームの一覧', '総合点の内訳', '指標スコアと総合への寄与']) {
+    assert.ok(source.includes(`'${title}'`), `missing comparison: ${title}`);
+  }
+  // Withdrawal comparison reuses the per-team card rule: month-start denominator only when complete.
+  assert.match(source, /const monthly = Number\.isSafeInteger\(row\.denominator\) && row\.denominator > 0 && row\.missingEntry === 0;\n\s*const denominator = monthly \? row\.denominator : members;/);
+  // D team events before its start stay out of the comparison.
+  assert.match(source, /const evaluated = \(event, id\) => !\(id === 'D' && String\(event\.startDate\) < String\(data\.quality\?\.dEvaluationStart/);
+});
+
+test('team card filter only hides team cards, not other team-tagged elements', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.ok(source.includes('document.querySelectorAll("#team-grid [data-team]").forEach((card) => { card.hidden'));
+  assert.ok(!source.includes('document.querySelectorAll("[data-team]").forEach((card) => { card.hidden'));
+});
