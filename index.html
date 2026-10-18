@@ -3622,10 +3622,25 @@
           const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
           const totalRank = [...ids].sort((a, b) => totals[b] - totals[a]);
           const fullMonths = partial ? months.length - 1 : months.length;
+          const conversion = data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear ? data.admissionConversion : null;
+          const conv = id => {
+            const team = id === 'ALL'
+              ? ['trials', 'admissions', 'previousTrials', 'previousAdmissions'].reduce((acc, key) => ({ ...acc, [key]: ids.reduce((sum, teamId) => sum + (Number(conversion?.teams?.[teamId]?.[key]) || 0), 0) }), {})
+              : conversion?.teams?.[id];
+            if (!team || !(team.trials > 0)) return null;
+            const rate = team.admissions / team.trials * 100;
+            const previousRate = team.previousTrials > 0 ? team.previousAdmissions / team.previousTrials * 100 : null;
+            // Prefer the published rates and year-over-year delta so this table matches the team profiles exactly.
+            const published = id === 'ALL' ? data.headline : (data.teams || []).find(item => item.id === id)?.benchmark;
+            const publishedRate = published?.admissionRate;
+            const publishedPrevious = published?.admissionPreviousRate;
+            const publishedDelta = published?.admissionYoYDelta;
+            return { ...team, rate: finite(publishedRate) ? publishedRate : rate, previousRate: finite(publishedPrevious) ? publishedPrevious : previousRate, delta: finite(publishedDelta) ? publishedDelta : finite(previousRate) ? rate - previousRate : null };
+          };
           const kpis = ids.map(id => {
             const avg = fullMonths ? monthly(id).slice(0, fullMonths).reduce((a, b) => a + b, 0) / fullMonths : null;
             return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>累計 ${totalRank.indexOf(id) + 1}位</span></div><strong>${num(totals[id])}<small>人</small></strong>
-              <dl><dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
+              <dl>${conv(id) ? `<dt>年度の体験人数</dt><dd>${num(conv(id).trials)}人</dd><dt>体験→入会率</dt><dd>${num(conv(id).rate, 1)}%</dd>` : ''}<dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
           }).join('');
           const series = ids.map(id => ({ id, values: cum(id) }));
           const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
@@ -3634,9 +3649,24 @@
             ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td></tr>`).join('')}
             <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td></tr>
           </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
+          const convRows = conversion ? (() => {
+            const overall = conv('ALL');
+            const diffs = ids.map(id => conv(id) && overall ? conv(id).rate - overall.rate : null).filter(finite);
+            const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+            const rateRank = [...ids].filter(id => conv(id)).sort((a, b) => conv(b).rate - conv(a).rate);
+            const row = id => {
+              const c = conv(id);
+              if (!c) return `<tr data-team="${id}">${rowHead(id)}<td class="cx-na" colspan="6">集計待ち</td></tr>`;
+              const tone = id === 'ALL' ? { bg: 'transparent', ink: 'inherit' } : diverging(c.rate - overall.rate, maxAbs, true);
+              const delta = finite(c.delta) ? `${c.delta > 0 ? '+' : c.delta < 0 ? '−' : '±'}${num(Math.abs(c.delta), 1)}pt` : '—';
+              return `<tr${id === 'ALL' ? ' class="is-overall"' : ''} data-team="${id}">${rowHead(id)}<td>${num(c.trials)}人</td><td>${num(c.admissions)}人</td><td class="cx-cell" style="--cx-bg:${tone.bg};--cx-ink:${tone.ink}">${num(c.rate, 1)}%${id === 'ALL' ? '' : `<small>${rateRank.indexOf(id) + 1}位</small>`}</td><td>${finite(c.previousRate) ? `${num(c.previousRate, 1)}%<small>体験${num(c.previousTrials)}人→入会${num(c.previousAdmissions)}人</small>` : '—'}</td><td>${delta}</td><td>${num(id === 'ALL' ? ids.reduce((sum, teamId) => sum + totals[teamId], 0) : totals[id])}人</td></tr>`;
+            };
+            return `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th><th scope="col">体験人数</th><th scope="col">体験からの入会</th><th scope="col">体験→入会率</th><th scope="col">前年同期間の入会率</th><th scope="col">前年差</th><th scope="col">年度実入会<br><small>入会日基準</small></th></tr></thead><tbody>${ids.map(row).join('')}${row('ALL')}</tbody></table></div>${divergingKey('全体より入会率が高い', '全体より入会率が低い')}<p class="cx-note">体験人数・体験からの入会は、${esc(h.fiscalYear)}年度（4月〜基準日）に実際に体験した人と、そのうち入会した人の数です。年度実入会（入会日が年度内の人数・再入会を含む）とは集計対象が異なるため、一致しません。前年同期間は前年度の同じ期間（4月〜基準日と同日）です。</p>`;
+          })() : '';
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, `<div class="cx-kpis">${kpis}</div>`)
+          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）。体験人数と体験→入会率は体験した年度が基準`, `<div class="cx-kpis">${kpis}</div>`)
+            + (convRows ? block('体験人数と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）の実体験と、そのうちの入会`, convRows) : '')
             + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`)
             + block('月別の入会者数', 'チーム×月の一覧', table);
           addToggle(section, compare);

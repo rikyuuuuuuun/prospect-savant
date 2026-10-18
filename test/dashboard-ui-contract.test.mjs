@@ -86,3 +86,11 @@ test('no analysis shows per-100-member values', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.ok(!source.includes('100人'));
 });
+
+test('admissions tab shows fiscal trials and trial-to-admission rates from the published conversion data', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.ok(source.includes("data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear"));
+  assert.ok(source.includes("block('体験人数と入会率'"));
+  // Rates and year-over-year deltas come from the published values used by the team profiles.
+  assert.ok(source.includes('const publishedDelta = published?.admissionYoYDelta;'));
+});
