@@ -116,7 +116,11 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
   const keys = ['date', 'team', 'attended', 'admitted'];
   const columns = keys.map(key => {
     const found = header.flatMap((value, index) => String(value ?? '').trim() === TRIAL_CONVERSION_HEADERS[key] ? [index] : []);
-    check(found.length === 1, `HEADER_${found.length ? 'DUPLICATE' : 'MISSING'}_${key.toUpperCase()}`);
+    if (found.length !== 1) {
+      const error = new Error(`TRIAL_CONVERSION_HISTORY_HEADER_${found.length ? 'DUPLICATE' : 'MISSING'}_${key.toUpperCase()}`);
+      error.profile = profileHeader(header, TRIAL_CONVERSION_HEADERS[key]);
+      throw error;
+    }
     return columnLetter(found[0]);
   });
   const url = batchUrl(id, columns.map(column => `'${TITLE}'!${column}${HEADER_ROW}:${column}${grid.rowCount}`));
@@ -144,6 +148,18 @@ export function profileTrialColumns({ dates, teams, attended, admitted }) {
   const inTeam = rows.filter(i => IDS.includes(teams[i]));
   return { teamRows: inTeam.length, attended: tally(inTeam.map(i => attended[i])), admitted: tally(inTeam.map(i => admitted[i])),
     attendedDates: tally(inTeam.filter(i => attended[i] === true).map(i => dates[i])) };
+}
+
+// Labels the run log may name; any other header text is only counted, never printed.
+const HEADER_CANDIDATES = ['入会', '入会判定', '入会済', '入会有無', '入会状況', '入会確認', '入会フラグ', '入会可否', '入会日', '入会者', '入会(TRUE/FALSE)', '出席', '出席確認', '体験日', 'チーム'];
+const squash = value => String(value ?? '').normalize('NFKC').replace(/\s+/g, '');
+/** Header shape for a missing/duplicate column: matching candidate labels and counts only. */
+export function profileHeader(header, label) {
+  const cells = header.map(squash);
+  return { columns: header.length, containing: cells.filter(cell => cell.includes(label)).length,
+    candidates: HEADER_CANDIDATES.filter(candidate => candidate.includes(label) || label.includes(candidate))
+      .map(candidate => [candidate, cells.filter(cell => cell === squash(candidate)).length, header.filter(cell => String(cell ?? '').trim() === candidate).length])
+      .filter(([, normalised]) => normalised > 0) };
 }
 
 /** Fixed error code plus anonymous counts for the run log. */

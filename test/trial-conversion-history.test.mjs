@@ -124,3 +124,9 @@ test('diagnostics report a fixed code and value-type counts, never cell text', (
   assert.equal(trialConversionDiagnostic(new Error('unexpected 山田')), 'detail=OTHER');
   assert.equal(trialConversionFailureReason(new Error('TRIAL_CONVERSION_HISTORY_HEADER_MISSING_ATTENDED')), 'SCHEMA_INVALID');
 });
+
+test('header diagnostics name only fixed candidate labels', async () => {
+  const { profileHeader } = await import('../scripts/trial-conversion-history.mjs');
+  assert.deepEqual(profileHeader(['体験日', '山田太郎', '入会 判定', '入会日', 'メモ入会'], '入会'),
+    { columns: 5, containing: 3, candidates: [['入会判定', 1, 0], ['入会日', 1, 1]] });
+});
