@@ -1105,6 +1105,72 @@
       @media print {
         .guide-section, .view-pager, .to-top { display: none !important; }
       }
+      /* ---- Member composition: side-by-side team comparison ---- */
+      .cmp-modebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin-bottom: 18px; }
+      .cmp-seg { display: inline-flex; padding: 4px; border-radius: 12px; background: #e6edf3; }
+      .cmp-seg button { min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: #526578; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+      .cmp-seg button[aria-pressed="true"] { background: #fff; color: var(--navy-800); box-shadow: 0 1px 4px rgba(8, 24, 39, 0.14); }
+      .cmp-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+      .cmp-focus .composition-switches button { padding: 7px 12px; }
+      .cmp-block { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+      .cmp-block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 16px; }
+      .cmp-block-head h3 { margin: 0; font-size: 17px; }
+      .cmp-block-head p { margin: 0; color: var(--muted); font-size: 11px; }
+
+      .cmp-insights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .cmp-insight { min-width: 0; padding: 14px 16px; border: 1px solid #e6ecf1; border-top: 3px solid var(--cmp-c); border-radius: 12px; background: #fafcfd; }
+      .cmp-insight h4 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 8px; font-size: 15px; }
+      .cmp-insight h4 span { color: var(--muted); font-size: 11px; font-weight: 700; }
+      .cmp-insight ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+      .cmp-insight li { font-size: 12px; line-height: 1.5; }
+      .cmp-insight li b { font-variant-numeric: tabular-nums; }
+      .cmp-insight li small { display: block; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .cmp-insight li .up { color: var(--red-deep); } .cmp-insight li .down { color: var(--blue-deep); }
+
+      .cmp-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .cmp-metric { min-width: 0; padding: 16px; border: 1px solid #e6ecf1; border-radius: 12px; }
+      .cmp-metric h4 { margin: 0; font-size: 13px; }
+      .cmp-metric > p { margin: 2px 0 12px; color: var(--muted); font-size: 10px; }
+      .cmp-mrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) 66px; align-items: center; gap: 8px; margin-top: 7px; font-size: 12px; transition: opacity .2s; }
+      .cmp-mrow-name { display: flex; align-items: center; gap: 5px; font-weight: 800; white-space: nowrap; }
+      .cmp-mrow-name i, .cmp-legend i, .cmp-srow-name i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cmp-c); }
+      .cmp-mtrack { position: relative; height: 10px; border-radius: 999px; background: #edf2f6; }
+      .cmp-mfill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--cmp-c); }
+      .cmp-mref { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy-900); opacity: .55; }
+      .cmp-mval { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .cmp-mval small { margin-left: 2px; color: var(--muted); font-size: 10px; font-weight: 600; }
+      .cmp-mrow.is-top .cmp-mval { color: var(--navy-950); text-decoration: underline 2px var(--cmp-c); text-underline-offset: 3px; }
+      .cmp-mrow.is-overall { color: var(--muted); }
+      .cmp-dim .cmp-mrow:not(.is-focus):not(.is-overall), .cmp-dim .cmp-srow:not(.is-focus):not(.is-overall), .cmp-dim .cmp-insight:not(.is-focus) { opacity: .32; }
+
+      .cmp-stacks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+      .cmp-stack { min-width: 0; }
+      .cmp-stack h4 { margin: 0; font-size: 14px; }
+      .cmp-stack > p { margin: 2px 0 10px; color: var(--muted); font-size: 10px; }
+      .cmp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; color: #34485a; font-size: 11px; }
+      .cmp-legend span { display: inline-flex; align-items: center; gap: 5px; }
+      .cmp-legend i { border-radius: 2px; }
+      .cmp-srow { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 6px; transition: opacity .2s; }
+      .cmp-srow-name { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+      .cmp-srow.is-overall .cmp-srow-name { color: var(--muted); }
+      .cmp-bar { display: flex; height: 26px; overflow: hidden; border-radius: 6px; background: #edf2f6; }
+      .cmp-seg-part { display: grid; place-items: center; min-width: 0; overflow: hidden; color: var(--cmp-ink, #fff); font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; background: var(--cmp-c); box-shadow: inset -1px 0 0 rgba(255, 255, 255, .7); cursor: default; outline: none; }
+      .cmp-seg-part:hover, .cmp-seg-part:focus-visible { filter: brightness(1.12); box-shadow: inset 0 0 0 2px var(--navy-950); }
+      .cmp-tip { position: fixed; z-index: 40; max-width: 240px; padding: 8px 10px; border-radius: 8px; background: var(--navy-950); color: #fff; font-size: 12px; line-height: 1.45; pointer-events: none; box-shadow: 0 8px 20px rgba(8, 24, 39, .3); }
+      .cmp-tip b { display: block; }
+      .cmp-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+      @media (max-width: 980px) {
+        .cmp-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .cmp-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .cmp-stacks { grid-template-columns: minmax(0, 1fr); }
+      }
+      @media (max-width: 560px) {
+        .cmp-block { padding: 16px; }
+        .cmp-insights, .cmp-metrics { grid-template-columns: minmax(0, 1fr); }
+        .cmp-seg { width: 100%; }
+        .cmp-seg button { flex: 1; padding: 0 8px; }
+      }
     </style>
   </head>
   <body>
@@ -2243,7 +2309,7 @@
             root.innerHTML = '<p class="composition-empty">会員構成は確認中です。集計元の確認が完了すると表示されます。</p>';
             return;
           }
-          let selected = 'ALL', mode = 'ratio';
+          let selected = 'ALL', mode = 'ratio', layout = 'compare';
           const ids = ['ALL', 'A', 'B', 'C', 'D'];
           const labels = {
             grade: {preschool:'未就園相当',k1:'年少',k2:'年中',k3:'年長',p1:'小学1年',p2:'小学2年',p3:'小学3年',p4:'小学4年',p5:'小学5年',p6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年',h1:'高校1年',h2:'高校2年',h3:'高校3年',adult:'高校卒業相当以上',unknown:'不明'},
@@ -2258,7 +2324,107 @@
           const labelFor = id => id === 'ALL' ? '全体' : `${id} TEAM`;
           const rate = (count, total) => total ? `${(count / total * 100).toFixed(1)}%` : '—';
           const tenureText = months => Number.isFinite(months) ? `${(months / 12).toFixed(1)}年` : '—';
-          const render = () => {
+          // Side-by-side comparison: the default layout, so team differences are visible without switching.
+          const teamIds = ['A', 'B', 'C', 'D'];
+          const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
+          const share = (count, total) => total ? count / total * 100 : 0;
+          const one = value => value.toFixed(1);
+          const entryYears = [...new Set([...Object.keys(c.overall.entryYear), ...Object.values(c.teams).flatMap(team => Object.keys(team.entryYear))])]
+            .sort((a, b) => a === 'unknown' ? 1 : b === 'unknown' ? -1 : Number(a) - Number(b));
+          const dimensions = [
+            { key: 'grade', title: '学年相当', note: '生年月日から算出した当年度の学年相当', groups: [['未就学', ['preschool', 'k1', 'k2', 'k3']], ['小1・2', ['p1', 'p2']], ['小3・4', ['p3', 'p4']], ['小5・6', ['p5', 'p6']], ['中学生', ['j1', 'j2', 'j3']], ['高校以上', ['h1', 'h2', 'h3', 'adult']], ['不明', ['unknown']]] },
+            { key: 'tenure', title: '在籍期間', note: '入会日から基準日まで（休会期間を含む）', groups: [['3か月未満', ['lt3']], ['3〜6か月', ['m3to6']], ['6〜12か月', ['m6to12']], ['1〜2年', ['y1to2']], ['2〜3年', ['y2to3']], ['3年以上', ['y3to5', 'y5plus']], ['不明', ['unknown']]] },
+            { key: 'age', title: '年齢層', note: '基準日時点の満年齢', groups: Object.entries(labels.age).map(([bucket, label]) => [label, [bucket]]) },
+            { key: 'entryYear', title: '入会年度', note: '現在の会員を入会日の年度で分類', groups: entryYears.map(year => [year === 'unknown' ? '不明' : `${year}年度`, [year]]) },
+            { key: 'gender', title: '男女比', note: '登録されている性別', groups: Object.entries(labels.gender).map(([bucket, label]) => [label, [bucket]]) },
+            { key: 'status', title: '在籍状態', note: '在籍・休会・退会予定', groups: Object.entries(labels.status).map(([bucket, label]) => [label, [bucket]]) }
+          ];
+          const sumOf = (row, key, buckets) => buckets.reduce((total, bucket) => total + (Number(row[key]?.[bucket]) || 0), 0);
+          // Ordinal categories share one navy ramp (light → dark); unknown stays neutral grey.
+          const ramp = (index, count) => {
+            const t = count <= 1 ? 1 : index / (count - 1);
+            const from = [207, 222, 235], to = [23, 57, 87];
+            return { color: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t)).join(',')})`, ink: t > 0.42 ? '#fff' : '#142235' };
+          };
+          const activeGroups = dimension => dimension.groups.filter(([, buckets]) => ['ALL', ...teamIds].some(id => sumOf(rowFor(id), dimension.key, buckets) > 0));
+
+          const metrics = [
+            { title: '運用会員数', note: `人物単位・全体 ${formatNumber.format(c.overall.members)}名`, unit: '名', value: row => row.members, format: value => formatNumber.format(value), overall: false },
+            { title: '平均在籍期間', note: '入会日が判明している会員の平均', unit: '年', value: row => row.summary.meanTenureMonths / 12, format: one },
+            { title: '入会1年未満の割合', note: '新しく加わった会員の厚み', unit: '%', value: row => share(row.tenure.lt3 + row.tenure.m3to6 + row.tenure.m6to12, row.members), format: one },
+            { title: '在籍3年以上の割合', note: '長く通っている会員の厚み', unit: '%', value: row => share(row.tenure.y3to5 + row.tenure.y5plus, row.members), format: one },
+            { title: '女子の割合', note: '登録されている性別ベース', unit: '%', value: row => share(row.gender.female, row.members), format: one },
+            { title: '休会・退会予定の割合', note: '在籍状態ベース', unit: '%', value: row => share(row.status.paused + row.status.scheduled, row.members), format: one }
+          ];
+
+          const renderCompare = () => {
+            const focusClass = id => (selected !== 'ALL' && id === selected ? ' is-focus' : '');
+            const metricCards = metrics.map(metric => {
+              const values = Object.fromEntries(['ALL', ...teamIds].map(id => [id, metric.value(rowFor(id))]));
+              const shown = metric.overall === false ? teamIds : ['ALL', ...teamIds];
+              const scale = Math.max(...shown.map(id => values[id]).filter(Number.isFinite), 0.0001);
+              const top = Math.max(...teamIds.map(id => values[id]));
+              const rows = shown.map(id => {
+                const value = values[id];
+                const ref = metric.overall !== false && id !== 'ALL' ? `<span class="cmp-mref" style="left:${values.ALL / scale * 100}%" title="全体 ${metric.format(values.ALL)}${metric.unit}"></span>` : '';
+                return `<div class="cmp-mrow${id === 'ALL' ? ' is-overall' : ''}${id !== 'ALL' && value === top ? ' is-top' : ''}${focusClass(id)}" style="--cmp-c:${colorOf(id)}">
+                  <span class="cmp-mrow-name"><i></i>${id === 'ALL' ? '全体' : id}</span>
+                  <span class="cmp-mtrack"><span class="cmp-mfill" style="width:${Number.isFinite(value) ? value / scale * 100 : 0}%"></span>${ref}</span>
+                  <span class="cmp-mval">${Number.isFinite(value) ? metric.format(value) : '—'}<small>${metric.unit}</small></span>
+                </div>`;
+              }).join('');
+              return `<div class="cmp-metric"><h4>${metric.title}</h4><p>${metric.note}${metric.overall === false ? '' : '・縦線は全体'}</p>${rows}</div>`;
+            }).join('');
+
+            const stacks = dimensions.map(dimension => {
+              const groups = activeGroups(dimension);
+              const ordinal = groups.filter(([label]) => label !== '不明');
+              const paint = label => label === '不明' ? { color: '#b4bec8', ink: '#142235' } : ramp(ordinal.findIndex(([name]) => name === label), ordinal.length);
+              const legend = groups.map(([label]) => `<span><i style="--cmp-c:${paint(label).color}"></i>${escapeHtml(label)}</span>`).join('');
+              const rows = ['ALL', ...teamIds].map(id => {
+                const row = rowFor(id);
+                const name = id === 'ALL' ? '全体' : `${id} TEAM`;
+                const parts = groups.map(([label, buckets]) => {
+                  const count = sumOf(row, dimension.key, buckets);
+                  const pct = share(count, row.members);
+                  if (!count) return '';
+                  const { color, ink } = paint(label);
+                  return `<span class="cmp-seg-part" tabindex="0" style="flex:${count} 1 0;--cmp-c:${color};--cmp-ink:${ink}" data-tip="${escapeHtml(`${name}｜${dimension.title}｜${label}｜${formatNumber.format(count)}名｜${one(pct)}%`)}" aria-label="${escapeHtml(`${name} ${label} ${formatNumber.format(count)}名 ${one(pct)}%`)}">${pct >= 9 ? `${Math.round(pct)}%` : ''}</span>`;
+                }).join('');
+                return `<div class="cmp-srow${id === 'ALL' ? ' is-overall' : ''}${focusClass(id)}" style="--cmp-c:${colorOf(id)}"><span class="cmp-srow-name"><i></i>${id === 'ALL' ? '全体' : id}</span><div class="cmp-bar" role="group" aria-label="${escapeHtml(`${name}の${dimension.title}`)}">${parts}</div></div>`;
+              }).join('');
+              return `<div class="cmp-stack"><h4>${dimension.title}</h4><p>${dimension.note}</p><div class="cmp-legend">${legend}</div>${rows}</div>`;
+            }).join('');
+
+            // Largest gaps from the overall share, per team. Entry year and age largely restate tenure and grade, so they are left out.
+            const insights = teamIds.map(id => {
+              const row = rowFor(id);
+              const perDimension = {};
+              const candidates = dimensions.filter(dimension => ['grade', 'tenure', 'gender'].includes(dimension.key)).flatMap(dimension => activeGroups(dimension)
+                .filter(([label]) => label !== '不明')
+                .map(([label, buckets]) => {
+                  const teamPct = share(sumOf(row, dimension.key, buckets), row.members);
+                  const overallPct = share(sumOf(c.overall, dimension.key, buckets), c.overall.members);
+                  return { dimension: dimension.title, label, teamPct, overallPct, diff: teamPct - overallPct };
+                }))
+                .filter(item => Math.abs(item.diff) >= 4)
+                .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+                .filter(item => (perDimension[item.dimension] = (perDimension[item.dimension] || 0) + 1) <= 2)
+                .slice(0, 3);
+              const items = candidates.length
+                ? candidates.map(item => `<li>${escapeHtml(item.dimension)}「${escapeHtml(item.label)}」が<b class="${item.diff > 0 ? 'up' : 'down'}">${item.diff > 0 ? '多い' : '少ない'}</b><small>${one(item.teamPct)}%（全体 ${one(item.overallPct)}%・${item.diff > 0 ? '+' : '−'}${one(Math.abs(item.diff))}pt）</small></li>`).join('')
+                : '<li>全体と大きな差はありません<small>どの区分も全体との差が4pt未満</small></li>';
+              return `<div class="cmp-insight${focusClass(id)}" style="--cmp-c:${colorOf(id)}"><h4>${id} TEAM<span>${formatNumber.format(row.members)}名・平均在籍 ${tenureText(row.summary.meanTenureMonths)}</span></h4><ul>${items}</ul></div>`;
+            }).join('');
+
+            return `<div class="${selected !== 'ALL' ? 'cmp-dim' : ''}">
+              <div class="cmp-block"><div class="cmp-block-head"><h3>チームの特徴</h3><p>学年・在籍期間・男女比のうち、全体の構成比と比べて差が大きい区分（4pt以上）を差の大きい順に表示</p></div><div class="cmp-insights">${insights}</div></div>
+              <div class="cmp-block"><div class="cmp-block-head"><h3>主要指標の比較</h3><p>棒の長さは各指標の最大値が基準。縦線は全体の値</p></div><div class="cmp-metrics">${metricCards}</div></div>
+              <div class="cmp-block"><div class="cmp-block-head"><h3>構成比の比較</h3><p>各チームの会員を100%とした内訳。区分にカーソルを合わせる（タップする）と人数を表示</p></div><div class="cmp-stacks">${stacks}</div>
+                <p class="cmp-note">割合は各チームの全会員が分母で、不明も含みます。人数と細かい区分（学年別など）は「1チームを詳しく」で確認できます。</p></div>
+            </div>`;
+          };
+          const renderDetail = () => {
             const row = rowFor(selected), total = row.members;
             const color = selected === 'ALL' ? 'var(--navy-800)' : `var(--team-${selected.toLowerCase()})`;
             const stats = [
@@ -2282,7 +2448,7 @@
               }).join('');
               return `<article class="composition-chart" style="--composition-color:${color}"><h3>${titles[key]}</h3><p>${notes[key]}</p><div class="composition-bars" role="group" aria-label="${labelFor(selected)}の${titles[key]}">${bars}</div></article>`;
             }).join('');
-            root.innerHTML = `
+            return `
               <div class="composition-toolbar"><div><strong id="composition-selected-label" aria-live="polite">${labelFor(selected)} · ${formatNumber.format(total)}名</strong><p>割合は選択した全会員が分母です。不明も含めて100%になります（四捨五入差あり）。</p></div><div class="composition-switches" aria-label="棒グラフの表示基準"><button type="button" data-composition-mode="ratio" aria-pressed="${mode==='ratio'}">割合で見る</button><button type="button" data-composition-mode="count" aria-pressed="${mode==='count'}">人数で見る</button></div></div>
               <div class="composition-switches" id="composition-filters" aria-label="会員構成の表示チーム">${ids.map(id=>`<button type="button" data-composition-team="${id}" aria-pressed="${selected===id}">${labelFor(id)}</button>`).join('')}</div>
               <div class="composition-summary">${stats.map(([label,value,note])=>`<div class="composition-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join('')}</div>
@@ -2290,16 +2456,45 @@
               <div class="composition-table-wrap"><table class="composition-table"><caption>全体・チーム比較</caption><thead><tr><th scope="col">対象</th><th scope="col">会員数</th><th scope="col">平均在籍</th><th scope="col">3か月未満</th><th scope="col">3年以上</th><th scope="col">女子比率</th><th scope="col">性別不明</th></tr></thead><tbody>${ids.map(id=>{const t=rowFor(id);return `<tr data-selected="${selected===id}"><th scope="row"><button type="button" data-composition-team="${id}">${labelFor(id)}</button></th><td>${formatNumber.format(t.members)}名</td><td>${tenureText(t.summary.meanTenureMonths)}</td><td>${rate(t.tenure.lt3,t.members)}</td><td>${rate(t.tenure.y3to5+t.tenure.y5plus,t.members)}</td><td>${rate(t.gender.female,t.members)}</td><td>${t.gender.unknown}名</td></tr>`;}).join('')}</tbody></table></div>
               <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>人物単位の運用会員（在籍・休会・退会予定）が対象です。重複契約は1人にまとめ、承認済みの所属補正を反映しています。平均・中央値は入会日が判明している会員だけで計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録・矛盾のある属性は不明として表示します。未登録の会費ペイ外会員も人数から除外しません。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
           };
+          const render = () => {
+            const focusChips = layout === 'compare' ? `<div class="cmp-focus">強調するチーム<div class="composition-switches" id="composition-filters" aria-label="強調するチーム">${ids.map(id => `<button type="button" data-composition-team="${id}" aria-pressed="${selected === id}">${id === 'ALL' ? 'なし' : labelFor(id)}</button>`).join('')}</div></div>` : '';
+            const modebar = `<div class="cmp-modebar"><div class="cmp-seg" role="group" aria-label="会員構成の表示方法"><button type="button" data-composition-layout="compare" aria-pressed="${layout === 'compare'}">チームを比較</button><button type="button" data-composition-layout="detail" aria-pressed="${layout === 'detail'}">1チームを詳しく</button></div>${focusChips}</div>`;
+            root.innerHTML = modebar + (layout === 'compare' ? renderCompare() : renderDetail());
+          };
+          let tip = null;
+          const showTip = part => {
+            if (!part?.dataset.tip) return;
+            tip = tip || Object.assign(document.createElement('div'), { className: 'cmp-tip', role: 'tooltip' });
+            if (!tip.isConnected) document.body.append(tip);
+            const [name, dimension, label, count, pct] = part.dataset.tip.split('｜').map(escapeHtml);
+            tip.innerHTML = `<b>${name}</b>${dimension}：${label}<br>${count}（${pct}）`;
+            const box = part.getBoundingClientRect();
+            const left = Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, box.left + box.width / 2 - tip.offsetWidth / 2));
+            const top = box.top - tip.offsetHeight - 8 < 8 ? box.bottom + 8 : box.top - tip.offsetHeight - 8;
+            tip.style.left = `${left}px`;
+            tip.style.top = `${top}px`;
+          };
+          const hideTip = () => tip?.remove();
+          root.addEventListener('pointerover', event => showTip(event.target.closest('.cmp-seg-part')));
+          root.addEventListener('pointerout', event => { if (event.target.closest('.cmp-seg-part')) hideTip(); });
+          root.addEventListener('focusin', event => showTip(event.target.closest('.cmp-seg-part')));
+          root.addEventListener('focusout', hideTip);
+          window.addEventListener('scroll', hideTip, { passive: true });
           root.addEventListener('click', event => {
+            const part = event.target.closest('.cmp-seg-part');
+            if (part) { showTip(part); return; }
             const button=event.target.closest('button');
             if (!button) return;
             const target=button.dataset.compositionTeam;
             const nextMode=button.dataset.compositionMode;
+            const nextLayout=button.dataset.compositionLayout;
             if (target && ids.includes(target)) selected=target;
             else if (['ratio','count'].includes(nextMode)) mode=nextMode;
+            else if (['compare','detail'].includes(nextLayout)) layout=nextLayout;
             else return;
+            hideTip();
             render();
-            const next=target ? root.querySelector(`#composition-filters [data-composition-team="${target}"]`) : root.querySelector(`[data-composition-mode="${mode}"]`);
+            const next=nextLayout ? root.querySelector(`[data-composition-layout="${layout}"]`) : target ? root.querySelector(`#composition-filters [data-composition-team="${target}"]`) : root.querySelector(`[data-composition-mode="${mode}"]`);
             next?.focus({preventScroll:true});
           });
           render();

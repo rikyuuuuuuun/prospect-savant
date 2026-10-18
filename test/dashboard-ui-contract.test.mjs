@@ -42,3 +42,12 @@ test('standings view uses formal wording without celebratory effects', async () 
     assert.ok(!source.includes(word), `unexpected wording: ${word}`);
   }
 });
+
+test('member composition opens in side-by-side team comparison and keeps the single-team detail', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.match(source, /let selected = 'ALL', mode = 'ratio', layout = 'compare';/);
+  assert.match(source, /data-composition-layout="compare"/);
+  assert.match(source, /data-composition-layout="detail"/);
+  assert.match(source, /id="composition-filters"/);
+  for (const title of ['チームの特徴', '主要指標の比較', '構成比の比較']) assert.ok(source.includes(`<h3>${title}</h3>`));
+});
