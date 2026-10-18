@@ -4,8 +4,9 @@ export const TRIAL_CONVERSION_HISTORY_DEFINITION = 'trial-attendance-fiscal-mont
 const IDS = ['A', 'B', 'C', 'D'];
 const TITLE = '09_体験入会突合';
 const HEADER_ROW = 4;
-// Same columns the annual 12_Savant連携!A12:H17 table counts. Matched by exact header text.
-export const TRIAL_CONVERSION_HEADERS = Object.freeze({ date: '体験日', team: 'チーム', attended: '出席', admitted: '入会' });
+// Same columns the annual 12_Savant連携!A12:H17 table counts. The admission flag is 09 I列, not 01 P「入会日」
+// (admission-date totals are a separate series). Matched exactly after NFKC/whitespace normalisation.
+export const TRIAL_CONVERSION_HEADERS = Object.freeze({ date: '体験日', team: 'チーム', attended: '出席', admitted: '入会（体験表／会員マスター）' });
 const UNAVAILABLE_REASONS = new Set(['ANNUAL_MISMATCH', 'SOURCE_CHANGED', 'SCHEMA_INVALID', 'SOURCE_UNAVAILABLE']);
 const check = (ok, code) => { if (!ok) throw new Error(`TRIAL_CONVERSION_HISTORY_${code}`); };
 const exact = (value, keys) => value && typeof value === 'object' && Object.keys(value).sort().join() === [...keys].sort().join();
@@ -23,8 +24,8 @@ const flag = (value, code) => {
 export function buildTrialConversionHistory({ dates, teams, attended, admitted, asOf }) {
   check(validDate(asOf), 'DATE_INVALID');
   const H = TRIAL_CONVERSION_HEADERS;
-  const head = column => String(column?.[0] ?? '').trim();
-  check(head(dates) === H.date && head(teams) === H.team && head(attended) === H.attended && head(admitted) === H.admitted, 'HEADER_INVALID');
+  const head = column => squash(column?.[0]);
+  check(head(dates) === squash(H.date) && head(teams) === squash(H.team) && head(attended) === squash(H.attended) && head(admitted) === squash(H.admitted), 'HEADER_INVALID');
   const fiscalYear = fiscalYearFor(asOf);
   const months = monthsOf(fiscalYear);
   const open = month => month <= asOf.slice(0, 7);
@@ -115,7 +116,7 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
   const header = (await requestJson(headerUrl, token)).valueRanges?.[0]?.values?.[0] || [];
   const keys = ['date', 'team', 'attended', 'admitted'];
   const columns = keys.map(key => {
-    const found = header.flatMap((value, index) => String(value ?? '').trim() === TRIAL_CONVERSION_HEADERS[key] ? [index] : []);
+    const found = header.flatMap((value, index) => squash(value) === squash(TRIAL_CONVERSION_HEADERS[key]) ? [index] : []);
     if (found.length !== 1) {
       const error = new Error(`TRIAL_CONVERSION_HISTORY_HEADER_${found.length ? 'DUPLICATE' : 'MISSING'}_${key.toUpperCase()}`);
       error.profile = profileHeader(header, TRIAL_CONVERSION_HEADERS[key]);
@@ -151,7 +152,7 @@ export function profileTrialColumns({ dates, teams, attended, admitted }) {
 }
 
 // Labels the run log may name; any other header text is only counted, never printed.
-const HEADER_CANDIDATES = ['入会', '入会判定', '入会済', '入会有無', '入会状況', '入会確認', '入会フラグ', '入会可否', '入会日', '入会者', '入会(TRUE/FALSE)', '出席', '出席確認', '体験日', 'チーム'];
+const HEADER_CANDIDATES = ['入会（体験表／会員マスター）', '入会','入会判定', '入会済', '入会有無', '入会状況', '入会確認', '入会フラグ', '入会可否', '入会日', '入会者', '入会(TRUE/FALSE)', '出席', '出席確認', '体験日', 'チーム'];
 const squash = value => String(value ?? '').normalize('NFKC').replace(/\s+/g, '');
 /** Header shape for a missing/duplicate column: matching candidate labels and counts only. */
 export function profileHeader(header, label) {

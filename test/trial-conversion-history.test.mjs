@@ -5,7 +5,7 @@ import { profileTrialColumns, trialConversionDiagnostic, buildTrialConversionHis
 const serial = date => (Date.parse(date) - Date.UTC(1899, 11, 30)) / 86400000;
 const rows = list => ({
   dates: ['体験日', ...list.map(r => r[0])], teams: ['チーム', ...list.map(r => r[1])],
-  attended: ['出席', ...list.map(r => r[2])], admitted: ['入会', ...list.map(r => r[3])],
+  attended: ['出席', ...list.map(r => r[2])], admitted: ['入会(体験表/会員マスター)', ...list.map(r => r[3])],
 });
 const SAMPLE = [
   [serial('2026-04-05'), 'A', true, true],
@@ -78,7 +78,7 @@ test('unavailable records carry only a fixed reason', () => {
   assert.equal(trialConversionFailureReason(new Error('GOOGLE_SHEETS_503')), 'SOURCE_UNAVAILABLE');
 });
 
-const source = ({ header = ['突合ID', '体験日', '氏名', 'チーム', '出席', '入会'], change = false } = {}) => {
+const source = ({ header = ['突合ID', '体験日', '氏名', 'チーム', '出席', '入会（体験表／会員マスター）', '入会日'], change = false } = {}) => {
   let reads = 0;
   const requested = [];
   const requestJson = async raw => {
@@ -90,7 +90,7 @@ const source = ({ header = ['突合ID', '体験日', '氏名', 'チーム', '出
     if (ranges.length === 1) return { valueRanges: [{ values: [header] }] };
     reads++;
     const team = change && reads > 1 ? 'B' : 'A';
-    return { valueRanges: [{ values: [['体験日', serial('2026-05-01')]] }, { values: [['チーム', team]] }, { values: [['出席', true]] }, { values: [['入会', true]] }] };
+    return { valueRanges: [{ values: [['体験日', serial('2026-05-01')]] }, { values: [['チーム', team]] }, { values: [['出席', true]] }, { values: [['入会（体験表／会員マスター）', true]] }] };
   };
   return { requestJson, requested };
 };
@@ -108,8 +108,8 @@ test('private fetch discovers columns by header, skips other columns and gates o
 
 test('private fetch rejects missing or duplicated headers and concurrent changes', async () => {
   const run = options => fetchTrialConversionHistory({ spreadsheetId: 'savant', token: 'unused', asOf: '2026-09-06', conversion: expected, requestJson: source(options).requestJson });
-  await assert.rejects(() => run({ header: ['突合ID', '体験日', 'チーム', '出席'] }), /HEADER_MISSING_ADMITTED/);
-  await assert.rejects(() => run({ header: ['体験日', 'チーム', '出席', '入会', '入会'] }), /HEADER_DUPLICATE_ADMITTED/);
+  await assert.rejects(() => run({ header: ['突合ID', '体験日', 'チーム', '出席', '入会', '入会日'] }), /HEADER_MISSING_ADMITTED/);
+  await assert.rejects(() => run({ header: ['体験日', 'チーム', '出席', '入会（体験表／会員マスター）', '入会 (体験表/会員マスター)'] }), /HEADER_DUPLICATE_ADMITTED/);
   await assert.rejects(() => run({ change: true }), /SOURCE_CHANGED_DURING_READ/);
 });
 
