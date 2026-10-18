@@ -54,7 +54,7 @@ test('member composition opens in side-by-side team comparison and keeps the sin
 
 test('every analysis except the overview offers a side-by-side team comparison', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
-  for (const title of ['年度の入会実績', '累計の推移', '月別の入会者数', '月別の退会（判明分）', '経過月ごとの継続率の比較', '節目ごとの継続率の比較', 'イベント参加の実績', '開催回×チームの一覧', '総合点の内訳', '指標スコアと総合への寄与']) {
+  for (const title of ['年度の入会実績', '累計の推移', '月別の入会者数', '月別の退会', '経過月ごとの継続率の比較', '節目ごとの継続率の比較', 'イベント参加の実績', '開催回×チームの一覧', '総合点の内訳', '指標スコアと総合への寄与']) {
     assert.ok(source.includes(`'${title}'`), `missing comparison: ${title}`);
   }
   // Withdrawal comparison reuses the per-team card rule: month-start denominator only when complete.
@@ -67,4 +67,22 @@ test('team card filter only hides team cards, not other team-tagged elements', a
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.ok(source.includes('document.querySelectorAll("#team-grid [data-team]").forEach((card) => { card.hidden'));
   assert.ok(!source.includes('document.querySelectorAll("[data-team]").forEach((card) => { card.hidden'));
+});
+
+test('comparison tables added above existing charts never hide those charts', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.match(source, /const addAbove = \(section, compare\) => \{\n\s*compare\.classList\.add\('cx-above'\);/);
+  assert.ok(source.includes('.cx-section:not(.cx-compare-on) > .cx-compare:not(.cx-above) { display: none; }'));
+});
+
+test('withdrawals show members marked 退会予定 as this month planned withdrawals', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.ok(source.includes("composition.teams?.[id]?.status?.scheduled"));
+  assert.ok(source.includes('当月の退会予定 <b>${scheduledOf(id)}人</b>'));
+  assert.ok(source.includes('予定 ${num(planned)}人'));
+});
+
+test('no analysis shows per-100-member values', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.ok(!source.includes('100人'));
 });

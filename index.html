@@ -1175,7 +1175,9 @@
       .cx-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 14px; }
       .cx-toolbar p { margin: 0; color: var(--muted); font-size: 11px; }
       .cx-compare-on > :not(.section-heading):not(.cx-toolbar):not(.cx-compare) { display: none !important; }
-      .cx-section:not(.cx-compare-on) > .cx-compare { display: none; }
+      .cx-section:not(.cx-compare-on) > .cx-compare:not(.cx-above) { display: none; }
+      .cx-table td.cx-planned { background: repeating-linear-gradient(135deg, #fff8e8 0 6px, #fdf1d6 6px 12px); color: #6b4b12; }
+      .withdrawal-scheduled { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fff8e8; color: #6b4b12; font-size: 12px; }
       .cx-compare { display: grid; gap: 16px; margin-bottom: 16px; }
       .cx-block { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
       .cx-block-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
@@ -1326,10 +1328,6 @@
           </article>
           <article class="bt-card">
             <div class="bt-card-head"><div><p class="eyebrow">ADMISSIONS</p><h3>年度入会推移</h3></div>
-              <div class="bt-seg" id="bt-admit-mode" role="group" aria-label="表示単位">
-                <button type="button" data-mode="count" aria-pressed="true">人数</button>
-                <button type="button" data-mode="rate" aria-pressed="false">会員100人あたり</button>
-              </div>
             </div>
             <div class="bt-admit-stage">
               <div class="bt-bars" id="bt-bars"></div>
@@ -2586,6 +2584,8 @@
           let selected='ALL', month=h.asOf.slice(0,7);
           const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
           const reference=(r,id)=>withdrawalReference(r,data.teams.find(t=>t.id===id)?.members);
+          // Withdrawals are confirmed after month end; members marked 退会予定 are this month's planned withdrawals.
+          const scheduledOf=id=>{const c=data.memberComposition;return c?.status==='ok'&&c.asOf===data.asOf?c.teams?.[id]?.status?.scheduled??null:null;};
           const fmtRate=(r,id)=>{const value=reference(r,id);return value.rate===null?'—':`${value.rate.toFixed(2)}%`;};
           const render=()=>{
             const selectedIndex=h.months.indexOf(month);
@@ -2598,7 +2598,7 @@
               const ref=reference(r,id), prior=prev?reference(prev,id):null;
               const delta=ref.rate!==null && prior?.rate!==null && Number.isFinite(prior?.rate) && ref.basis===prior.basis?Number((ref.rate-prior.rate).toFixed(2)):null;
               const change=delta===null?'前月差：分母の基準が異なるか、比較月なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
-              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p><div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
             }).join('')}</div>
             <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明分は分子に含めず、判明分だけで参考値を計算します。月初人数または月初在籍の判定材料がない月は、判明退会人数を基準日の会員数で割った参考割合を表示します。この割合は通常の月次退会率とは分けて読み、基準日会員数の更新でも変わります。異なる分母基準の前月差は表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
           };
@@ -3341,16 +3341,12 @@
         const barsEl = document.getElementById("bt-bars");
         const rangeEl = document.getElementById("bt-month-range");
         const playBtn = document.getElementById("bt-play");
-        let admitMode = "count";
         let monthIndex = Math.max(0, lastIndex);
         let playTimer = null;
         const cumulative = (id, index) => (history.teams?.[id] || []).slice(0, index + 1).reduce((sum, value) => sum + (Number(value) || 0), 0);
         const monthLabel = index => `${Number(String(months[index]).slice(5, 7))}月`;
         const isCurrentMonth = index => index === lastIndex && String(data.asOf).slice(0, 7) === months[index];
-        const valueFor = (id, index) => {
-          const count = cumulative(id, index);
-          return admitMode === "rate" ? (byId[id].members ? count / byId[id].members * 100 : 0) : count;
-        };
+        const valueFor = (id, index) => cumulative(id, index);
         const renderAdmit = () => {
           if (lastIndex < 0) return;
           const scaleMax = Math.max(...teamIds.map(id => valueFor(id, lastIndex)), 1);
@@ -3367,7 +3363,7 @@
             row.querySelector(".bt-hbar-fill").style.width = `${pct}%`;
             const val = row.querySelector(".bt-hbar-val");
             val.style.left = `${pct}%`;
-            val.innerHTML = `${admitMode === "rate" ? num(value, 1) : num(value)}${admitMode === "rate" ? "" : "人"}${added ? `<small>+${num(added)}人</small>` : ""}`;
+            val.innerHTML = `${num(value)}人${added ? `<small>+${num(added)}人</small>` : ""}`;
           });
           document.getElementById("bt-month").textContent = monthLabel(monthIndex);
           document.getElementById("bt-month-sub").textContent = `${history.fiscalYear || ""}年度 4月からの累計${isCurrentMonth(monthIndex) ? "（今月は途中）" : ""}`;
@@ -3398,14 +3394,7 @@
           rangeEl.max = String(lastIndex);
           rangeEl.addEventListener("input", () => { stopPlay(); monthIndex = Number(rangeEl.value); renderAdmit(); });
           playBtn.addEventListener("click", () => (playTimer ? stopPlay() : startPlay()));
-          document.getElementById("bt-admit-mode").addEventListener("click", event => {
-            const button = event.target.closest("[data-mode]");
-            if (!button) return;
-            admitMode = button.dataset.mode;
-            event.currentTarget.querySelectorAll("button").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
-            renderAdmit();
-          });
-          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。「会員100人あたり」は${data.asOfLabel || data.asOf}時点の運用会員数で割った参考値で、会員数の多いチームと少ないチームを同じ物差しで比べられます。`;
+          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。`;
         } else {
           section.querySelector(".bt-admit-stage").closest(".bt-card").hidden = true;
         }
@@ -3584,7 +3573,7 @@
         };
         // Comparison shown above the original content (for analyses that already overlay all teams).
         const addAbove = (section, compare) => {
-          section.classList.add('cx-section', 'cx-compare-on');
+          compare.classList.add('cx-above');
           section.querySelector('.section-heading').after(compare);
         };
         const block = (title, note, body, extra = '') => `<div class="cx-block"><div class="cx-block-head"><div><h3>${title}</h3>${note ? `<p>${note}</p>` : ''}</div>${extra}</div>${body}</div>`;
@@ -3630,42 +3619,26 @@
           const partial = String(data.asOf).slice(0, 7) === h.months[last];
           const monthly = id => months.map((_, i) => Number(h.teams?.[id]?.[i]) || 0);
           const cum = id => monthly(id).reduce((acc, v) => [...acc, (acc.at(-1) || 0) + v], []);
-          const per100 = (value, id) => membersOf[id] ? value / membersOf[id] * 100 : null;
           const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
-          const rank = metric => [...ids].sort((a, b) => metric(b) - metric(a));
-          const totalRank = rank(id => totals[id]);
-          const rateRank = rank(id => per100(totals[id], id));
+          const totalRank = [...ids].sort((a, b) => totals[b] - totals[a]);
           const fullMonths = partial ? months.length - 1 : months.length;
           const kpis = ids.map(id => {
             const avg = fullMonths ? monthly(id).slice(0, fullMonths).reduce((a, b) => a + b, 0) / fullMonths : null;
             return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>累計 ${totalRank.indexOf(id) + 1}位</span></div><strong>${num(totals[id])}<small>人</small></strong>
-              <dl><dt>会員100人あたり</dt><dd>${num(per100(totals[id], id), 1)}人（${rateRank.indexOf(id) + 1}位）</dd><dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
+              <dl><dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
           }).join('');
-          let mode = 'count';
-          const chart = () => {
-            const series = ids.map(id => ({ id, values: cum(id).map(v => mode === 'rate' ? per100(v, id) : v) }));
-            const max = Math.max(...series.flatMap(s => s.values.filter(finite)), 1);
-            return lineChart({ labels: months.map(monthLabel), series, yMax: max, yFormat: v => num(v), endFormat: v => mode === 'rate' ? `${num(v, 1)}` : `${num(v)}人` });
-          };
+          const series = ids.map(id => ({ id, values: cum(id) }));
+          const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
           const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
-          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th><th scope="col">100人あたり</th></tr></thead><tbody>
-            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td><td class="cx-total">${num(per100(totals[id], id), 1)}</td></tr>`).join('')}
-            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td><td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0) / ids.reduce((s, id) => s + (membersOf[id] || 0), 0) * 100, 1)}</td></tr>
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td></tr>
           </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          const seg = `<div class="cmp-seg" role="group" aria-label="累計の単位"><button type="button" data-unit="count" aria-pressed="true">人数</button><button type="button" data-unit="rate" aria-pressed="false">会員100人あたり</button></div>`;
-          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）。100人あたりは${esc(data.asOfLabel)}時点の運用会員数で割った参考値`, `<div class="cx-kpis">${kpis}</div>`)
-            + block('累計の推移', '4月からの累計を同じグラフで比較', `<div data-chart>${chart()}</div>${legend(ids)}`, seg)
+          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, `<div class="cx-kpis">${kpis}</div>`)
+            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`)
             + block('月別の入会者数', 'チーム×月の一覧', table);
-          compare.addEventListener('click', event => {
-            const button = event.target.closest('[data-unit]');
-            if (!button) return;
-            mode = button.dataset.unit;
-            button.parentElement.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
-            compare.querySelector('[data-chart]').innerHTML = chart();
-            applyFocus();
-          });
           addToggle(section, compare);
         })();
 
@@ -3677,7 +3650,11 @@
           const last = h.months.reduce((acc, _, i) => ids.some(id => h.teams?.[id]?.months?.[i]) ? i : acc, -1);
           if (last < 0) return;
           const months = h.months.slice(0, last + 1);
-          const partial = String(data.asOf).slice(0, 7) === h.months[last];
+          const currentIndex = String(data.asOf).slice(0, 7) === h.months[last] ? last : -1;
+          // Withdrawals are confirmed only after month end, so members currently marked 退会予定 are shown as this month's planned withdrawals.
+          const composition = data.memberComposition;
+          const scheduledOf = id => composition?.status === 'ok' && composition.asOf === data.asOf ? (id === 'ALL' ? composition.overall?.status?.scheduled : composition.teams?.[id]?.status?.scheduled) ?? null : null;
+          const hasScheduled = currentIndex >= 0 && ids.some(id => finite(scheduledOf(id)));
           // Same reference rule as the per-team cards: month-start denominator when complete, otherwise the snapshot members.
           const reference = (row, members) => {
             if (!row) return null;
@@ -3690,17 +3667,33 @@
           const known = id => rows(id).reduce((s, row) => s + (row?.count || 0), 0);
           const rateOf = id => months.map((_, i) => reference(rows(id)[i], membersOf[id]));
           const allMembers = ids.reduce((s, id) => s + (membersOf[id] || 0), 0);
-          const overallRate = months.map((_, i) => { const count = ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0); return allMembers ? 100 * count / allMembers : null; });
-          const diffs = ids.flatMap(id => rateOf(id).map((v, i) => finite(v) && finite(overallRate[i]) ? v - overallRate[i] : null)).filter(finite);
+          const overallCount = i => ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0);
+          const overallRate = months.map((_, i) => allMembers ? 100 * overallCount(i) / allMembers : null);
+          const confirmedMonth = i => i !== currentIndex;
+          const diffs = ids.flatMap(id => rateOf(id).map((v, i) => confirmedMonth(i) && finite(v) && finite(overallRate[i]) ? v - overallRate[i] : null)).filter(finite);
           const maxAbs = Math.max(...diffs.map(Math.abs), 0.5);
-          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">判明合計</th><th scope="col">会員100人あたり</th></tr></thead><tbody>
-            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${rows(id).map((row, i) => { const rate = rateOf(id)[i]; const c = diverging(finite(rate) && finite(overallRate[i]) ? rate - overallRate[i] : null, maxAbs, false); return row ? `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(row.count)}人<small>${finite(rate) ? `${num(rate, 2)}%` : '—'}</small></td>` : '<td class="cx-na">—</td>'; }).join('')}<td class="cx-total">${num(known(id))}人</td><td class="cx-total">${membersOf[id] ? num(known(id) / membersOf[id] * 100, 1) : '—'}</td></tr>`).join('')}
-            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0))}人<small>${finite(overallRate[i]) ? `${num(overallRate[i], 2)}%` : '—'}</small></td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0))}人</td><td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0) / allMembers * 100, 1)}</td></tr>
+          const plannedCell = (id, row) => {
+            const planned = scheduledOf(id);
+            return `<td class="cx-cell cx-planned">${finite(planned) ? `予定 ${num(planned)}人` : '—'}<small>確定 ${num(row?.count || 0)}人</small></td>`;
+          };
+          const cell = (id, row, i) => {
+            if (i === currentIndex && hasScheduled) return plannedCell(id, row);
+            if (!row) return '<td class="cx-na">—</td>';
+            const rate = rateOf(id)[i];
+            const c = confirmedMonth(i) ? diverging(finite(rate) && finite(overallRate[i]) ? rate - overallRate[i] : null, maxAbs, false) : { bg: 'transparent', ink: 'inherit' };
+            return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(row.count)}人<small>${finite(rate) ? `${num(rate, 2)}%` : '—'}</small></td>`;
+          };
+          const head = months.map((m, i) => `<th scope="col">${monthLabel(m)}${i === currentIndex ? `<br><small>${hasScheduled ? '退会予定' : '途中'}</small>` : ''}</th>`).join('');
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${head}<th scope="col">確定合計</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${rows(id).map((row, i) => cell(id, row, i)).join('')}<td class="cx-total">${num(known(id))}人</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => i === currentIndex && hasScheduled ? `<td class="cx-planned">予定 ${num(ids.reduce((s, id) => s + (scheduledOf(id) || 0), 0))}人<small>確定 ${num(overallCount(i))}人</small></td>` : `<td>${num(overallCount(i))}人<small>${finite(overallRate[i]) ? `${num(overallRate[i], 2)}%` : '—'}</small></td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0))}人</td></tr>
           </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
+          const plannedSummary = hasScheduled ? `<div class="cx-kpis">${ids.map(id => `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>${monthLabel(months[currentIndex])}末に確定</span></div><strong>${finite(scheduledOf(id)) ? num(scheduledOf(id)) : '—'}<small>人 退会予定</small></strong><dl><dt>${monthLabel(months[currentIndex])}の確定退会</dt><dd>${num(rows(id)[currentIndex]?.count || 0)}人</dd><dt>年度の確定退会</dt><dd>${num(known(id))}人</dd></dl></div>`).join('')}</div>` : '';
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
           const unassigned = Number(h.unassigned) || 0;
-          compare.innerHTML = block('月別の退会（判明分）', '上段：退会月が判明した人数　下段：会員数に対する割合（参考）', `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>${table}<p class="cx-note">割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`);
+          compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員数（${esc(data.asOfLabel)}時点）。退会は月末を過ぎてから確定します`, plannedSummary) : '')
+            + block('月別の退会', `上段：退会月が判明した人数　下段：会員数に対する割合（参考）${hasScheduled ? '。当月は退会予定者数' : ''}`, `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`);
           addToggle(section, compare);
         })();
 
