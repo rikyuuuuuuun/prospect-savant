@@ -901,6 +901,148 @@
       .composition-method summary { font-weight:700; cursor:pointer; color:var(--ink); }
       .composition-empty { background:white; padding:24px; border:1px solid var(--line); border-radius:14px; color:var(--muted); }
       @media(max-width:780px) { .composition-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } .composition-charts { grid-template-columns:1fr; } .composition-chart { padding:18px 14px; } .composition-stat { padding:15px; } .composition-bar { grid-template-columns:70px minmax(25px,1fr) 105px; gap:7px; font-size:11px; } }
+      /* ---- Battle view: daily rivalry board (Savant percentile language) ---- */
+      .bt-topline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; }
+      .bt-myteam { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+      .bt-myteam button { min-width: 44px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; letter-spacing: 0; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+      .bt-myteam button[aria-pressed="true"] { background: var(--navy-800); border-color: var(--navy-800); color: #fff; box-shadow: inset 0 -3px 0 var(--bt-c, transparent); }
+      .bt-streak { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--navy-800); font-size: 12px; font-weight: 800; }
+      .bt-streak b { font-size: 16px; font-variant-numeric: tabular-nums; }
+
+      .bt-ticker { position: relative; overflow: hidden; margin-bottom: 18px; border-radius: 12px; background: var(--navy-900); color: #fff; box-shadow: var(--shadow); }
+      .bt-ticker:focus-visible { outline: 3px solid rgba(52, 117, 167, 0.38); outline-offset: 3px; }
+      .bt-ticker-label { position: absolute; z-index: 2; inset: 0 auto 0 0; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--red-deep); font-size: 11px; font-weight: 900; letter-spacing: .14em; }
+      .bt-ticker-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: bt-blink 1.4s infinite; }
+      .bt-ticker-track { display: flex; width: max-content; gap: 44px; padding: 12px 0 12px 130px; animation: bt-marquee var(--bt-dur, 40s) linear infinite; font-size: 13px; white-space: nowrap; }
+      .bt-ticker:hover .bt-ticker-track, .bt-ticker:focus-within .bt-ticker-track { animation-play-state: paused; }
+      .bt-ticker-item b { color: #fff; }
+      .bt-ticker-item em { font-style: normal; color: #b7c8d6; }
+      .bt-ticker-item .up { color: #8fd9b6; } .bt-ticker-item .down { color: #f2a19c; }
+      @keyframes bt-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      @keyframes bt-blink { 50% { opacity: .25; } }
+
+      .bt-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+      .bt-card { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
+      .bt-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin-bottom: 14px; }
+      .bt-card-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+      .bt-card-head .eyebrow { margin: 0 0 2px; color: var(--blue-deep); }
+      .bt-card-head > span { color: var(--muted); font-size: 12px; }
+      .bt-btn { min-height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--navy-800); font-size: 12px; font-weight: 800; cursor: pointer; }
+      .bt-btn:hover { background: #eef3f7; }
+
+      .bt-race { display: grid; }
+      .bt-lane { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) 84px; align-items: center; gap: 14px; padding: 13px 8px; border-bottom: 1px solid #e6ecf1; transition: background .3s; }
+      .bt-lane:last-child { border-bottom: 0; }
+      .bt-lane.is-mine { background: #f4f8fb; box-shadow: inset 3px 0 0 var(--bt-c); }
+      .bt-rank { color: var(--navy-800); font-size: 24px; line-height: 1; font-weight: 900; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+      .bt-rank small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+      .bt-lane-body { min-width: 0; }
+      .bt-lane-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; margin-bottom: 9px; font-weight: 900; letter-spacing: -0.02em; }
+      .bt-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--bt-c); }
+      .bt-move { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; background: #eef2f5; color: var(--muted); letter-spacing: 0; }
+      .bt-move.up { background: #e2f3eb; color: var(--green); } .bt-move.down { background: #fae7e5; color: var(--red-deep); }
+      .bt-mine-tag { padding: 2px 8px; border-radius: 999px; background: var(--navy-800); color: #fff; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+      .bt-track { position: relative; height: 12px; margin-right: 18px; border-radius: 999px; background: #e5ebf0; }
+      .bt-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
+      .bt-bar { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: var(--bt-s); transition: width 1.6s cubic-bezier(.2,.75,.15,1); }
+      .bt-runner { position: absolute; z-index: 1; top: 50%; right: 0; display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid #fff; border-radius: 50%; background: var(--bt-s); color: #fff; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums; box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(50%, -50%); }
+      .bt-gap { margin-top: 10px; color: var(--muted); font-size: 11px; }
+      .bt-gap b { color: var(--ink); font-variant-numeric: tabular-nums; }
+      .bt-score { text-align: right; }
+      .bt-score strong { display: block; font-size: 32px; line-height: 1; font-weight: 900; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-score span { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .14em; }
+      .bt-score small { display: block; margin-top: 2px; font-size: 10px; font-weight: 800; color: var(--muted); }
+      .bt-score small.up { color: var(--green); } .bt-score small.down { color: var(--red-deep); }
+
+      .bt-mission { position: relative; overflow: hidden; color: #fff; border: 0; background: linear-gradient(160deg, var(--navy-800), var(--navy-950)); }
+      .bt-mission::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--bt-c, transparent); }
+      .bt-mission .bt-card-head .eyebrow { color: #9fc0db; }
+      .bt-mission .bt-card-head > span { color: #b7c8d6; }
+      .bt-mission-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 900; }
+      .bt-mission-big strong { font-size: 52px; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-mission-big span { color: #d5e0e8; font-size: 14px; }
+      .bt-mission p { margin: 10px 0 0; color: #d5e0e8; font-size: 13px; }
+      .bt-mission p b { color: #fff; }
+      .bt-mission-list { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+      .bt-mission-list li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.07); font-size: 12px; line-height: 1.5; }
+      .bt-mission-list li > i { display: grid; place-items: center; width: 36px; height: 36px; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; background: var(--bt-s, var(--navy-800)); font-style: normal; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      .bt-mission-list b { color: #fff; }
+      .bt-mission-empty { color: #d5e0e8; font-size: 13px; }
+
+      .bt-titles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .bt-title { position: relative; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px; border: 1px solid #e6ecf1; border-radius: 14px; background: #fff; }
+      .bt-bubble { display: grid; place-items: center; width: 54px; height: 54px; border: 4px solid #fff; border-radius: 50%; background: var(--bt-s); color: #fff; font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; box-shadow: 0 1px 5px rgba(8,24,39,0.38); }
+      .bt-title-label { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+      .bt-title-team { display: flex; align-items: center; gap: 7px; margin-top: 2px; font-size: 18px; font-weight: 900; letter-spacing: -0.03em; }
+      .bt-title-raw { margin-top: 1px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .bt-title-gap { margin-top: 4px; color: #34485a; font-size: 11px; font-variant-numeric: tabular-nums; }
+      .bt-hot, .bt-safe { position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+      .bt-hot { background: #fae7e5; color: #8e2926; }
+      .bt-safe { background: #e4eff7; color: #245b86; }
+
+      .bt-vs-pick { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 16px; }
+      .bt-vs-pick select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-bottom: 3px solid var(--bt-c); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-weight: 900; }
+      .bt-vs-pick .bt-btn { min-width: 48px; font-size: 15px; }
+      .bt-vs-score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 16px; padding: 12px; border-radius: 14px; background: #f6f8fa; text-align: center; font-weight: 900; }
+      .bt-vs-score strong { display: block; font-size: 38px; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-vs-score span { color: var(--muted); font-size: 11px; }
+      .bt-vs-score .verdict { color: var(--navy-800); font-size: 12px; }
+      .bt-vs-rows { display: grid; gap: 13px; }
+      .bt-vs-row-head { display: grid; grid-template-columns: 1fr auto 1fr; margin-bottom: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
+      .bt-vs-row-head span:first-child { text-align: left; } .bt-vs-row-head span:last-child { text-align: right; }
+      .bt-vs-row-head span { color: var(--muted); font-weight: 700; }
+      .bt-vs-row-head span.win { color: var(--ink); font-weight: 900; }
+      .bt-vs-row-head b { color: #34485a; font-size: 12px; }
+      .bt-tug { position: relative; display: flex; height: 10px; overflow: hidden; border-radius: 999px; background: #e5ebf0; }
+      .bt-tug i { display: block; height: 100%; transition: flex-grow .9s cubic-bezier(.2,.8,.2,1); }
+      .bt-tug::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #fff; }
+
+      .bt-seg { display: inline-flex; padding: 3px; border-radius: 10px; background: #edf2f6; }
+      .bt-seg button { min-height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; }
+      .bt-seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+      .bt-admit-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 14px; align-items: end; }
+      .bt-bars { position: relative; height: 216px; }
+      .bt-hbar { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 8px; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-name { font-size: 12px; font-weight: 900; }
+      .bt-hbar-track { position: relative; height: 30px; margin-right: 76px; }
+      .bt-hbar-fill { position: absolute; inset: 0 auto 0 0; min-width: 4px; border-radius: 0 8px 8px 0; background: var(--bt-c); transition: width .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-val { position: absolute; top: 50%; left: 0; padding-left: 8px; transform: translateY(-50%); font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; transition: left .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-val small { margin-left: 4px; color: var(--green); font-size: 11px; }
+      .bt-month { text-align: right; }
+      .bt-month strong { display: block; color: #c9d4de; font-size: 50px; line-height: 1; font-weight: 900; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-month span { color: var(--muted); font-size: 11px; }
+      .bt-slider { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin-top: 12px; }
+      .bt-slider input { width: 100%; accent-color: var(--navy-800); }
+      .bt-podium { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e6ecf1; }
+      .bt-podium div { padding: 9px 6px; border-radius: 12px; background: #f6f8fa; text-align: center; font-size: 10px; color: var(--muted); }
+      .bt-podium b { display: flex; align-items: center; justify-content: center; gap: 5px; color: var(--ink); font-size: 12px; }
+      .bt-podium strong { display: block; color: var(--ink); font-size: 22px; font-variant-numeric: tabular-nums; }
+      .bt-podium div.lead { background: #fff; box-shadow: inset 0 0 0 2px var(--bt-c); }
+      .bt-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      .bt-full { grid-column: 1 / -1; }
+      .bt-confetti { position: fixed; inset: 0; z-index: 60; width: 100%; height: 100%; pointer-events: none; }
+
+      @media (max-width: 980px) {
+        .bt-grid { grid-template-columns: minmax(0, 1fr); }
+        .bt-titles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 560px) {
+        .bt-card { padding: 16px; }
+        .bt-lane { grid-template-columns: 28px minmax(0, 1fr) 58px; gap: 10px; padding: 12px 4px; }
+        .bt-rank { font-size: 19px; }
+        .bt-score strong { font-size: 26px; }
+        .bt-titles { grid-template-columns: minmax(0, 1fr); }
+        .bt-admit-stage { grid-template-columns: minmax(0, 1fr); }
+        .bt-month { text-align: left; order: -1; }
+        .bt-month strong { font-size: 38px; }
+        .bt-podium { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .bt-mission-big strong { font-size: 44px; }
+        .bt-ticker-track { padding-left: 110px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bt-ticker-track { animation: none; flex-wrap: wrap; width: auto; gap: 6px 24px; padding: 12px 16px 12px 130px; white-space: normal; }
+        .bt-ticker-track [aria-hidden="true"] { display: none; }
+      }
     </style>
   </head>
   <body>
@@ -928,7 +1070,8 @@
     <nav class="dashboard-nav" aria-label="分析メニュー" hidden>
       <div class="container dashboard-nav-inner">
         <div class="view-controls" aria-label="表示する分析">
-          <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
+          <button type="button" data-view="battle" aria-pressed="true">今日のバトル</button>
+          <button type="button" data-view="overview" aria-pressed="false">チーム概要</button>
           <button type="button" data-view="composition" aria-pressed="false">会員構成</button>
           <button type="button" data-view="admissions" aria-pressed="false">実入会の推移</button>
           <button type="button" data-view="retention" aria-pressed="false">定着・継続</button>
@@ -943,6 +1086,64 @@
         <div><p class="eyebrow">EXPLORE YOUR TEAM</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
         <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option></select><span>各グラフでも個別に選べます</span></label>
       </div>
+      <section class="section" id="battle-section" aria-labelledby="battle-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">TODAY'S STANDINGS</p><h2 id="battle-title">今日の順位バトル</h2></div>
+          <p>総合点の順位、部門別の首位、2チームの直接対決。毎日の公開値だけで、いまの勝ち負けと逆転までの距離を表示します。</p>
+        </div>
+        <div class="bt-topline">
+          <div class="bt-myteam" id="bt-myteam" role="group" aria-label="マイチームを選択">MY TEAM</div>
+          <div class="bt-streak" id="bt-streak" hidden></div>
+        </div>
+        <div class="bt-ticker" id="bt-ticker" tabindex="0" aria-label="今日のヘッドライン。ホバーまたはフォーカスで一時停止">
+          <div class="bt-ticker-label">TODAY</div>
+          <div class="bt-ticker-track" id="bt-ticker-track"></div>
+        </div>
+        <div class="bt-grid">
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合ランキング</h3></div><button type="button" class="bt-btn" id="bt-replay">もう一度再生</button></div>
+            <div class="bt-race" id="bt-race"></div>
+            <p class="bt-note" id="bt-race-note"></p>
+          </article>
+          <article class="bt-card bt-mission" id="bt-mission">
+            <div class="bt-card-head"><div><p class="eyebrow">MY TEAM MISSION</p><h3>マイチーム指令</h3></div><span>逆転・防衛に効く指標</span></div>
+            <div id="bt-mission-body" aria-live="polite"></div>
+          </article>
+          <article class="bt-card bt-full">
+            <div class="bt-card-head"><div><p class="eyebrow">CATEGORY LEADERS</p><h3>部門別トップ</h3></div><span>2位との差が5点以内は「接戦」</span></div>
+            <div class="bt-titles" id="bt-titles"></div>
+          </article>
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">HEAD TO HEAD</p><h3>直接対決</h3></div><span>5指標でどちらが勝ち越すか</span></div>
+            <div class="bt-vs-pick">
+              <select id="bt-vs-left" aria-label="左のチーム"></select>
+              <button type="button" class="bt-btn" id="bt-vs-swap" aria-label="左右を入れ替え">⇄</button>
+              <select id="bt-vs-right" aria-label="右のチーム"></select>
+            </div>
+            <div class="bt-vs-score" id="bt-vs-score" aria-live="polite"></div>
+            <div class="bt-vs-rows" id="bt-vs-rows"></div>
+          </article>
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">ADMISSION RACE</p><h3>年度 入会レース</h3></div>
+              <div class="bt-seg" id="bt-admit-mode" role="group" aria-label="表示単位">
+                <button type="button" data-mode="count" aria-pressed="true">人数</button>
+                <button type="button" data-mode="rate" aria-pressed="false">会員100人あたり</button>
+              </div>
+            </div>
+            <div class="bt-admit-stage">
+              <div class="bt-bars" id="bt-bars"></div>
+              <div class="bt-month" aria-live="polite"><strong id="bt-month">4月</strong><span id="bt-month-sub">4月からの累計</span></div>
+            </div>
+            <div class="bt-slider">
+              <button type="button" class="bt-btn" id="bt-play">▶ 再生</button>
+              <input type="range" id="bt-month-range" min="0" max="0" value="0" aria-label="表示する月">
+            </div>
+            <div class="bt-podium" id="bt-podium"></div>
+            <p class="bt-note" id="bt-admit-note"></p>
+          </article>
+        </div>
+      </section>
+
       <section id="movement-section" aria-labelledby="movement-title" hidden>
         <div class="movement-panel">
           <div class="movement-head">
@@ -2549,11 +2750,500 @@
 
     <script>
       (() => {
+        "use strict";
+        const data = window.PROSPECT_SAVANT_DATA;
+        const section = document.getElementById("battle-section");
+        if (!data || !section || !Array.isArray(data.teams)) return;
+
+        const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        const labels = data.metricLabels || {};
+        const weights = Object.fromEntries((data.weights || []).map(item => [item.key, Number(item.value) || 0]));
+        const teams = data.teams.filter(team => Number.isFinite(team.overall));
+        const teamIds = teams.map(team => team.id);
+        const byId = Object.fromEntries(teams.map(team => [team.id, team]));
+        const teamName = id => `${id} TEAM`;
+        const teamColor = id => `var(--team-${String(id).toLowerCase()})`;
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const esc = value => String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[ch]);
+        const num = (value, digits = 0) => Number(value).toLocaleString("ja-JP", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        const signed = (value, digits = 0) => `${value > 0 ? "+" : value < 0 ? "−" : "±"}${num(Math.abs(value), digits)}`;
+        const store = {
+          get(key) { try { return JSON.parse(window.localStorage.getItem(key)); } catch { return null; } },
+          set(key, value) { try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ } }
+        };
+
+        // Savant percentile scale: blue-deep (0) → neutral (50) → red-deep (100), same stops as .metric-track.
+        const stops = [[0, [36, 91, 134]], [50, [217, 225, 232]], [100, [168, 47, 43]]];
+        const savantColor = score => {
+          const s = Math.max(0, Math.min(100, Number(score) || 0));
+          const [a, b] = s <= 50 ? [stops[0], stops[1]] : [stops[1], stops[2]];
+          const t = (s - a[0]) / (b[0] - a[0]);
+          return `rgb(${a[1].map((c, i) => Math.round(c + (b[1][i] - c) * t)).join(",")})`;
+        };
+        const savantInk = score => (score > 32 && score < 68 ? "#142235" : "#fff");
+
+        // Previous-publication comparison only when score version and metric definitions match.
+        const comparison = data.comparison || {};
+        const comparable = comparison.scoreVersion === data.scoreVersion
+          && JSON.stringify(comparison.metricDefinitions || {}) === JSON.stringify(data.metricDefinitions || {})
+          && Array.isArray(comparison.teams);
+        const prevById = comparable ? Object.fromEntries(comparison.teams.map(team => [team.id, team])) : {};
+        const admissionsComparable = data.admissions && comparison.admissions
+          && data.admissions.fiscalYear === comparison.admissions.fiscalYear
+          && data.admissions.definition === comparison.admissions.definition;
+
+        const standings = [...teams].sort((a, b) => b.overall - a.overall || a.id.localeCompare(b.id));
+        const rankOf = id => 1 + standings.filter(team => team.overall > byId[id].overall).length;
+        const prevRankOf = id => {
+          const prev = prevById[id];
+          if (!prev || !Number.isFinite(prev.overall)) return null;
+          return 1 + comparison.teams.filter(team => Number.isFinite(team.overall) && team.overall > prev.overall).length;
+        };
+        const leaderOf = key => [...teams].filter(team => Number.isFinite(team.metrics?.[key])).sort((a, b) => b.metrics[key] - a.metrics[key]);
+
+        const rawValue = (team, key) => {
+          const bench = team.benchmark || {};
+          const ev = team.metricEvidence || {};
+          if (key === "retention" && Number.isFinite(bench.retention12mRate)) return `12か月継続率 ${num(bench.retention12mRate, 1)}%`;
+          if (key === "admission" && Number.isFinite(bench.admissionRate)) return `体験→入会率 ${num(bench.admissionRate, 1)}%`;
+          if (key === "event" && Number.isFinite(bench.eventRate)) return `平均参加率 ${num(bench.eventRate, 1)}%`;
+          if (key === "growth" && Number.isFinite(ev.growth?.top30Children)) return `大会上位30% ${num(ev.growth.top30Children)}人`;
+          if (key === "family" && Number.isFinite(bench.referralPoints)) return `紹介 ${num(bench.referralPoints)}pt・${num(bench.referralRate, 2)}%`;
+          if (key === "overall") return `会員 ${num(team.members)}名`;
+          return "";
+        };
+
+        /* ---------- My team & streak ---------- */
+        let myTeam = store.get("savant-my-team");
+        if (!teamIds.includes(myTeam)) myTeam = null;
+        const myTeamBox = document.getElementById("bt-myteam");
+        myTeamBox.insertAdjacentHTML("beforeend", [...teamIds.map(id => `<button type="button" data-team="${esc(id)}" style="--bt-c:${teamColor(id)}">${esc(id)}</button>`), `<button type="button" data-team="">なし</button>`].join(""));
+
+        const todayJst = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
+        const visit = store.get("savant-visit") || {};
+        if (visit.last !== todayJst) {
+          const yesterday = new Date(Date.now() - 864e5).toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
+          visit.streak = visit.last === yesterday ? (visit.streak || 0) + 1 : 1;
+          visit.previousSeen = visit.seen || null;
+          visit.last = todayJst;
+        }
+        visit.seen = { asOf: data.asOf, scoreVersion: data.scoreVersion, overall: Object.fromEntries(teams.map(team => [team.id, team.overall])) };
+        store.set("savant-visit", visit);
+        const streakEl = document.getElementById("bt-streak");
+        if (visit.streak >= 1) {
+          streakEl.hidden = false;
+          streakEl.innerHTML = `<span>連続チェック</span><b>${num(visit.streak)}</b><span>日目</span>`;
+        }
+
+        /* ---------- Count-up helper ---------- */
+        const countUp = (el, to, { digits = 0, prefix = "", duration = 1400 } = {}) => {
+          if (!el || !Number.isFinite(to)) return;
+          if (reduceMotion) { el.textContent = prefix + num(to, digits); return; }
+          const start = performance.now();
+          const step = now => {
+            const p = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = prefix + num(to * eased, digits);
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        };
+
+        /* ---------- Overall standings race ---------- */
+        const raceEl = document.getElementById("bt-race");
+        const renderRace = () => {
+          raceEl.innerHTML = standings.map(team => {
+            const rank = rankOf(team.id);
+            const prevRank = prevRankOf(team.id);
+            const prev = prevById[team.id];
+            const overallDelta = prev && Number.isFinite(prev.overall) ? team.overall - prev.overall : null;
+            let move = "";
+            if (prevRank !== null) {
+              move = prevRank > rank ? `<span class="bt-move up">▲${prevRank - rank} UP</span>`
+                : prevRank < rank ? `<span class="bt-move down">▼${rank - prevRank} DOWN</span>`
+                : `<span class="bt-move">→ 前回と同順位</span>`;
+            }
+            const above = standings.filter(other => other.overall > team.overall).sort((a, b) => a.overall - b.overall)[0];
+            const below = standings.filter(other => other.overall < team.overall).sort((a, b) => b.overall - a.overall)[0];
+            const tied = standings.filter(other => other.id !== team.id && other.overall === team.overall);
+            const gapText = tied.length ? `${tied.map(other => teamName(other.id)).join("・")}と<b>同点</b>で並走中`
+              : above ? `${rankOf(above.id)}位 ${teamName(above.id)}まで <b>${num(above.overall - team.overall)}点</b>${below ? `　／　後続 ${teamName(below.id)}と <b>${num(team.overall - below.overall)}点差</b>` : ""}`
+              : below ? `首位キープ。2位 ${teamName(below.id)}と <b>${num(team.overall - below.overall)}点差</b>` : "";
+            const mine = team.id === myTeam;
+            return `<div class="bt-lane${mine ? " is-mine" : ""}" data-rank="${rank}" style="--bt-c:${teamColor(team.id)};--bt-s:${savantColor(team.overall)}">
+              <div class="bt-rank">${rank}<small>${rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : `${rank}TH`}</small></div>
+              <div class="bt-lane-body">
+                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">MY TEAM</span>` : ""}${move}</div>
+                <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
+                <div class="bt-gap">${gapText}</div>
+              </div>
+              <div class="bt-score"><strong data-count="${team.overall}">0</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
+            </div>`;
+          }).join("");
+          document.getElementById("bt-race-note").textContent = `総合点は5指標×配点（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
+        };
+        const playRace = () => {
+          const bars = [...raceEl.querySelectorAll(".bt-bar")];
+          const scores = [...raceEl.querySelectorAll("[data-count]")];
+          bars.forEach(bar => { bar.style.transition = "none"; bar.style.width = "0%"; });
+          scores.forEach(el => { el.textContent = "0"; });
+          void raceEl.offsetWidth;
+          requestAnimationFrame(() => {
+            bars.forEach((bar, index) => {
+              bar.style.transition = reduceMotion ? "none" : `width 1.6s cubic-bezier(.2,.75,.15,1) ${index * 120}ms`;
+              bar.style.width = `${bar.dataset.score}%`;
+            });
+            scores.forEach(el => countUp(el, Number(el.dataset.count), { duration: 1600 }));
+          });
+        };
+
+        /* ---------- My team mission ---------- */
+        const missionEl = document.getElementById("bt-mission");
+        const missionBody = document.getElementById("bt-mission-body");
+        const metricEdge = (mine, rival) => metricKeys
+          .filter(key => Number.isFinite(mine.metrics?.[key]) && Number.isFinite(rival.metrics?.[key]))
+          .map(key => ({ key, diff: mine.metrics[key] - rival.metrics[key], impact: (mine.metrics[key] - rival.metrics[key]) * (weights[key] || 0) / 100 }));
+        const renderMission = () => {
+          missionEl.style.setProperty("--bt-c", myTeam ? teamColor(myTeam) : "transparent");
+          if (!myTeam) {
+            missionBody.innerHTML = `<p class="bt-mission-empty">上の <b>MY TEAM</b> で自分のチームを選ぶと、ライバルとの点差と「どの指標を伸ばせば逆転できるか」をここに表示します。選択はこの端末だけに保存されます。</p>`;
+            return;
+          }
+          const mine = byId[myTeam];
+          const rank = rankOf(myTeam);
+          const above = standings.filter(team => team.overall > mine.overall).sort((a, b) => a.overall - b.overall)[0];
+          const below = standings.filter(team => team.overall < mine.overall).sort((a, b) => b.overall - a.overall)[0];
+          const rival = above || below;
+          let lead = "";
+          let items = [];
+          if (rival) {
+            const edges = metricEdge(mine, rival);
+            const gap = Math.abs(mine.overall - rival.overall);
+            if (above) {
+              lead = `<p>${rank - 1}位 <b>${esc(teamName(above.id))}</b> まであと <b>${num(gap)}点</b>。差が大きい指標ほど、詰めたときの総合への効き目が大きくなります。</p>`;
+              items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点ビハインド（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact, 1)}点分）` }));
+            } else {
+              lead = `<p><b>首位をキープ中。</b>2位 <b>${esc(teamName(below.id))}</b> とは <b>${num(gap)}点差</b>。相手が上回っている指標が追い上げポイントです。</p>`;
+              items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact, 1)}点分の追い上げ材料）` }));
+            }
+            const strong = edges.filter(edge => edge.diff > 0).sort((a, b) => b.impact - a.impact)[0];
+            if (strong) items.push({ score: mine.metrics[strong.key], html: `武器は <b>${esc(labels[strong.key])}</b>：${esc(teamName(rival.id))}より ${num(strong.diff)}点上（総合で約${num(strong.impact, 1)}点のリード）` });
+            if (above && below) items.push({ score: mine.overall, html: `防衛ライン：後ろの ${esc(teamName(below.id))} とは <b>${num(mine.overall - below.overall)}点差</b>` });
+          }
+          missionBody.innerHTML = `<div class="bt-mission-big"><strong>${rank}<small style="font-size:20px">位</small></strong><span>${esc(teamName(myTeam))}・総合 ${num(mine.overall)}点</span></div>${lead}
+            <ul class="bt-mission-list">${items.map(item => `<li style="--bt-s:${savantColor(item.score)}"><i style="color:${savantInk(item.score)}">${num(item.score)}</i><span>${item.html}</span></li>`).join("")}</ul>`;
+        };
+
+        /* ---------- Category leaders ---------- */
+        const renderTitles = () => {
+          const cats = [{ key: "overall", label: "OVERALL・総合" }, ...metricKeys.map(key => ({ key, label: labels[key] || key }))];
+          document.getElementById("bt-titles").innerHTML = cats.map(cat => {
+            const value = team => (cat.key === "overall" ? team.overall : team.metrics?.[cat.key]);
+            const order = [...teams].filter(team => Number.isFinite(value(team))).sort((a, b) => value(b) - value(a));
+            if (!order.length) return "";
+            const top = value(order[0]);
+            const champs = order.filter(team => value(team) === top);
+            const next = order.find(team => value(team) < top);
+            const gap = next ? top - value(next) : null;
+            const tag = champs.length > 1 ? `<span class="bt-hot">同点首位</span>` : gap !== null && gap <= 5 ? `<span class="bt-hot">接戦</span>` : gap !== null && gap >= 20 ? `<span class="bt-safe">独走</span>` : "";
+            return `<div class="bt-title" style="--bt-s:${savantColor(top)}">
+              <div class="bt-bubble" style="color:${savantInk(top)}">${num(top)}</div>
+              <div><div class="bt-title-label">${esc(cat.label)}</div>
+                <div class="bt-title-team">${champs.map(team => `<span class="bt-dot" style="--bt-c:${teamColor(team.id)}"></span>${esc(teamName(team.id))}`).join(" ")}</div>
+                <div class="bt-title-raw">${champs.map(team => esc(rawValue(team, cat.key))).join(" ／ ")}</div>
+                <div class="bt-title-gap">${next ? `2位 ${esc(teamName(next.id))}（${num(value(next))}）と ${num(gap)}点差` : "全チーム同点"}</div>
+              </div>${tag}</div>`;
+          }).join("");
+        };
+
+        /* ---------- Head to head ---------- */
+        const leftSel = document.getElementById("bt-vs-left");
+        const rightSel = document.getElementById("bt-vs-right");
+        const options = teamIds.map(id => `<option value="${esc(id)}">${esc(teamName(id))}</option>`).join("");
+        leftSel.innerHTML = options;
+        rightSel.innerHTML = options;
+        const defaultPair = () => {
+          if (myTeam) {
+            const mine = byId[myTeam];
+            const rival = standings.filter(team => team.overall > mine.overall).sort((a, b) => a.overall - b.overall)[0]
+              || standings.filter(team => team.id !== myTeam)[0];
+            return [myTeam, rival.id];
+          }
+          return [standings[0].id, standings[1]?.id || standings[0].id];
+        };
+        const renderVs = () => {
+          if (leftSel.value === rightSel.value) {
+            rightSel.value = teamIds.find(id => id !== leftSel.value) || rightSel.value;
+          }
+          const L = byId[leftSel.value];
+          const R = byId[rightSel.value];
+          leftSel.style.setProperty("--bt-c", teamColor(L.id));
+          rightSel.style.setProperty("--bt-c", teamColor(R.id));
+          let lw = 0;
+          let rw = 0;
+          const rows = metricKeys.map(key => {
+            const a = L.metrics?.[key];
+            const b = R.metrics?.[key];
+            if (!Number.isFinite(a) || !Number.isFinite(b)) return "";
+            if (a > b) lw += 1; else if (b > a) rw += 1;
+            const total = a + b || 1;
+            return `<div><div class="bt-vs-row-head"><span class="${a > b ? "win" : ""}">${num(a)}${a > b ? " ◀" : ""}</span><b>${esc(labels[key])}<small style="color:var(--muted);font-weight:700"> ・配点${weights[key]}％</small></b><span class="${b > a ? "win" : ""}">${b > a ? "▶ " : ""}${num(b)}</span></div>
+              <div class="bt-tug" role="img" aria-label="${esc(labels[key])} ${esc(teamName(L.id))} ${num(a)}点 対 ${esc(teamName(R.id))} ${num(b)}点"><i style="flex-grow:${a / total};background:${teamColor(L.id)}"></i><i style="flex-grow:${b / total};background:${teamColor(R.id)}"></i></div></div>`;
+          }).join("");
+          const verdict = lw > rw ? `${teamName(L.id)} の勝ち越し` : rw > lw ? `${teamName(R.id)} の勝ち越し` : "五分";
+          document.getElementById("bt-vs-score").innerHTML = `<div><strong style="color:${teamColor(L.id)}">${lw}</strong><span>${esc(teamName(L.id))}・総合${num(L.overall)}</span></div>
+            <div class="verdict">${esc(verdict)}<br><span>${num(metricKeys.length - lw - rw)}指標で引き分け</span></div>
+            <div><strong style="color:${teamColor(R.id)}">${rw}</strong><span>${esc(teamName(R.id))}・総合${num(R.overall)}</span></div>`;
+          document.getElementById("bt-vs-rows").innerHTML = rows;
+        };
+        leftSel.addEventListener("change", renderVs);
+        rightSel.addEventListener("change", renderVs);
+        document.getElementById("bt-vs-swap").addEventListener("click", () => {
+          [leftSel.value, rightSel.value] = [rightSel.value, leftSel.value];
+          renderVs();
+        });
+
+        /* ---------- Admission race (bar chart race over fiscal months) ---------- */
+        const history = data.admissionHistory;
+        const months = history?.months || [];
+        const lastIndex = months.reduce((last, _, index) => (teamIds.some(id => Number.isFinite(history.teams?.[id]?.[index])) ? index : last), -1);
+        const barsEl = document.getElementById("bt-bars");
+        const rangeEl = document.getElementById("bt-month-range");
+        const playBtn = document.getElementById("bt-play");
+        let admitMode = "count";
+        let monthIndex = Math.max(0, lastIndex);
+        let playTimer = null;
+        const cumulative = (id, index) => (history.teams?.[id] || []).slice(0, index + 1).reduce((sum, value) => sum + (Number(value) || 0), 0);
+        const monthLabel = index => `${Number(String(months[index]).slice(5, 7))}月`;
+        const isCurrentMonth = index => index === lastIndex && String(data.asOf).slice(0, 7) === months[index];
+        const valueFor = (id, index) => {
+          const count = cumulative(id, index);
+          return admitMode === "rate" ? (byId[id].members ? count / byId[id].members * 100 : 0) : count;
+        };
+        const renderAdmit = () => {
+          if (lastIndex < 0) return;
+          const scaleMax = Math.max(...teamIds.map(id => valueFor(id, lastIndex)), 1);
+          const order = [...teamIds].sort((a, b) => valueFor(b, monthIndex) - valueFor(a, monthIndex) || a.localeCompare(b));
+          if (!barsEl.children.length) {
+            barsEl.innerHTML = teamIds.map(id => `<div class="bt-hbar" data-team="${esc(id)}" style="--bt-c:${teamColor(id)}"><span class="bt-hbar-name"><span class="bt-dot"></span> ${esc(id)}</span><div class="bt-hbar-track"><div class="bt-hbar-fill"></div><span class="bt-hbar-val"></span></div></div>`).join("");
+          }
+          teamIds.forEach(id => {
+            const row = barsEl.querySelector(`[data-team="${id}"]`);
+            const value = valueFor(id, monthIndex);
+            const pct = value / scaleMax * 100;
+            const added = Number(history.teams?.[id]?.[monthIndex]) || 0;
+            row.style.transform = `translateY(${order.indexOf(id) * 54}px)`;
+            row.querySelector(".bt-hbar-fill").style.width = `${pct}%`;
+            const val = row.querySelector(".bt-hbar-val");
+            val.style.left = `${pct}%`;
+            val.innerHTML = `${admitMode === "rate" ? num(value, 1) : num(value)}${admitMode === "rate" ? "" : "人"}${added ? `<small>+${num(added)}人</small>` : ""}`;
+          });
+          document.getElementById("bt-month").textContent = monthLabel(monthIndex);
+          document.getElementById("bt-month-sub").textContent = `${history.fiscalYear || ""}年度 4月からの累計${isCurrentMonth(monthIndex) ? "（今月は途中）" : ""}`;
+          rangeEl.value = String(monthIndex);
+          const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[monthIndex]) || 0 })).sort((a, b) => b.value - a.value);
+          const top = monthly[0]?.value || 0;
+          document.getElementById("bt-podium").innerHTML = monthly.map(item => `<div class="${top > 0 && item.value === top ? "lead" : ""}" style="--bt-c:${teamColor(item.id)}"><b><span class="bt-dot"></span>${esc(teamName(item.id))}</b><strong>${num(item.value)}</strong>${esc(monthLabel(monthIndex))}の入会${top > 0 && item.value === top ? "・月間トップ" : ""}</div>`).join("");
+        };
+        const stopPlay = () => {
+          clearInterval(playTimer);
+          playTimer = null;
+          playBtn.textContent = "▶ 再生";
+        };
+        const startPlay = () => {
+          if (lastIndex < 0) return;
+          if (reduceMotion) { monthIndex = lastIndex; renderAdmit(); return; }
+          stopPlay();
+          monthIndex = 0;
+          renderAdmit();
+          playBtn.textContent = "❚❚ 停止";
+          playTimer = setInterval(() => {
+            if (monthIndex >= lastIndex) { stopPlay(); return; }
+            monthIndex += 1;
+            renderAdmit();
+          }, 950);
+        };
+        if (lastIndex >= 0) {
+          rangeEl.max = String(lastIndex);
+          rangeEl.addEventListener("input", () => { stopPlay(); monthIndex = Number(rangeEl.value); renderAdmit(); });
+          playBtn.addEventListener("click", () => (playTimer ? stopPlay() : startPlay()));
+          document.getElementById("bt-admit-mode").addEventListener("click", event => {
+            const button = event.target.closest("[data-mode]");
+            if (!button) return;
+            admitMode = button.dataset.mode;
+            event.currentTarget.querySelectorAll("button").forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+            renderAdmit();
+          });
+          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。「会員100人あたり」は${data.asOfLabel || data.asOf}時点の運用会員数で割った参考値で、会員数の多いチームと少ないチームを同じ物差しで比べられます。`;
+        } else {
+          section.querySelector(".bt-admit-stage").closest(".bt-card").hidden = true;
+        }
+
+        /* ---------- Headline ticker ---------- */
+        const renderTicker = () => {
+          const items = [];
+          const leader = standings[0];
+          const second = standings.find(team => team.overall < leader.overall);
+          items.push(`<b>総合首位 ${esc(teamName(leader.id))}</b> ${num(leader.overall)}点${second ? ` <em>2位 ${esc(teamName(second.id))}と${num(leader.overall - second.overall)}点差</em>` : ""}`);
+          if (comparable) {
+            standings.forEach(team => {
+              const prevRank = prevRankOf(team.id);
+              const rank = rankOf(team.id);
+              if (prevRank !== null && prevRank !== rank) items.push(`<b>${esc(teamName(team.id))}</b> <span class="${prevRank > rank ? "up" : "down"}">${prevRank}位 → ${rank}位 ${prevRank > rank ? "▲浮上" : "▼後退"}</span>`);
+              const prev = prevById[team.id];
+              metricKeys.forEach(key => {
+                const now = team.metrics?.[key];
+                const before = prev?.metrics?.[key];
+                if (Number.isFinite(now) && Number.isFinite(before) && now !== before) items.push(`<b>${esc(teamName(team.id))}</b> ${esc(labels[key])} <span class="${now > before ? "up" : "down"}">${num(before)} → ${num(now)}</span>`);
+              });
+              const nowRate = team.metricEvidence?.admission?.rate;
+              const prevRate = prev?.metricEvidence?.admission?.rate;
+              if (Number.isFinite(nowRate) && Number.isFinite(prevRate) && nowRate !== prevRate) items.push(`<b>${esc(teamName(team.id))}</b> 体験→入会率 <span class="${nowRate > prevRate ? "up" : "down"}">${signed(nowRate - prevRate, 1)}pt</span> <em>${num(nowRate, 1)}%</em>`);
+              const nowRef = team.metricEvidence?.family?.points;
+              const prevRef = prev?.metricEvidence?.family?.points;
+              if (Number.isFinite(nowRef) && Number.isFinite(prevRef) && nowRef > prevRef) items.push(`<b>${esc(teamName(team.id))}</b> 紹介ポイント <span class="up">+${num(nowRef - prevRef)}pt</span> <em>年度${num(nowRef)}pt</em>`);
+            });
+          }
+          if (admissionsComparable) {
+            teamIds.forEach(id => {
+              const added = (data.admissions.teams?.[id]?.cumulative ?? 0) - (comparison.admissions.teams?.[id]?.cumulative ?? 0);
+              if (added > 0) items.push(`<b>${esc(teamName(id))}</b> に新しい仲間 <span class="up">+${num(added)}人</span> <em>年度累計${num(data.admissions.teams[id].cumulative)}人</em>`);
+            });
+          }
+          if (lastIndex >= 0) {
+            const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[lastIndex]) || 0 })).sort((a, b) => b.value - a.value);
+            if (monthly[0].value > 0) items.push(`<b>${esc(monthLabel(lastIndex))}の入会トップ ${esc(teamName(monthly[0].id))}</b> ${num(monthly[0].value)}人${monthly[1] ? ` <em>2位 ${esc(teamName(monthly[1].id))} ${num(monthly[1].value)}人</em>` : ""}`);
+          }
+          let closest = null;
+          for (let i = 0; i < standings.length - 1; i += 1) {
+            const gap = standings[i].overall - standings[i + 1].overall;
+            if (!closest || gap < closest.gap) closest = { gap, a: standings[i], b: standings[i + 1] };
+          }
+          if (closest) items.push(`<b>最接戦</b> ${esc(teamName(closest.a.id))} vs ${esc(teamName(closest.b.id))} <em>${closest.gap === 0 ? "同点" : `${num(closest.gap)}点差`}</em>`);
+          metricKeys.forEach(key => {
+            const order = leaderOf(key);
+            if (order.length > 1 && order[0].metrics[key] - order[1].metrics[key] <= 5 && order[0].metrics[key] !== order[1].metrics[key]) items.push(`<b>${esc(labels[key])}</b> 首位争い ${esc(teamName(order[0].id))} ${num(order[0].metrics[key])} vs ${esc(teamName(order[1].id))} ${num(order[1].metrics[key])}`);
+          });
+          const seen = visit.previousSeen;
+          if (seen && seen.asOf !== data.asOf && seen.scoreVersion === data.scoreVersion) {
+            const moves = teamIds.filter(id => Number.isFinite(seen.overall?.[id]) && seen.overall[id] !== byId[id].overall)
+              .map(id => `${esc(id)} <span class="${byId[id].overall > seen.overall[id] ? "up" : "down"}">${signed(byId[id].overall - seen.overall[id])}</span>`);
+            items.push(`<b>あなたの前回チェック（${esc(seen.asOf.slice(5).replace("-", "/"))}）から</b> ${moves.length ? moves.join("　") : "<em>総合点は変化なし</em>"}`);
+          }
+          if (!comparable) items.push(`<em>スコア版・定義の変更により、今日は前回比較を表示していません</em>`);
+          const track = document.getElementById("bt-ticker-track");
+          const html = items.map(item => `<span class="bt-ticker-item">${item}</span>`).join("");
+          track.innerHTML = `${html}<span aria-hidden="true" style="display:contents">${html}</span>`;
+          track.style.setProperty("--bt-dur", `${Math.max(24, items.length * 6)}s`);
+        };
+
+        /* ---------- Celebration (once per snapshot) ---------- */
+        const confetti = () => {
+          if (reduceMotion) return;
+          const canvas = document.createElement("canvas");
+          canvas.className = "bt-confetti";
+          canvas.setAttribute("aria-hidden", "true");
+          document.body.append(canvas);
+          const ctx = canvas.getContext("2d");
+          const ratio = window.devicePixelRatio || 1;
+          canvas.width = innerWidth * ratio;
+          canvas.height = innerHeight * ratio;
+          ctx.scale(ratio, ratio);
+          const colors = ["#a82f2b", "#c8403b", "#245b86", "#3475a7", "#d9e1e8", "#0d2238"];
+          const parts = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .35, vx: (Math.random() - .5) * 13, vy: -Math.random() * 13 - 4, s: 4 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .3, c: colors[Math.floor(Math.random() * colors.length)] }));
+          const start = performance.now();
+          const frame = now => {
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            parts.forEach(p => { p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); });
+            if (now - start < 2600) requestAnimationFrame(frame); else canvas.remove();
+          };
+          requestAnimationFrame(frame);
+        };
+        const maybeCelebrate = () => {
+          if (!myTeam) return;
+          const key = `${data.snapshotId}:${myTeam}`;
+          if (store.get("savant-celebrated") === key) return;
+          const prevRank = prevRankOf(myTeam);
+          const rank = rankOf(myTeam);
+          const added = admissionsComparable ? (data.admissions.teams?.[myTeam]?.cumulative ?? 0) - (comparison.admissions.teams?.[myTeam]?.cumulative ?? 0) : 0;
+          if ((prevRank !== null && rank < prevRank) || added > 0) {
+            store.set("savant-celebrated", key);
+            setTimeout(confetti, 900);
+          }
+        };
+
+        /* ---------- Wiring ---------- */
+        const setMyTeam = id => {
+          myTeam = teamIds.includes(id) ? id : null;
+          store.set("savant-my-team", myTeam);
+          myTeamBox.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String((button.dataset.team || null) === myTeam)));
+          renderRace();
+          raceEl.querySelectorAll(".bt-bar").forEach(bar => { bar.style.width = `${bar.dataset.score}%`; });
+          raceEl.querySelectorAll("[data-count]").forEach(el => { el.textContent = num(Number(el.dataset.count)); });
+          renderMission();
+          [leftSel.value, rightSel.value] = defaultPair();
+          renderVs();
+        };
+        myTeamBox.addEventListener("click", event => {
+          const button = event.target.closest("button[data-team]");
+          if (button) { setMyTeam(button.dataset.team); maybeCelebrate(); }
+        });
+        document.getElementById("bt-replay").addEventListener("click", playRace);
+
+        renderRace();
+        renderMission();
+        renderTitles();
+        [leftSel.value, rightSel.value] = defaultPair();
+        renderVs();
+        renderAdmit();
+        renderTicker();
+        myTeamBox.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String((button.dataset.team || null) === myTeam)));
+
+        // Animate when the board actually becomes visible (view switch or scroll).
+        let played = false;
+        const onVisible = () => {
+          if (played) return;
+          played = true;
+          playRace();
+          maybeCelebrate();
+        };
+        const playAdmit = () => { if (lastIndex > 0) startPlay(); };
+        const whenVisible = (el, callback) => {
+          if (!("IntersectionObserver" in window)) { callback(); return; }
+          const observer = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); callback(); }
+          }, { threshold: 0.35 });
+          observer.observe(el);
+        };
+        whenVisible(raceEl, onVisible);
+        whenVisible(barsEl, playAdmit);
+
+        // Hero KPI count-up (numbers already rendered by the main dashboard script).
+        document.querySelectorAll("#headline-kpis .kpi-value").forEach(el => {
+          const node = [...el.childNodes].find(child => child.nodeType === Node.TEXT_NODE && /\d/.test(child.textContent));
+          if (!node) return;
+          const text = node.textContent.trim();
+          const match = text.match(/^([+−-]?)([\d,]+(?:\.(\d+))?)$/);
+          if (!match) return;
+          const target = Number(match[2].replace(/,/g, ""));
+          const digits = match[3] ? match[3].length : 0;
+          const span = document.createElement("span");
+          node.replaceWith(span);
+          countUp(span, target, { digits, prefix: match[1], duration: 1200 });
+        });
+      })();
+    </script>
+
+    <script>
+      (() => {
         const main = document.getElementById('dashboard-main');
         const profiles = document.getElementById('profiles-title').closest('section');
         const comparison = document.getElementById('comparison-title').closest('section');
         const sections = [...main.querySelectorAll(':scope > section')];
         const groups = {
+          battle: [document.getElementById('battle-section')],
           overview: [document.getElementById('movement-section'), profiles, comparison],
           composition: [document.getElementById('composition-section')],
           admissions: [document.getElementById('admission-history-section')],
@@ -2563,6 +3253,7 @@
           all: sections
         };
         const descriptions = {
+          battle: '総合の順位、部門別トップ、直接対決、入会レース。MY TEAMを選ぶと逆転・防衛のポイントを表示します。',
           overview: 'まずは変化とチームの数値を確認。集計の詳しい説明は各カードから開けます。',
           composition: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。',
           admissions: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。',
@@ -2572,15 +3263,15 @@
           all: 'すべての情報を続けて表示しています。上のメニューで目的別に絞り込めます。'
         };
         // Reorder existing nodes, preserving their data, listeners, and unavailable-data states.
-        [...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        [...groups.battle, ...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
         const controls = document.querySelector('.view-controls');
         const selectView = (view, focus = false) => {
-          if (!groups[view]) view = 'overview';
+          if (!groups[view]) view = 'battle';
           sections.forEach(section => section.classList.toggle('view-hidden', !groups[view].includes(section)));
           controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
           document.getElementById('workspace-title').textContent = controls.querySelector(`[data-view="${view}"]`).textContent;
           document.getElementById('workspace-description').textContent = descriptions[view];
-          document.querySelector('.team-picker').hidden = view === 'reference';
+          document.querySelector('.team-picker').hidden = view === 'reference' || view === 'battle';
           if (focus) document.getElementById('workspace-title').focus({preventScroll: true});
           window.dispatchEvent(new Event('resize'));
         };
@@ -2594,11 +3285,11 @@
         });
         const readHash = () => {
           const hash = location.hash.slice(1);
-          if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'overview');
+          if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'battle');
           else {
             const target = document.getElementById(hash);
             const view = Object.keys(groups).find(key => key !== 'all' && groups[key].some(section => section.contains(target)));
-            selectView(view || 'overview');
+            selectView(view || 'battle');
             target?.scrollIntoView({block: 'start'});
           }
         };
