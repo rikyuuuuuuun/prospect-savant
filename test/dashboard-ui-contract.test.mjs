@@ -3,11 +3,22 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-test('standings view is the default landing view and keeps the Savant percentile scale', async () => {
+test('team overview is the landing view and every analysis is reachable from it', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.match(source, /data-view="overview" aria-pressed="true"/);
+  assert.match(source, /selectView\(hash\.slice\(5\) \|\| 'overview'\)/);
+  assert.match(source, /overview: \[guide, document\.getElementById\('movement-section'\)/);
+  for (const view of ['overview', 'standings', 'composition', 'admissions', 'retention', 'events', 'reference']) {
+    assert.match(source, new RegExp(`data-view="${view}"`));
+    assert.match(source, new RegExp(`\\{ key: '${view}', label: `));
+  }
+  assert.match(source, /id="nav-more"/);
+  assert.match(source, /id="view-pager"/);
+});
+
+test('standings view keeps the Savant percentile scale', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.match(source, /<section class="section" id="standings-section"/);
-  assert.match(source, /data-view="standings" aria-pressed="true"/);
-  assert.match(source, /selectView\(hash\.slice\(5\) \|\| 'standings'\)/);
   // Same stops as .metric-track: blue-deep → neutral → red-deep.
   assert.match(source, /\[0, \[36, 91, 134\]\], \[50, \[217, 225, 232\]\], \[100, \[168, 47, 43\]\]/);
 });
