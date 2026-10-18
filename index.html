@@ -901,6 +901,384 @@
       .composition-method summary { font-weight:700; cursor:pointer; color:var(--ink); }
       .composition-empty { background:white; padding:24px; border:1px solid var(--line); border-radius:14px; color:var(--muted); }
       @media(max-width:780px) { .composition-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } .composition-charts { grid-template-columns:1fr; } .composition-chart { padding:18px 14px; } .composition-stat { padding:15px; } .composition-bar { grid-template-columns:70px minmax(25px,1fr) 105px; gap:7px; font-size:11px; } }
+      /* ---- Battle view: daily rivalry board (Savant percentile language) ---- */
+      .bt-topline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 16px; }
+      .bt-myteam { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+      .bt-myteam button { min-width: 44px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; letter-spacing: 0; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+      .bt-myteam button[aria-pressed="true"] { background: var(--navy-800); border-color: var(--navy-800); color: #fff; box-shadow: inset 0 -3px 0 var(--bt-c, transparent); }
+
+      .bt-ticker { position: relative; overflow: hidden; margin-bottom: 18px; border-radius: 12px; background: var(--navy-900); color: #fff; box-shadow: var(--shadow); }
+      .bt-ticker:focus-visible { outline: 3px solid rgba(52, 117, 167, 0.38); outline-offset: 3px; }
+      .bt-ticker-label { position: absolute; z-index: 2; inset: 0 auto 0 0; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--red-deep); font-size: 11px; font-weight: 900; letter-spacing: .14em; }
+      
+      .bt-ticker-track { display: flex; width: max-content; gap: 44px; padding: 12px 0 12px 130px; animation: bt-marquee var(--bt-dur, 40s) linear infinite; font-size: 13px; white-space: nowrap; }
+      .bt-ticker:hover .bt-ticker-track, .bt-ticker:focus-within .bt-ticker-track { animation-play-state: paused; }
+      .bt-ticker-item b { color: #fff; }
+      .bt-ticker-item em { font-style: normal; color: #b7c8d6; }
+      .bt-ticker-item .up { color: #8fd9b6; } .bt-ticker-item .down { color: #f2a19c; }
+      @keyframes bt-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+      .bt-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+      .bt-card { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
+      .bt-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin-bottom: 14px; }
+      .bt-card-head h3 { margin: 0; font-size: 17px; letter-spacing: -0.02em; }
+      .bt-card-head .eyebrow { margin: 0 0 2px; color: var(--blue-deep); }
+      .bt-card-head > span { color: var(--muted); font-size: 12px; }
+      .bt-btn { min-height: 34px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--navy-800); font-size: 12px; font-weight: 800; cursor: pointer; }
+      .bt-btn:hover { background: #eef3f7; }
+
+      .bt-race { display: grid; }
+      .bt-lane { position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) 84px; align-items: center; gap: 14px; padding: 13px 8px; border-bottom: 1px solid #e6ecf1; transition: background .3s; }
+      .bt-lane:last-child { border-bottom: 0; }
+      .bt-lane.is-mine { background: #f4f8fb; box-shadow: inset 3px 0 0 var(--bt-c); }
+      .bt-rank { color: var(--navy-800); font-size: 24px; line-height: 1; font-weight: 900; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+      .bt-rank small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .14em; }
+      .bt-lane-body { min-width: 0; }
+      .bt-lane-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; margin-bottom: 9px; font-weight: 900; letter-spacing: -0.02em; }
+      .bt-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--bt-c); }
+      .bt-move { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; background: #eef2f5; color: var(--muted); letter-spacing: 0; }
+      .bt-move.up { background: #e2f3eb; color: var(--green); } .bt-move.down { background: #fae7e5; color: var(--red-deep); }
+      .bt-mine-tag { padding: 2px 8px; border-radius: 999px; background: var(--navy-800); color: #fff; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
+      .bt-track { position: relative; height: 12px; margin-right: 18px; border-radius: 999px; background: #e5ebf0; }
+      .bt-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
+      .bt-bar { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: var(--bt-s); transition: width 1.6s cubic-bezier(.2,.75,.15,1); }
+      .bt-runner { position: absolute; z-index: 1; top: 50%; right: 0; display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid #fff; border-radius: 50%; background: var(--bt-s); color: #fff; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums; box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(50%, -50%); }
+      .bt-gap { margin-top: 10px; color: var(--muted); font-size: 11px; }
+      .bt-gap b { color: var(--ink); font-variant-numeric: tabular-nums; }
+      .bt-score { text-align: right; }
+      .bt-score strong { display: block; font-size: 32px; line-height: 1; font-weight: 900; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-score span { display: block; margin-top: 4px; color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .14em; }
+      .bt-score small { display: block; margin-top: 2px; font-size: 10px; font-weight: 800; color: var(--muted); }
+      .bt-score small.up { color: var(--green); } .bt-score small.down { color: var(--red-deep); }
+
+      .bt-mission { position: relative; overflow: hidden; color: #fff; border: 0; background: linear-gradient(160deg, var(--navy-800), var(--navy-950)); }
+      .bt-mission::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--bt-c, transparent); }
+      .bt-mission .bt-card-head .eyebrow { color: #9fc0db; }
+      .bt-mission .bt-card-head > span { color: #b7c8d6; }
+      .bt-mission-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 900; }
+      .bt-mission-big strong { font-size: 52px; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-mission-big span { color: #d5e0e8; font-size: 14px; }
+      .bt-mission p { margin: 10px 0 0; color: #d5e0e8; font-size: 13px; }
+      .bt-mission p b { color: #fff; }
+      .bt-mission-list { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+      .bt-mission-list li { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.07); font-size: 12px; line-height: 1.5; }
+      .bt-mission-list li > i { display: grid; place-items: center; width: 36px; height: 36px; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; background: var(--bt-s, var(--navy-800)); font-style: normal; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums; }
+      .bt-mission-list b { color: #fff; }
+      .bt-mission-empty { color: #d5e0e8; font-size: 13px; }
+
+      .bt-titles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .bt-title { position: relative; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px; border: 1px solid #e6ecf1; border-radius: 14px; background: #fff; }
+      .bt-bubble { display: grid; place-items: center; width: 54px; height: 54px; border: 4px solid #fff; border-radius: 50%; background: var(--bt-s); color: #fff; font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; box-shadow: 0 1px 5px rgba(8,24,39,0.38); }
+      .bt-title-label { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
+      .bt-title-team { display: flex; align-items: center; gap: 7px; margin-top: 2px; font-size: 18px; font-weight: 900; letter-spacing: -0.03em; }
+      .bt-title-raw { margin-top: 1px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .bt-title-gap { margin-top: 4px; color: #34485a; font-size: 11px; font-variant-numeric: tabular-nums; }
+      .bt-hot, .bt-safe { position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+      .bt-hot { background: #fae7e5; color: #8e2926; }
+      .bt-safe { background: #e4eff7; color: #245b86; }
+
+      .bt-vs-pick { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 16px; }
+      .bt-vs-pick select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-bottom: 3px solid var(--bt-c); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-weight: 900; }
+      .bt-vs-pick .bt-btn { min-width: 48px; font-size: 15px; }
+      .bt-vs-score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-bottom: 16px; padding: 12px; border-radius: 14px; background: #f6f8fa; text-align: center; font-weight: 900; }
+      .bt-vs-score strong { display: block; font-size: 38px; line-height: 1; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-vs-score span { color: var(--muted); font-size: 11px; }
+      .bt-vs-score .verdict { color: var(--navy-800); font-size: 12px; }
+      .bt-vs-rows { display: grid; gap: 13px; }
+      .bt-vs-row-head { display: grid; grid-template-columns: 1fr auto 1fr; margin-bottom: 5px; font-size: 12px; font-variant-numeric: tabular-nums; }
+      .bt-vs-row-head span:first-child { text-align: left; } .bt-vs-row-head span:last-child { text-align: right; }
+      .bt-vs-row-head span { color: var(--muted); font-weight: 700; }
+      .bt-vs-row-head span.win { color: var(--ink); font-weight: 900; }
+      .bt-vs-row-head b { color: #34485a; font-size: 12px; }
+      .bt-tug { position: relative; display: flex; height: 10px; overflow: hidden; border-radius: 999px; background: #e5ebf0; }
+      .bt-tug i { display: block; height: 100%; transition: flex-grow .9s cubic-bezier(.2,.8,.2,1); }
+      .bt-tug::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #fff; }
+
+      .bt-seg { display: inline-flex; padding: 3px; border-radius: 10px; background: #edf2f6; }
+      .bt-seg button { min-height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; }
+      .bt-seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+      .bt-admit-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 14px; align-items: end; }
+      .bt-bars { position: relative; height: 216px; }
+      .bt-hbar { position: absolute; top: 0; left: 0; right: 0; height: 44px; display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 8px; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-name { font-size: 12px; font-weight: 900; }
+      .bt-hbar-track { position: relative; height: 30px; margin-right: 76px; }
+      .bt-hbar-fill { position: absolute; inset: 0 auto 0 0; min-width: 4px; border-radius: 0 8px 8px 0; background: var(--bt-c); transition: width .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-val { position: absolute; top: 50%; left: 0; padding-left: 8px; transform: translateY(-50%); font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; transition: left .7s cubic-bezier(.2,.8,.2,1); }
+      .bt-hbar-val small { margin-left: 4px; color: var(--green); font-size: 11px; }
+      .bt-month { text-align: right; }
+      .bt-month strong { display: block; color: #c9d4de; font-size: 50px; line-height: 1; font-weight: 900; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+      .bt-month span { color: var(--muted); font-size: 11px; }
+      .bt-slider { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; margin-top: 12px; }
+      .bt-slider input { width: 100%; accent-color: var(--navy-800); }
+      .bt-podium { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e6ecf1; }
+      .bt-podium div { padding: 9px 6px; border-radius: 12px; background: #f6f8fa; text-align: center; font-size: 10px; color: var(--muted); }
+      .bt-podium b { display: flex; align-items: center; justify-content: center; gap: 5px; color: var(--ink); font-size: 12px; }
+      .bt-podium strong { display: block; color: var(--ink); font-size: 22px; font-variant-numeric: tabular-nums; }
+      .bt-podium div.lead { background: #fff; box-shadow: inset 0 0 0 2px var(--bt-c); }
+      .bt-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      .bt-full { grid-column: 1 / -1; }
+
+      @media (max-width: 980px) {
+        .bt-grid { grid-template-columns: minmax(0, 1fr); }
+        .bt-titles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 560px) {
+        .bt-card { padding: 16px; }
+        .bt-lane { grid-template-columns: 28px minmax(0, 1fr) 58px; gap: 10px; padding: 12px 4px; }
+        .bt-rank { font-size: 19px; }
+        .bt-score strong { font-size: 26px; }
+        .bt-titles { grid-template-columns: minmax(0, 1fr); }
+        .bt-admit-stage { grid-template-columns: minmax(0, 1fr); }
+        .bt-month { text-align: left; order: -1; }
+        .bt-month strong { font-size: 38px; }
+        .bt-podium { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .bt-mission-big strong { font-size: 44px; }
+        .bt-ticker-track { padding-left: 110px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bt-ticker-track { animation: none; flex-wrap: wrap; width: auto; gap: 6px 24px; padding: 12px 16px 12px 130px; white-space: normal; }
+        .bt-ticker-track [aria-hidden="true"] { display: none; }
+      }
+      /* ---- Wayfinding: analysis menu, overflow-aware tabs, pager ---- */
+      .dashboard-nav-inner { position: relative; display: flex; align-items: center; gap: 10px; }
+      .view-controls { flex: 1 1 auto; min-width: 0; scrollbar-width: none; scroll-behavior: smooth; }
+      .view-controls::-webkit-scrollbar { display: none; }
+      .dashboard-nav-inner.is-overflow .view-controls { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
+      .view-controls button[data-view="all"] { margin-left: auto; color: var(--muted); font-weight: 600; }
+      .view-controls button[data-view="all"][aria-pressed="true"] { color: #fff; }
+      .nav-more { display: none; flex: 0 0 auto; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid #cdd8e2; border-radius: 10px; background: #fff; color: var(--navy-800); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+      .nav-more svg { width: 14px; height: 14px; transition: transform .2s; }
+      .nav-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+      .dashboard-nav-inner.is-overflow .nav-more { display: inline-flex; }
+      .nav-menu { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; width: min(380px, 100%); max-height: calc(100vh - 150px); overflow-y: auto; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(8, 24, 39, 0.18); }
+      .nav-menu button { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+      .nav-menu button:hover, .nav-menu button[aria-current="true"] { background: #eef3f7; }
+      .nav-menu strong { display: block; font-size: 13px; }
+      .nav-menu span span { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .nav-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #e9f0f6; color: var(--navy-800); }
+      .nav-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+      .workspace-step { color: var(--muted); font-weight: 700; letter-spacing: .08em; }
+
+      .guide-section { margin-top: 0; }
+      .guide-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 12px; }
+      .guide-head h3 { margin: 0; font-size: 15px; }
+      .guide-head span { color: var(--muted); font-size: 12px; }
+      .guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .guide-tile { display: grid; grid-template-columns: 40px minmax(0, 1fr) 14px; gap: 12px; align-items: center; min-width: 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 18px rgba(17, 35, 50, 0.04); transition: border-color .2s, box-shadow .2s, transform .2s; }
+      .guide-tile:hover { border-color: #9fb6ca; box-shadow: var(--shadow); transform: translateY(-1px); }
+      .guide-tile .nav-icon { width: 40px; height: 40px; border-radius: 12px; }
+      .guide-tile .nav-icon svg { width: 20px; height: 20px; }
+      .guide-copy { min-width: 0; }
+      .guide-q { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .guide-label { display: block; margin-top: 1px; font-size: 15px; font-weight: 900; letter-spacing: -0.02em; }
+      .guide-fact { display: block; margin-top: 3px; color: var(--blue-deep); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+      .guide-arrow { width: 14px; height: 14px; fill: none; stroke: #9aabba; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+      .view-pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 40px; }
+      .view-pager button { display: grid; gap: 2px; min-width: 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
+      .view-pager button:hover { border-color: #9fb6ca; box-shadow: var(--shadow); }
+      .view-pager button[data-dir="next"] { grid-column: 2; text-align: right; }
+      .view-pager small { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+      .view-pager strong { font-size: 16px; }
+      .view-pager span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+
+      .to-top { position: fixed; z-index: 25; right: 16px; bottom: 16px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--navy-800); color: #fff; box-shadow: 0 8px 20px rgba(8, 24, 39, 0.28); cursor: pointer; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s, transform .2s; }
+      .to-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
+      .to-top svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+      @media (max-width: 980px) {
+        .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 560px) {
+        .guide-grid { gap: 8px; }
+        .guide-tile { grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; padding: 12px; }
+        .guide-tile .nav-icon { width: 32px; height: 32px; border-radius: 9px; }
+        .guide-tile .nav-icon svg { width: 17px; height: 17px; }
+        .guide-arrow { display: none; }
+        .guide-label { font-size: 14px; }
+        .view-pager { gap: 8px; }
+        .view-pager button { padding: 12px; }
+        .view-pager strong { font-size: 14px; }
+        .view-pager span { display: none; }
+      }
+      @media print {
+        .guide-section, .view-pager, .to-top { display: none !important; }
+      }
+      /* ---- Member composition: side-by-side team comparison ---- */
+      .cmp-modebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin-bottom: 18px; }
+      .cmp-seg { display: inline-flex; padding: 4px; border-radius: 12px; background: #e6edf3; }
+      .cmp-seg button { min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: #526578; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+      .cmp-seg button[aria-pressed="true"] { background: #fff; color: var(--navy-800); box-shadow: 0 1px 4px rgba(8, 24, 39, 0.14); }
+      .cmp-focus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+      .cmp-focus .composition-switches button { padding: 7px 12px; }
+      .cmp-block { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+      .cmp-block-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 16px; }
+      .cmp-block-head h3 { margin: 0; font-size: 17px; }
+      .cmp-block-head p { margin: 0; color: var(--muted); font-size: 11px; }
+
+      .cmp-insights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+      .cmp-insight { min-width: 0; padding: 14px 16px; border: 1px solid #e6ecf1; border-top: 3px solid var(--cmp-c); border-radius: 12px; background: #fafcfd; }
+      .cmp-insight h4 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 8px; font-size: 15px; }
+      .cmp-insight h4 span { color: var(--muted); font-size: 11px; font-weight: 700; }
+      .cmp-insight ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+      .cmp-insight li { font-size: 12px; line-height: 1.5; }
+      .cmp-insight li b { font-variant-numeric: tabular-nums; }
+      .cmp-insight li small { display: block; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+      .cmp-insight li .up { color: var(--red-deep); } .cmp-insight li .down { color: var(--blue-deep); }
+
+      .cmp-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .cmp-metric { min-width: 0; padding: 16px; border: 1px solid #e6ecf1; border-radius: 12px; }
+      .cmp-metric h4 { margin: 0; font-size: 13px; }
+      .cmp-metric > p { margin: 2px 0 12px; color: var(--muted); font-size: 10px; }
+      .cmp-mrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) 66px; align-items: center; gap: 8px; margin-top: 7px; font-size: 12px; transition: opacity .2s; }
+      .cmp-mrow-name { display: flex; align-items: center; gap: 5px; font-weight: 800; white-space: nowrap; }
+      .cmp-mrow-name i, .cmp-legend i, .cmp-srow-name i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cmp-c); }
+      .cmp-mtrack { position: relative; height: 10px; border-radius: 999px; background: #edf2f6; }
+      .cmp-mfill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--cmp-c); }
+      .cmp-mref { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy-900); opacity: .55; }
+      .cmp-mval { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .cmp-mval small { margin-left: 2px; color: var(--muted); font-size: 10px; font-weight: 600; }
+      .cmp-mrow.is-top .cmp-mval { color: var(--navy-950); text-decoration: underline 2px var(--cmp-c); text-underline-offset: 3px; }
+      .cmp-mrow.is-overall { color: var(--muted); }
+      .cmp-dim .cmp-mrow:not(.is-focus):not(.is-overall), .cmp-dim .cmp-srow:not(.is-focus):not(.is-overall), .cmp-dim .cmp-insight:not(.is-focus) { opacity: .32; }
+
+      .cmp-stacks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+      .cmp-stack { min-width: 0; }
+      .cmp-stack h4 { margin: 0; font-size: 14px; }
+      .cmp-stack > p { margin: 2px 0 10px; color: var(--muted); font-size: 10px; }
+      .cmp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; color: #34485a; font-size: 11px; }
+      .cmp-legend span { display: inline-flex; align-items: center; gap: 5px; }
+      .cmp-legend i { border-radius: 2px; }
+      .cmp-srow { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 6px; transition: opacity .2s; }
+      .cmp-srow-name { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+      .cmp-srow.is-overall .cmp-srow-name { color: var(--muted); }
+      .cmp-bar { display: flex; height: 26px; overflow: hidden; border-radius: 6px; background: #edf2f6; }
+      .cmp-seg-part { display: grid; place-items: center; min-width: 0; overflow: hidden; color: var(--cmp-ink, #fff); font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; background: var(--cmp-c); box-shadow: inset -1px 0 0 rgba(255, 255, 255, .7); cursor: default; outline: none; }
+      .cmp-seg-part:hover, .cmp-seg-part:focus-visible { filter: brightness(1.12); box-shadow: inset 0 0 0 2px var(--navy-950); }
+      .cmp-tip { position: fixed; z-index: 40; max-width: 240px; padding: 8px 10px; border-radius: 8px; background: var(--navy-950); color: #fff; font-size: 12px; line-height: 1.45; pointer-events: none; box-shadow: 0 8px 20px rgba(8, 24, 39, .3); }
+      .cmp-tip b { display: block; }
+      .cmp-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+      @media (max-width: 980px) {
+        .cmp-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .cmp-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .cmp-stacks { grid-template-columns: minmax(0, 1fr); }
+      }
+      @media (max-width: 560px) {
+        .cmp-block { padding: 16px; }
+        .cmp-insights, .cmp-metrics { grid-template-columns: minmax(0, 1fr); }
+        .cmp-seg { width: 100%; }
+        .cmp-seg button { flex: 1; padding: 0 8px; }
+      }
+      /* ---- Team comparison blocks shared by admissions, retention, events, reference ---- */
+      .cx-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 14px; }
+      .cx-toolbar p { margin: 0; color: var(--muted); font-size: 11px; }
+      .cx-compare-on > :not(.section-heading):not(.cx-toolbar):not(.cx-compare) { display: none !important; }
+      .cx-section:not(.cx-compare-on) > .cx-compare:not(.cx-above) { display: none; }
+      .cx-table td.cx-planned { background: repeating-linear-gradient(135deg, #fff8e8 0 6px, #fdf1d6 6px 12px); color: #6b4b12; }
+      .withdrawal-scheduled { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: #fff8e8; color: #6b4b12; font-size: 12px; }
+      .cx-compare { display: grid; gap: 16px; margin-bottom: 16px; }
+      .cx-block { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+      .cx-block-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+      .cx-block-head h3 { margin: 0; font-size: 17px; }
+      .cx-block-head p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+      .cx-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      .cx-kpi { min-width: 0; padding: 14px; border: 1px solid #e6ecf1; border-top: 3px solid var(--cx-c); border-radius: 12px; background: #fafcfd; transition: opacity .2s; }
+      .cx-kpi-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 900; }
+      .cx-kpi-head span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+      .cx-kpi strong { display: block; margin-top: 6px; font-size: 28px; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+      .cx-kpi strong small { margin-left: 3px; color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0; }
+      .cx-kpi dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 10px 0 0; font-size: 11px; }
+      .cx-kpi dt { color: var(--muted); }
+      .cx-kpi dd { margin: 0; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .cx-chart { position: relative; width: 100%; }
+      .cx-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+      .cx-chart .grid line { stroke: #e3e9ef; }
+      .cx-chart .axis text { fill: #68788a; font-size: 11px; }
+      .cx-chart .line { fill: none; stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; transition: opacity .2s; }
+      .cx-chart .pt { stroke: #fff; stroke-width: 2; transition: opacity .2s; }
+      .cx-chart .end { font-size: 12px; font-weight: 800; transition: opacity .2s; }
+      .cx-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; color: #34485a; font-size: 12px; font-weight: 700; }
+      .cx-legend span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-legend i { width: 14px; height: 3px; border-radius: 2px; background: var(--cx-c); }
+
+      .cx-table-wrap { overflow-x: auto; border: 1px solid #e6ecf1; border-radius: 12px; }
+      .cx-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+      .cx-table th, .cx-table td { padding: 10px 8px; border-bottom: 1px solid #edf1f5; text-align: center; white-space: nowrap; }
+      .cx-table tbody tr:last-child > * { border-bottom: 0; }
+      .cx-table thead th { position: sticky; top: 0; background: #f6f8fa; color: #526578; font-size: 11px; font-weight: 800; }
+      .cx-table th[scope="row"] { position: sticky; left: 0; z-index: 1; background: #fff; text-align: left; font-weight: 900; }
+      .cx-table th[scope="row"] i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--cx-c); }
+      .cx-table tr.is-overall th[scope="row"], .cx-table tr.is-overall td { background: #f6f8fa; color: #34485a; font-weight: 700; }
+      .cx-table td.cx-cell { background: var(--cx-bg, transparent); color: var(--cx-ink, inherit); font-weight: 800; }
+      .cx-table td small { display: block; margin-top: 1px; font-size: 9px; font-weight: 700; opacity: .85; }
+      .cx-table td.cx-total { font-weight: 900; border-left: 1px solid #e3e9ef; }
+      .cx-table td.cx-na { color: #a3afbb; font-weight: 600; }
+      .cx-table tr { transition: opacity .2s; }
+      .cx-key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 10px; color: var(--muted); font-size: 11px; }
+      .cx-key span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-key i { width: 22px; height: 10px; border-radius: 3px; }
+      .cx-note { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+      .cx-caution { margin: 0 0 12px; padding: 12px 14px; border-radius: 10px; background: #fff8e8; color: #755521; font-size: 12px; line-height: 1.7; }
+
+      .cx-stack-row { display: grid; grid-template-columns: 60px minmax(0, 1fr) 48px; align-items: center; gap: 10px; margin-top: 8px; transition: opacity .2s; }
+      .cx-stack-row b { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+      .cx-stack-row b i { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-c); }
+      .cx-stack-row strong { text-align: right; font-size: 18px; font-variant-numeric: tabular-nums; }
+      .cx-stack-bar { position: relative; display: flex; height: 30px; overflow: hidden; border-radius: 6px; background: #edf2f6; }
+      .cx-stack-bar span { display: grid; place-items: center; min-width: 0; overflow: hidden; background: var(--cx-c); color: var(--cx-ink, #fff); font-size: 10px; font-weight: 800; white-space: nowrap; box-shadow: inset -1px 0 0 rgba(255,255,255,.7); }
+
+      .cx-dim { opacity: .3; }
+      .cx-table tr.cx-dim { opacity: 1; }
+      .cx-table tr.cx-dim > * { opacity: .3; }
+
+      @media (max-width: 980px) { .cx-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 560px) {
+        .cx-block { padding: 16px; }
+        .cx-kpi strong { font-size: 24px; }
+        .cx-table { font-size: 11px; }
+        .cx-table th, .cx-table td { padding: 9px 6px; }
+        .cx-stack-row { grid-template-columns: 40px minmax(0, 1fr) 36px; gap: 8px; }
+        .cx-stack-row strong { font-size: 15px; }
+      }
+      @media print { .cx-toolbar { display: none !important; } }
+      /* ---- Chart-first comparison parts ---- */
+      .cx-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .cx-sub { margin: 0 0 8px; color: #34485a; font-size: 13px; font-weight: 800; }
+      .cx-hbars { display: grid; gap: 10px; }
+      .cx-hbar { display: grid; grid-template-columns: 40px minmax(0, 1fr) 74px; align-items: center; gap: 10px; transition: opacity .2s; }
+      .cx-hbar-name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 900; white-space: nowrap; }
+      .cx-hbar-name i { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-c); }
+      .cx-hbar-track { position: relative; height: 22px; border-radius: 6px; background: #edf2f6; }
+      .cx-hbar-base { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: color-mix(in srgb, var(--cx-c) 22%, #fff); }
+      .cx-hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--cx-c); transition: width .9s cubic-bezier(.2,.8,.2,1); }
+      .cx-hbar-fill.is-planned { background: repeating-linear-gradient(135deg, var(--cx-c) 0 6px, color-mix(in srgb, var(--cx-c) 45%, #fff) 6px 12px); }
+      .cx-hbar-marker { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy-950); opacity: .6; }
+      .cx-hbar-val { text-align: right; font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .cx-hbar-val small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; }
+      .cx-dumbbell { display: grid; gap: 14px; }
+      .cx-db-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 74px; align-items: center; gap: 10px; transition: opacity .2s; }
+      .cx-db-track { position: relative; height: 26px; }
+      .cx-db-track::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #e3e9ef; }
+      .cx-db-line { position: absolute; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; background: var(--cx-c); opacity: .35; }
+      .cx-db-dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border: 3px solid var(--cx-c); border-radius: 50%; background: #fff; }
+      .cx-db-dot.is-now { background: var(--cx-c); border-color: #fff; box-shadow: 0 1px 4px rgba(8,24,39,.4); width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+      .cx-db-axis { display: flex; justify-content: space-between; margin: 2px 84px 0 50px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+      .cx-db-key { display: flex; gap: 14px; margin-top: 8px; color: var(--muted); font-size: 11px; }
+      .cx-db-key span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-db-key i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--navy-800); }
+      .cx-db-key i.is-now { background: var(--navy-800); }
+      .cx-details { margin-top: 14px; border-top: 1px solid #e6ecf1; padding-top: 10px; }
+      .cx-details summary { width: fit-content; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--navy-800); font-size: 12px; font-weight: 800; cursor: pointer; list-style: none; }
+      .cx-details summary::-webkit-details-marker { display: none; }
+      .cx-details summary::before { content: "▸ "; }
+      .cx-details[open] summary::before { content: "▾ "; }
+      .cx-details-body { margin-top: 12px; }
+      .cx-chart .bar { transition: opacity .2s; }
+      @media (max-width: 780px) { .cx-grid2 { grid-template-columns: minmax(0, 1fr); } }
+      @media (max-width: 560px) { .cx-hbar, .cx-db-row { grid-template-columns: 44px minmax(0, 1fr) 64px; gap: 8px; } .cx-db-axis { margin: 2px 72px 0 52px; } }
     </style>
   </head>
   <body>
@@ -929,6 +1307,7 @@
       <div class="container dashboard-nav-inner">
         <div class="view-controls" aria-label="表示する分析">
           <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
+          <button type="button" data-view="standings" aria-pressed="false">チーム順位</button>
           <button type="button" data-view="composition" aria-pressed="false">会員構成</button>
           <button type="button" data-view="admissions" aria-pressed="false">実入会の推移</button>
           <button type="button" data-view="retention" aria-pressed="false">定着・継続</button>
@@ -936,13 +1315,73 @@
           <button type="button" data-view="reference" aria-pressed="false">指標・データ</button>
           <button type="button" data-view="all" aria-pressed="false">すべて</button>
         </div>
+        <button type="button" class="nav-more" id="nav-more" aria-expanded="false" aria-controls="nav-menu">すべての分析<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="nav-menu" id="nav-menu" role="menu" aria-label="分析の一覧" hidden></div>
+        </div>
       </div>
     </nav>
     <main class="container main" id="dashboard-main">
       <div class="workspace-heading" id="workspace-heading" hidden>
-        <div><p class="eyebrow">EXPLORE YOUR TEAM</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
+        <div><p class="eyebrow">ANALYSIS</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
         <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option></select><span>各グラフでも個別に選べます</span></label>
       </div>
+      <section class="section" id="standings-section" aria-labelledby="standings-title">
+        <div class="section-heading">
+          <div><p class="eyebrow" style="color:var(--blue-deep)">STANDINGS</p><h2 id="standings-title">チーム順位</h2></div>
+          <p>日次公開値に基づく総合順位と部門別首位、チーム間の比較です。各チームの現在位置と、上位との差を示します。</p>
+        </div>
+        <div class="bt-topline">
+          <div class="bt-myteam" id="bt-myteam" role="group" aria-label="所属チームを選択">所属チーム</div>
+        </div>
+        <div class="bt-ticker" id="bt-ticker" tabindex="0" aria-label="前回公開からの主な変化。ホバーまたはフォーカスで一時停止">
+          <div class="bt-ticker-label">UPDATES</div>
+          <div class="bt-ticker-track" id="bt-ticker-track"></div>
+        </div>
+        <div class="bt-grid">
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合順位</h3></div><button type="button" class="bt-btn" id="bt-replay">再表示</button></div>
+            <div class="bt-race" id="bt-race"></div>
+            <p class="bt-note" id="bt-race-note"></p>
+          </article>
+          <article class="bt-card bt-mission" id="bt-mission">
+            <div class="bt-card-head"><div><p class="eyebrow">FOCUS METRICS</p><h3>所属チームの重点指標</h3></div><span>総合点への影響度順</span></div>
+            <div id="bt-mission-body" aria-live="polite"></div>
+          </article>
+          <article class="bt-card bt-full">
+            <div class="bt-card-head"><div><p class="eyebrow">CATEGORY LEADERS</p><h3>部門別首位</h3></div><span>2位との差が5点以内は「僅差」</span></div>
+            <div class="bt-titles" id="bt-titles"></div>
+          </article>
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">COMPARISON</p><h3>チーム間比較</h3></div><span>5指標の優劣</span></div>
+            <div class="bt-vs-pick">
+              <select id="bt-vs-left" aria-label="左のチーム"></select>
+              <button type="button" class="bt-btn" id="bt-vs-swap" aria-label="左右を入れ替え">⇄</button>
+              <select id="bt-vs-right" aria-label="右のチーム"></select>
+            </div>
+            <div class="bt-vs-score" id="bt-vs-score" aria-live="polite"></div>
+            <div class="bt-vs-rows" id="bt-vs-rows"></div>
+          </article>
+          <article class="bt-card">
+            <div class="bt-card-head"><div><p class="eyebrow">ADMISSIONS</p><h3>年度入会推移</h3></div>
+            </div>
+            <div class="bt-admit-stage">
+              <div class="bt-bars" id="bt-bars"></div>
+              <div class="bt-month" aria-live="polite"><strong id="bt-month">4月</strong><span id="bt-month-sub">4月からの累計</span></div>
+            </div>
+            <div class="bt-slider">
+              <button type="button" class="bt-btn" id="bt-play">▶ 推移を表示</button>
+              <input type="range" id="bt-month-range" min="0" max="0" value="0" aria-label="表示する月">
+            </div>
+            <div class="bt-podium" id="bt-podium"></div>
+            <p class="bt-note" id="bt-admit-note"></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section guide-section" id="guide-section" aria-labelledby="guide-title">
+        <div class="guide-head"><h3 id="guide-title">ほかの分析を見る</h3><span>知りたいことから選べます。上部のメニューからもいつでも切り替えられます。</span></div>
+        <div class="guide-grid" id="guide-grid"></div>
+      </section>
       <section id="movement-section" aria-labelledby="movement-title" hidden>
         <div class="movement-panel">
           <div class="movement-head">
@@ -1078,7 +1517,9 @@
         </div>
         <div class="quality-card" id="quality-card"></div>
       </section>
+      <nav class="view-pager" id="view-pager" aria-label="前後の分析" hidden></nav>
     </main>
+    <button type="button" class="to-top" id="to-top" aria-label="ページの先頭へ戻る"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 
     <footer><div class="container footer-inner"><span>PROSPECT SAVANT｜スタッフ共有用ダッシュボード</span><span id="footer-date"></span></div></footer>
     <noscript><div class="noscript">このダッシュボードの表示にはJavaScriptが必要です。</div></noscript>
@@ -1972,7 +2413,7 @@
             root.innerHTML = '<p class="composition-empty">会員構成は確認中です。集計元の確認が完了すると表示されます。</p>';
             return;
           }
-          let selected = 'ALL', mode = 'ratio';
+          let selected = 'ALL', mode = 'ratio', layout = 'compare';
           const ids = ['ALL', 'A', 'B', 'C', 'D'];
           const labels = {
             grade: {preschool:'未就園相当',k1:'年少',k2:'年中',k3:'年長',p1:'小学1年',p2:'小学2年',p3:'小学3年',p4:'小学4年',p5:'小学5年',p6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年',h1:'高校1年',h2:'高校2年',h3:'高校3年',adult:'高校卒業相当以上',unknown:'不明'},
@@ -1987,7 +2428,107 @@
           const labelFor = id => id === 'ALL' ? '全体' : `${id} TEAM`;
           const rate = (count, total) => total ? `${(count / total * 100).toFixed(1)}%` : '—';
           const tenureText = months => Number.isFinite(months) ? `${(months / 12).toFixed(1)}年` : '—';
-          const render = () => {
+          // Side-by-side comparison: the default layout, so team differences are visible without switching.
+          const teamIds = ['A', 'B', 'C', 'D'];
+          const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
+          const share = (count, total) => total ? count / total * 100 : 0;
+          const one = value => value.toFixed(1);
+          const entryYears = [...new Set([...Object.keys(c.overall.entryYear), ...Object.values(c.teams).flatMap(team => Object.keys(team.entryYear))])]
+            .sort((a, b) => a === 'unknown' ? 1 : b === 'unknown' ? -1 : Number(a) - Number(b));
+          const dimensions = [
+            { key: 'grade', title: '学年相当', note: '生年月日から算出した当年度の学年相当', groups: [['未就学', ['preschool', 'k1', 'k2', 'k3']], ['小1・2', ['p1', 'p2']], ['小3・4', ['p3', 'p4']], ['小5・6', ['p5', 'p6']], ['中学生', ['j1', 'j2', 'j3']], ['高校以上', ['h1', 'h2', 'h3', 'adult']], ['不明', ['unknown']]] },
+            { key: 'tenure', title: '在籍期間', note: '入会日から基準日まで（休会期間を含む）', groups: [['3か月未満', ['lt3']], ['3〜6か月', ['m3to6']], ['6〜12か月', ['m6to12']], ['1〜2年', ['y1to2']], ['2〜3年', ['y2to3']], ['3年以上', ['y3to5', 'y5plus']], ['不明', ['unknown']]] },
+            { key: 'age', title: '年齢層', note: '基準日時点の満年齢', groups: Object.entries(labels.age).map(([bucket, label]) => [label, [bucket]]) },
+            { key: 'entryYear', title: '入会年度', note: '現在の会員を入会日の年度で分類', groups: entryYears.map(year => [year === 'unknown' ? '不明' : `${year}年度`, [year]]) },
+            { key: 'gender', title: '男女比', note: '登録されている性別', groups: Object.entries(labels.gender).map(([bucket, label]) => [label, [bucket]]) },
+            { key: 'status', title: '在籍状態', note: '在籍・休会・退会予定', groups: Object.entries(labels.status).map(([bucket, label]) => [label, [bucket]]) }
+          ];
+          const sumOf = (row, key, buckets) => buckets.reduce((total, bucket) => total + (Number(row[key]?.[bucket]) || 0), 0);
+          // Ordinal categories share one navy ramp (light → dark); unknown stays neutral grey.
+          const ramp = (index, count) => {
+            const t = count <= 1 ? 1 : index / (count - 1);
+            const from = [207, 222, 235], to = [23, 57, 87];
+            return { color: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t)).join(',')})`, ink: t > 0.42 ? '#fff' : '#142235' };
+          };
+          const activeGroups = dimension => dimension.groups.filter(([, buckets]) => ['ALL', ...teamIds].some(id => sumOf(rowFor(id), dimension.key, buckets) > 0));
+
+          const metrics = [
+            { title: '運用会員数', note: `人物単位・全体 ${formatNumber.format(c.overall.members)}名`, unit: '名', value: row => row.members, format: value => formatNumber.format(value), overall: false },
+            { title: '平均在籍期間', note: '入会日が判明している会員の平均', unit: '年', value: row => row.summary.meanTenureMonths / 12, format: one },
+            { title: '入会1年未満の割合', note: '新しく加わった会員の厚み', unit: '%', value: row => share(row.tenure.lt3 + row.tenure.m3to6 + row.tenure.m6to12, row.members), format: one },
+            { title: '在籍3年以上の割合', note: '長く通っている会員の厚み', unit: '%', value: row => share(row.tenure.y3to5 + row.tenure.y5plus, row.members), format: one },
+            { title: '女子の割合', note: '登録されている性別ベース', unit: '%', value: row => share(row.gender.female, row.members), format: one },
+            { title: '休会・退会予定の割合', note: '在籍状態ベース', unit: '%', value: row => share(row.status.paused + row.status.scheduled, row.members), format: one }
+          ];
+
+          const renderCompare = () => {
+            const focusClass = id => (selected !== 'ALL' && id === selected ? ' is-focus' : '');
+            const metricCards = metrics.map(metric => {
+              const values = Object.fromEntries(['ALL', ...teamIds].map(id => [id, metric.value(rowFor(id))]));
+              const shown = metric.overall === false ? teamIds : ['ALL', ...teamIds];
+              const scale = Math.max(...shown.map(id => values[id]).filter(Number.isFinite), 0.0001);
+              const top = Math.max(...teamIds.map(id => values[id]));
+              const rows = shown.map(id => {
+                const value = values[id];
+                const ref = metric.overall !== false && id !== 'ALL' ? `<span class="cmp-mref" style="left:${values.ALL / scale * 100}%" title="全体 ${metric.format(values.ALL)}${metric.unit}"></span>` : '';
+                return `<div class="cmp-mrow${id === 'ALL' ? ' is-overall' : ''}${id !== 'ALL' && value === top ? ' is-top' : ''}${focusClass(id)}" style="--cmp-c:${colorOf(id)}">
+                  <span class="cmp-mrow-name"><i></i>${id === 'ALL' ? '全体' : id}</span>
+                  <span class="cmp-mtrack"><span class="cmp-mfill" style="width:${Number.isFinite(value) ? value / scale * 100 : 0}%"></span>${ref}</span>
+                  <span class="cmp-mval">${Number.isFinite(value) ? metric.format(value) : '—'}<small>${metric.unit}</small></span>
+                </div>`;
+              }).join('');
+              return `<div class="cmp-metric"><h4>${metric.title}</h4><p>${metric.note}${metric.overall === false ? '' : '・縦線は全体'}</p>${rows}</div>`;
+            }).join('');
+
+            const stacks = dimensions.map(dimension => {
+              const groups = activeGroups(dimension);
+              const ordinal = groups.filter(([label]) => label !== '不明');
+              const paint = label => label === '不明' ? { color: '#b4bec8', ink: '#142235' } : ramp(ordinal.findIndex(([name]) => name === label), ordinal.length);
+              const legend = groups.map(([label]) => `<span><i style="--cmp-c:${paint(label).color}"></i>${escapeHtml(label)}</span>`).join('');
+              const rows = ['ALL', ...teamIds].map(id => {
+                const row = rowFor(id);
+                const name = id === 'ALL' ? '全体' : `${id} TEAM`;
+                const parts = groups.map(([label, buckets]) => {
+                  const count = sumOf(row, dimension.key, buckets);
+                  const pct = share(count, row.members);
+                  if (!count) return '';
+                  const { color, ink } = paint(label);
+                  return `<span class="cmp-seg-part" tabindex="0" style="flex:${count} 1 0;--cmp-c:${color};--cmp-ink:${ink}" data-tip="${escapeHtml(`${name}｜${dimension.title}｜${label}｜${formatNumber.format(count)}名｜${one(pct)}%`)}" aria-label="${escapeHtml(`${name} ${label} ${formatNumber.format(count)}名 ${one(pct)}%`)}">${pct >= 9 ? `${Math.round(pct)}%` : ''}</span>`;
+                }).join('');
+                return `<div class="cmp-srow${id === 'ALL' ? ' is-overall' : ''}${focusClass(id)}" style="--cmp-c:${colorOf(id)}"><span class="cmp-srow-name"><i></i>${id === 'ALL' ? '全体' : id}</span><div class="cmp-bar" role="group" aria-label="${escapeHtml(`${name}の${dimension.title}`)}">${parts}</div></div>`;
+              }).join('');
+              return `<div class="cmp-stack"><h4>${dimension.title}</h4><p>${dimension.note}</p><div class="cmp-legend">${legend}</div>${rows}</div>`;
+            }).join('');
+
+            // Largest gaps from the overall share, per team. Entry year and age largely restate tenure and grade, so they are left out.
+            const insights = teamIds.map(id => {
+              const row = rowFor(id);
+              const perDimension = {};
+              const candidates = dimensions.filter(dimension => ['grade', 'tenure', 'gender'].includes(dimension.key)).flatMap(dimension => activeGroups(dimension)
+                .filter(([label]) => label !== '不明')
+                .map(([label, buckets]) => {
+                  const teamPct = share(sumOf(row, dimension.key, buckets), row.members);
+                  const overallPct = share(sumOf(c.overall, dimension.key, buckets), c.overall.members);
+                  return { dimension: dimension.title, label, teamPct, overallPct, diff: teamPct - overallPct };
+                }))
+                .filter(item => Math.abs(item.diff) >= 4)
+                .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+                .filter(item => (perDimension[item.dimension] = (perDimension[item.dimension] || 0) + 1) <= 2)
+                .slice(0, 3);
+              const items = candidates.length
+                ? candidates.map(item => `<li>${escapeHtml(item.dimension)}「${escapeHtml(item.label)}」が<b class="${item.diff > 0 ? 'up' : 'down'}">${item.diff > 0 ? '多い' : '少ない'}</b><small>${one(item.teamPct)}%（全体 ${one(item.overallPct)}%・${item.diff > 0 ? '+' : '−'}${one(Math.abs(item.diff))}pt）</small></li>`).join('')
+                : '<li>全体と大きな差はありません<small>どの区分も全体との差が4pt未満</small></li>';
+              return `<div class="cmp-insight${focusClass(id)}" style="--cmp-c:${colorOf(id)}"><h4>${id} TEAM<span>${formatNumber.format(row.members)}名・平均在籍 ${tenureText(row.summary.meanTenureMonths)}</span></h4><ul>${items}</ul></div>`;
+            }).join('');
+
+            return `<div class="${selected !== 'ALL' ? 'cmp-dim' : ''}">
+              <div class="cmp-block"><div class="cmp-block-head"><h3>チームの特徴</h3><p>学年・在籍期間・男女比のうち、全体の構成比と比べて差が大きい区分（4pt以上）を差の大きい順に表示</p></div><div class="cmp-insights">${insights}</div></div>
+              <div class="cmp-block"><div class="cmp-block-head"><h3>主要指標の比較</h3><p>棒の長さは各指標の最大値が基準。縦線は全体の値</p></div><div class="cmp-metrics">${metricCards}</div></div>
+              <div class="cmp-block"><div class="cmp-block-head"><h3>構成比の比較</h3><p>各チームの会員を100%とした内訳。区分にカーソルを合わせる（タップする）と人数を表示</p></div><div class="cmp-stacks">${stacks}</div>
+                <p class="cmp-note">割合は各チームの全会員が分母で、不明も含みます。人数と細かい区分（学年別など）は「1チームを詳しく」で確認できます。</p></div>
+            </div>`;
+          };
+          const renderDetail = () => {
             const row = rowFor(selected), total = row.members;
             const color = selected === 'ALL' ? 'var(--navy-800)' : `var(--team-${selected.toLowerCase()})`;
             const stats = [
@@ -2011,7 +2552,7 @@
               }).join('');
               return `<article class="composition-chart" style="--composition-color:${color}"><h3>${titles[key]}</h3><p>${notes[key]}</p><div class="composition-bars" role="group" aria-label="${labelFor(selected)}の${titles[key]}">${bars}</div></article>`;
             }).join('');
-            root.innerHTML = `
+            return `
               <div class="composition-toolbar"><div><strong id="composition-selected-label" aria-live="polite">${labelFor(selected)} · ${formatNumber.format(total)}名</strong><p>割合は選択した全会員が分母です。不明も含めて100%になります（四捨五入差あり）。</p></div><div class="composition-switches" aria-label="棒グラフの表示基準"><button type="button" data-composition-mode="ratio" aria-pressed="${mode==='ratio'}">割合で見る</button><button type="button" data-composition-mode="count" aria-pressed="${mode==='count'}">人数で見る</button></div></div>
               <div class="composition-switches" id="composition-filters" aria-label="会員構成の表示チーム">${ids.map(id=>`<button type="button" data-composition-team="${id}" aria-pressed="${selected===id}">${labelFor(id)}</button>`).join('')}</div>
               <div class="composition-summary">${stats.map(([label,value,note])=>`<div class="composition-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join('')}</div>
@@ -2019,16 +2560,45 @@
               <div class="composition-table-wrap"><table class="composition-table"><caption>全体・チーム比較</caption><thead><tr><th scope="col">対象</th><th scope="col">会員数</th><th scope="col">平均在籍</th><th scope="col">3か月未満</th><th scope="col">3年以上</th><th scope="col">女子比率</th><th scope="col">性別不明</th></tr></thead><tbody>${ids.map(id=>{const t=rowFor(id);return `<tr data-selected="${selected===id}"><th scope="row"><button type="button" data-composition-team="${id}">${labelFor(id)}</button></th><td>${formatNumber.format(t.members)}名</td><td>${tenureText(t.summary.meanTenureMonths)}</td><td>${rate(t.tenure.lt3,t.members)}</td><td>${rate(t.tenure.y3to5+t.tenure.y5plus,t.members)}</td><td>${rate(t.gender.female,t.members)}</td><td>${t.gender.unknown}名</td></tr>`;}).join('')}</tbody></table></div>
               <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>人物単位の運用会員（在籍・休会・退会予定）が対象です。重複契約は1人にまとめ、承認済みの所属補正を反映しています。平均・中央値は入会日が判明している会員だけで計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録・矛盾のある属性は不明として表示します。未登録の会費ペイ外会員も人数から除外しません。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
           };
+          const render = () => {
+            const focusChips = layout === 'compare' ? `<div class="cmp-focus">強調するチーム<div class="composition-switches" id="composition-filters" aria-label="強調するチーム">${ids.map(id => `<button type="button" data-composition-team="${id}" aria-pressed="${selected === id}">${id === 'ALL' ? 'なし' : labelFor(id)}</button>`).join('')}</div></div>` : '';
+            const modebar = `<div class="cmp-modebar"><div class="cmp-seg" role="group" aria-label="会員構成の表示方法"><button type="button" data-composition-layout="compare" aria-pressed="${layout === 'compare'}">チームを比較</button><button type="button" data-composition-layout="detail" aria-pressed="${layout === 'detail'}">1チームを詳しく</button></div>${focusChips}</div>`;
+            root.innerHTML = modebar + (layout === 'compare' ? renderCompare() : renderDetail());
+          };
+          let tip = null;
+          const showTip = part => {
+            if (!part?.dataset.tip) return;
+            tip = tip || Object.assign(document.createElement('div'), { className: 'cmp-tip', role: 'tooltip' });
+            if (!tip.isConnected) document.body.append(tip);
+            const [name, dimension, label, count, pct] = part.dataset.tip.split('｜').map(escapeHtml);
+            tip.innerHTML = `<b>${name}</b>${dimension}：${label}<br>${count}（${pct}）`;
+            const box = part.getBoundingClientRect();
+            const left = Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, box.left + box.width / 2 - tip.offsetWidth / 2));
+            const top = box.top - tip.offsetHeight - 8 < 8 ? box.bottom + 8 : box.top - tip.offsetHeight - 8;
+            tip.style.left = `${left}px`;
+            tip.style.top = `${top}px`;
+          };
+          const hideTip = () => tip?.remove();
+          root.addEventListener('pointerover', event => showTip(event.target.closest('.cmp-seg-part')));
+          root.addEventListener('pointerout', event => { if (event.target.closest('.cmp-seg-part')) hideTip(); });
+          root.addEventListener('focusin', event => showTip(event.target.closest('.cmp-seg-part')));
+          root.addEventListener('focusout', hideTip);
+          window.addEventListener('scroll', hideTip, { passive: true });
           root.addEventListener('click', event => {
+            const part = event.target.closest('.cmp-seg-part');
+            if (part) { showTip(part); return; }
             const button=event.target.closest('button');
             if (!button) return;
             const target=button.dataset.compositionTeam;
             const nextMode=button.dataset.compositionMode;
+            const nextLayout=button.dataset.compositionLayout;
             if (target && ids.includes(target)) selected=target;
             else if (['ratio','count'].includes(nextMode)) mode=nextMode;
+            else if (['compare','detail'].includes(nextLayout)) layout=nextLayout;
             else return;
+            hideTip();
             render();
-            const next=target ? root.querySelector(`#composition-filters [data-composition-team="${target}"]`) : root.querySelector(`[data-composition-mode="${mode}"]`);
+            const next=nextLayout ? root.querySelector(`[data-composition-layout="${layout}"]`) : target ? root.querySelector(`#composition-filters [data-composition-team="${target}"]`) : root.querySelector(`[data-composition-mode="${mode}"]`);
             next?.focus({preventScroll:true});
           });
           render();
@@ -2049,6 +2619,8 @@
           let selected='ALL', month=h.asOf.slice(0,7);
           const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
           const reference=(r,id)=>withdrawalReference(r,data.teams.find(t=>t.id===id)?.members);
+          // Withdrawals are confirmed after month end; members marked 退会予定 are this month's planned withdrawals.
+          const scheduledOf=id=>{const c=data.memberComposition;return c?.status==='ok'&&c.asOf===data.asOf?c.teams?.[id]?.status?.scheduled??null:null;};
           const fmtRate=(r,id)=>{const value=reference(r,id);return value.rate===null?'—':`${value.rate.toFixed(2)}%`;};
           const render=()=>{
             const selectedIndex=h.months.indexOf(month);
@@ -2061,7 +2633,7 @@
               const ref=reference(r,id), prior=prev?reference(prev,id):null;
               const delta=ref.rate!==null && prior?.rate!==null && Number.isFinite(prior?.rate) && ref.basis===prior.basis?Number((ref.rate-prior.rate).toFixed(2)):null;
               const change=delta===null?'前月差：分母の基準が異なるか、比較月なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
-              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p><div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
             }).join('')}</div>
             <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明分は分子に含めず、判明分だけで参考値を計算します。月初人数または月初在籍の判定材料がない月は、判明退会人数を基準日の会員数で割った参考割合を表示します。この割合は通常の月次退会率とは分けて読み、基準日会員数の更新でも変わります。異なる分母基準の前月差は表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
           };
@@ -2520,7 +3092,7 @@
           if (!button) return;
           const filter = button.dataset.filter;
           document.querySelectorAll("#team-filters button[data-filter]").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
-          document.querySelectorAll("[data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
+          document.querySelectorAll("#team-grid [data-team]").forEach((card) => { card.hidden = filter !== "ALL" && card.dataset.team !== filter; });
         });
 
         initializeMovement();
@@ -2549,12 +3121,796 @@
 
     <script>
       (() => {
+        "use strict";
+        const data = window.PROSPECT_SAVANT_DATA;
+        const section = document.getElementById("standings-section");
+        if (!data || !section || !Array.isArray(data.teams)) return;
+
+        const metricKeys = ["retention", "admission", "event", "growth", "family"];
+        const labels = data.metricLabels || {};
+        const weights = Object.fromEntries((data.weights || []).map(item => [item.key, Number(item.value) || 0]));
+        const teams = data.teams.filter(team => Number.isFinite(team.overall));
+        const teamIds = teams.map(team => team.id);
+        const byId = Object.fromEntries(teams.map(team => [team.id, team]));
+        const teamName = id => `${id} TEAM`;
+        const teamColor = id => `var(--team-${String(id).toLowerCase()})`;
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const esc = value => String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[ch]);
+        const num = (value, digits = 0) => Number(value).toLocaleString("ja-JP", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        const signed = (value, digits = 0) => `${value > 0 ? "+" : value < 0 ? "−" : "±"}${num(Math.abs(value), digits)}`;
+        const store = {
+          get(key) { try { return JSON.parse(window.localStorage.getItem(key)); } catch { return null; } },
+          set(key, value) { try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ } }
+        };
+
+        // Savant percentile scale: blue-deep (0) → neutral (50) → red-deep (100), same stops as .metric-track.
+        const stops = [[0, [36, 91, 134]], [50, [217, 225, 232]], [100, [168, 47, 43]]];
+        const savantColor = score => {
+          const s = Math.max(0, Math.min(100, Number(score) || 0));
+          const [a, b] = s <= 50 ? [stops[0], stops[1]] : [stops[1], stops[2]];
+          const t = (s - a[0]) / (b[0] - a[0]);
+          return `rgb(${a[1].map((c, i) => Math.round(c + (b[1][i] - c) * t)).join(",")})`;
+        };
+        const savantInk = score => (score > 32 && score < 68 ? "#142235" : "#fff");
+
+        // Previous-publication comparison only when score version and metric definitions match.
+        const comparison = data.comparison || {};
+        const comparable = comparison.scoreVersion === data.scoreVersion
+          && JSON.stringify(comparison.metricDefinitions || {}) === JSON.stringify(data.metricDefinitions || {})
+          && Array.isArray(comparison.teams);
+        const prevById = comparable ? Object.fromEntries(comparison.teams.map(team => [team.id, team])) : {};
+        const admissionsComparable = data.admissions && comparison.admissions
+          && data.admissions.fiscalYear === comparison.admissions.fiscalYear
+          && data.admissions.definition === comparison.admissions.definition;
+
+        const standings = [...teams].sort((a, b) => b.overall - a.overall || a.id.localeCompare(b.id));
+        const rankOf = id => 1 + standings.filter(team => team.overall > byId[id].overall).length;
+        const prevRankOf = id => {
+          const prev = prevById[id];
+          if (!prev || !Number.isFinite(prev.overall)) return null;
+          return 1 + comparison.teams.filter(team => Number.isFinite(team.overall) && team.overall > prev.overall).length;
+        };
+        const leaderOf = key => [...teams].filter(team => Number.isFinite(team.metrics?.[key])).sort((a, b) => b.metrics[key] - a.metrics[key]);
+
+        const rawValue = (team, key) => {
+          const bench = team.benchmark || {};
+          const ev = team.metricEvidence || {};
+          if (key === "retention" && Number.isFinite(bench.retention12mRate)) return `12か月継続率 ${num(bench.retention12mRate, 1)}%`;
+          if (key === "admission" && Number.isFinite(bench.admissionRate)) return `体験→入会率 ${num(bench.admissionRate, 1)}%`;
+          if (key === "event" && Number.isFinite(bench.eventRate)) return `平均参加率 ${num(bench.eventRate, 1)}%`;
+          if (key === "growth" && Number.isFinite(ev.growth?.top30Children)) return `大会上位30% ${num(ev.growth.top30Children)}人`;
+          if (key === "family" && Number.isFinite(bench.referralPoints)) return `紹介 ${num(bench.referralPoints)}pt・${num(bench.referralRate, 2)}%`;
+          if (key === "overall") return `会員 ${num(team.members)}名`;
+          return "";
+        };
+
+        /* ---------- Own team & last visit ---------- */
+        let myTeam = store.get("savant-my-team");
+        if (!teamIds.includes(myTeam)) myTeam = null;
+        const myTeamBox = document.getElementById("bt-myteam");
+        myTeamBox.insertAdjacentHTML("beforeend", [...teamIds.map(id => `<button type="button" data-team="${esc(id)}" style="--bt-c:${teamColor(id)}">${esc(id)}</button>`), `<button type="button" data-team="">なし</button>`].join(""));
+
+        const todayJst = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
+        const visit = store.get("savant-visit") || {};
+        if (visit.last !== todayJst) {
+          visit.previousSeen = visit.seen || null;
+          visit.last = todayJst;
+        }
+        visit.seen = { asOf: data.asOf, scoreVersion: data.scoreVersion, overall: Object.fromEntries(teams.map(team => [team.id, team.overall])) };
+        store.set("savant-visit", visit);
+
+        /* ---------- Count-up helper ---------- */
+        const countUp = (el, to, { digits = 0, prefix = "", duration = 1400 } = {}) => {
+          if (!el || !Number.isFinite(to)) return;
+          if (reduceMotion) { el.textContent = prefix + num(to, digits); return; }
+          const start = performance.now();
+          const step = now => {
+            const p = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = prefix + num(to * eased, digits);
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        };
+
+        /* ---------- Overall standings race ---------- */
+        const raceEl = document.getElementById("bt-race");
+        const renderRace = () => {
+          raceEl.innerHTML = standings.map(team => {
+            const rank = rankOf(team.id);
+            const prevRank = prevRankOf(team.id);
+            const prev = prevById[team.id];
+            const overallDelta = prev && Number.isFinite(prev.overall) ? team.overall - prev.overall : null;
+            let move = "";
+            if (prevRank !== null) {
+              move = prevRank > rank ? `<span class="bt-move up">▲${prevRank - rank}</span>`
+                : prevRank < rank ? `<span class="bt-move down">▼${rank - prevRank}</span>`
+                : `<span class="bt-move">前回同順位</span>`;
+            }
+            const above = standings.filter(other => other.overall > team.overall).sort((a, b) => a.overall - b.overall)[0];
+            const below = standings.filter(other => other.overall < team.overall).sort((a, b) => b.overall - a.overall)[0];
+            const tied = standings.filter(other => other.id !== team.id && other.overall === team.overall);
+            const gapText = tied.length ? `${tied.map(other => teamName(other.id)).join("・")}と<b>同点</b>`
+              : above ? `${rankOf(above.id)}位 ${teamName(above.id)}との差 <b>${num(above.overall - team.overall)}点</b>${below ? `　／　下位 ${teamName(below.id)}との差 <b>${num(team.overall - below.overall)}点</b>` : ""}`
+              : below ? `2位 ${teamName(below.id)}との差 <b>${num(team.overall - below.overall)}点</b>` : "";
+            const mine = team.id === myTeam;
+            return `<div class="bt-lane${mine ? " is-mine" : ""}" data-rank="${rank}" style="--bt-c:${teamColor(team.id)};--bt-s:${savantColor(team.overall)}">
+              <div class="bt-rank">${rank}<small>${rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : `${rank}TH`}</small></div>
+              <div class="bt-lane-body">
+                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">所属</span>` : ""}${move}</div>
+                <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
+                <div class="bt-gap">${gapText}</div>
+              </div>
+              <div class="bt-score"><strong data-count="${team.overall}">0</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
+            </div>`;
+          }).join("");
+          document.getElementById("bt-race-note").textContent = `総合点は5指標×配点（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
+        };
+        const playRace = () => {
+          const bars = [...raceEl.querySelectorAll(".bt-bar")];
+          const scores = [...raceEl.querySelectorAll("[data-count]")];
+          bars.forEach(bar => { bar.style.transition = "none"; bar.style.width = "0%"; });
+          scores.forEach(el => { el.textContent = "0"; });
+          void raceEl.offsetWidth;
+          requestAnimationFrame(() => {
+            bars.forEach((bar, index) => {
+              bar.style.transition = reduceMotion ? "none" : `width 1.6s cubic-bezier(.2,.75,.15,1) ${index * 120}ms`;
+              bar.style.width = `${bar.dataset.score}%`;
+            });
+            scores.forEach(el => countUp(el, Number(el.dataset.count), { duration: 1600 }));
+          });
+        };
+
+        /* ---------- My team mission ---------- */
+        const missionEl = document.getElementById("bt-mission");
+        const missionBody = document.getElementById("bt-mission-body");
+        const metricEdge = (mine, rival) => metricKeys
+          .filter(key => Number.isFinite(mine.metrics?.[key]) && Number.isFinite(rival.metrics?.[key]))
+          .map(key => ({ key, diff: mine.metrics[key] - rival.metrics[key], impact: (mine.metrics[key] - rival.metrics[key]) * (weights[key] || 0) / 100 }));
+        const renderMission = () => {
+          missionEl.style.setProperty("--bt-c", myTeam ? teamColor(myTeam) : "transparent");
+          if (!myTeam) {
+            missionBody.innerHTML = `<p class="bt-mission-empty">上の <b>所属チーム</b> を選択すると、上位チームとの差と、総合点への影響が大きい指標を表示します。選択内容はこの端末にのみ保存されます。</p>`;
+            return;
+          }
+          const mine = byId[myTeam];
+          const rank = rankOf(myTeam);
+          const above = standings.filter(team => team.overall > mine.overall).sort((a, b) => a.overall - b.overall)[0];
+          const below = standings.filter(team => team.overall < mine.overall).sort((a, b) => b.overall - a.overall)[0];
+          const rival = above || below;
+          let lead = "";
+          let items = [];
+          if (rival) {
+            const edges = metricEdge(mine, rival);
+            const gap = Math.abs(mine.overall - rival.overall);
+            if (above) {
+              lead = `<p>${rank - 1}位 <b>${esc(teamName(above.id))}</b> との差は <b>${num(gap)}点</b>。総合点への影響が大きい指標から順に示します。</p>`;
+              items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点差（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact, 1)}点分）` }));
+            } else {
+              lead = `<p><b>現在首位。</b>2位 <b>${esc(teamName(below.id))}</b> との差は <b>${num(gap)}点</b>。2位が上回っている指標を示します。</p>`;
+              items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact, 1)}点分）` }));
+            }
+            const strong = edges.filter(edge => edge.diff > 0).sort((a, b) => b.impact - a.impact)[0];
+            if (strong) items.push({ score: mine.metrics[strong.key], html: `優位な指標：<b>${esc(labels[strong.key])}</b>（${esc(teamName(rival.id))}より ${num(strong.diff)}点上・総合で約${num(strong.impact, 1)}点分）` });
+            if (above && below) items.push({ score: mine.overall, html: `下位 ${esc(teamName(below.id))} との差 <b>${num(mine.overall - below.overall)}点</b>` });
+          }
+          missionBody.innerHTML = `<div class="bt-mission-big"><strong>${rank}<small style="font-size:20px">位</small></strong><span>${esc(teamName(myTeam))}・総合 ${num(mine.overall)}点</span></div>${lead}
+            <ul class="bt-mission-list">${items.map(item => `<li style="--bt-s:${savantColor(item.score)}"><i style="color:${savantInk(item.score)}">${num(item.score)}</i><span>${item.html}</span></li>`).join("")}</ul>`;
+        };
+
+        /* ---------- Category leaders ---------- */
+        const renderTitles = () => {
+          const cats = [{ key: "overall", label: "OVERALL・総合" }, ...metricKeys.map(key => ({ key, label: labels[key] || key }))];
+          document.getElementById("bt-titles").innerHTML = cats.map(cat => {
+            const value = team => (cat.key === "overall" ? team.overall : team.metrics?.[cat.key]);
+            const order = [...teams].filter(team => Number.isFinite(value(team))).sort((a, b) => value(b) - value(a));
+            if (!order.length) return "";
+            const top = value(order[0]);
+            const champs = order.filter(team => value(team) === top);
+            const next = order.find(team => value(team) < top);
+            const gap = next ? top - value(next) : null;
+            const tag = champs.length > 1 ? `<span class="bt-hot">同点首位</span>` : gap !== null && gap <= 5 ? `<span class="bt-hot">僅差</span>` : gap !== null && gap >= 20 ? `<span class="bt-safe">大差</span>` : "";
+            return `<div class="bt-title" style="--bt-s:${savantColor(top)}">
+              <div class="bt-bubble" style="color:${savantInk(top)}">${num(top)}</div>
+              <div><div class="bt-title-label">${esc(cat.label)}</div>
+                <div class="bt-title-team">${champs.map(team => `<span class="bt-dot" style="--bt-c:${teamColor(team.id)}"></span>${esc(teamName(team.id))}`).join(" ")}</div>
+                <div class="bt-title-raw">${champs.map(team => esc(rawValue(team, cat.key))).join(" ／ ")}</div>
+                <div class="bt-title-gap">${next ? `2位 ${esc(teamName(next.id))}（${num(value(next))}）と ${num(gap)}点差` : "全チーム同点"}</div>
+              </div>${tag}</div>`;
+          }).join("");
+        };
+
+        /* ---------- Head to head ---------- */
+        const leftSel = document.getElementById("bt-vs-left");
+        const rightSel = document.getElementById("bt-vs-right");
+        const options = teamIds.map(id => `<option value="${esc(id)}">${esc(teamName(id))}</option>`).join("");
+        leftSel.innerHTML = options;
+        rightSel.innerHTML = options;
+        const defaultPair = () => {
+          if (myTeam) {
+            const mine = byId[myTeam];
+            const rival = standings.filter(team => team.overall > mine.overall).sort((a, b) => a.overall - b.overall)[0]
+              || standings.filter(team => team.id !== myTeam)[0];
+            return [myTeam, rival.id];
+          }
+          return [standings[0].id, standings[1]?.id || standings[0].id];
+        };
+        const renderVs = () => {
+          if (leftSel.value === rightSel.value) {
+            rightSel.value = teamIds.find(id => id !== leftSel.value) || rightSel.value;
+          }
+          const L = byId[leftSel.value];
+          const R = byId[rightSel.value];
+          leftSel.style.setProperty("--bt-c", teamColor(L.id));
+          rightSel.style.setProperty("--bt-c", teamColor(R.id));
+          let lw = 0;
+          let rw = 0;
+          const rows = metricKeys.map(key => {
+            const a = L.metrics?.[key];
+            const b = R.metrics?.[key];
+            if (!Number.isFinite(a) || !Number.isFinite(b)) return "";
+            if (a > b) lw += 1; else if (b > a) rw += 1;
+            const total = a + b || 1;
+            return `<div><div class="bt-vs-row-head"><span class="${a > b ? "win" : ""}">${num(a)}${a > b ? " ◀" : ""}</span><b>${esc(labels[key])}<small style="color:var(--muted);font-weight:700"> ・配点${weights[key]}％</small></b><span class="${b > a ? "win" : ""}">${b > a ? "▶ " : ""}${num(b)}</span></div>
+              <div class="bt-tug" role="img" aria-label="${esc(labels[key])} ${esc(teamName(L.id))} ${num(a)}点 対 ${esc(teamName(R.id))} ${num(b)}点"><i style="flex-grow:${a / total};background:${teamColor(L.id)}"></i><i style="flex-grow:${b / total};background:${teamColor(R.id)}"></i></div></div>`;
+          }).join("");
+          const verdict = lw > rw ? `${teamName(L.id)} が優位` : rw > lw ? `${teamName(R.id)} が優位` : "同数";
+          document.getElementById("bt-vs-score").innerHTML = `<div><strong style="color:${teamColor(L.id)}">${lw}</strong><span>${esc(teamName(L.id))}・総合${num(L.overall)}</span></div>
+            <div class="verdict">${esc(verdict)}<br><span>${num(metricKeys.length - lw - rw)}指標で同点</span></div>
+            <div><strong style="color:${teamColor(R.id)}">${rw}</strong><span>${esc(teamName(R.id))}・総合${num(R.overall)}</span></div>`;
+          document.getElementById("bt-vs-rows").innerHTML = rows;
+        };
+        leftSel.addEventListener("change", renderVs);
+        rightSel.addEventListener("change", renderVs);
+        document.getElementById("bt-vs-swap").addEventListener("click", () => {
+          [leftSel.value, rightSel.value] = [rightSel.value, leftSel.value];
+          renderVs();
+        });
+
+        /* ---------- Admission race (bar chart race over fiscal months) ---------- */
+        const history = data.admissionHistory;
+        const months = history?.months || [];
+        const lastIndex = months.reduce((last, _, index) => (teamIds.some(id => Number.isFinite(history.teams?.[id]?.[index])) ? index : last), -1);
+        const barsEl = document.getElementById("bt-bars");
+        const rangeEl = document.getElementById("bt-month-range");
+        const playBtn = document.getElementById("bt-play");
+        let monthIndex = Math.max(0, lastIndex);
+        let playTimer = null;
+        const cumulative = (id, index) => (history.teams?.[id] || []).slice(0, index + 1).reduce((sum, value) => sum + (Number(value) || 0), 0);
+        const monthLabel = index => `${Number(String(months[index]).slice(5, 7))}月`;
+        const isCurrentMonth = index => index === lastIndex && String(data.asOf).slice(0, 7) === months[index];
+        const valueFor = (id, index) => cumulative(id, index);
+        const renderAdmit = () => {
+          if (lastIndex < 0) return;
+          const scaleMax = Math.max(...teamIds.map(id => valueFor(id, lastIndex)), 1);
+          const order = [...teamIds].sort((a, b) => valueFor(b, monthIndex) - valueFor(a, monthIndex) || a.localeCompare(b));
+          if (!barsEl.children.length) {
+            barsEl.innerHTML = teamIds.map(id => `<div class="bt-hbar" data-team="${esc(id)}" style="--bt-c:${teamColor(id)}"><span class="bt-hbar-name"><span class="bt-dot"></span> ${esc(id)}</span><div class="bt-hbar-track"><div class="bt-hbar-fill"></div><span class="bt-hbar-val"></span></div></div>`).join("");
+          }
+          teamIds.forEach(id => {
+            const row = barsEl.querySelector(`[data-team="${id}"]`);
+            const value = valueFor(id, monthIndex);
+            const pct = value / scaleMax * 100;
+            const added = Number(history.teams?.[id]?.[monthIndex]) || 0;
+            row.style.transform = `translateY(${order.indexOf(id) * 54}px)`;
+            row.querySelector(".bt-hbar-fill").style.width = `${pct}%`;
+            const val = row.querySelector(".bt-hbar-val");
+            val.style.left = `${pct}%`;
+            val.innerHTML = `${num(value)}人${added ? `<small>+${num(added)}人</small>` : ""}`;
+          });
+          document.getElementById("bt-month").textContent = monthLabel(monthIndex);
+          document.getElementById("bt-month-sub").textContent = `${history.fiscalYear || ""}年度 4月からの累計${isCurrentMonth(monthIndex) ? "（今月は途中）" : ""}`;
+          rangeEl.value = String(monthIndex);
+          const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[monthIndex]) || 0 })).sort((a, b) => b.value - a.value);
+          const top = monthly[0]?.value || 0;
+          document.getElementById("bt-podium").innerHTML = monthly.map(item => `<div class="${top > 0 && item.value === top ? "lead" : ""}" style="--bt-c:${teamColor(item.id)}"><b><span class="bt-dot"></span>${esc(teamName(item.id))}</b><strong>${num(item.value)}</strong>${esc(monthLabel(monthIndex))}の入会${top > 0 && item.value === top ? "・当月最多" : ""}</div>`).join("");
+        };
+        const stopPlay = () => {
+          clearInterval(playTimer);
+          playTimer = null;
+          playBtn.textContent = "▶ 推移を表示";
+        };
+        const startPlay = () => {
+          if (lastIndex < 0) return;
+          if (reduceMotion) { monthIndex = lastIndex; renderAdmit(); return; }
+          stopPlay();
+          monthIndex = 0;
+          renderAdmit();
+          playBtn.textContent = "❚❚ 停止";
+          playTimer = setInterval(() => {
+            if (monthIndex >= lastIndex) { stopPlay(); return; }
+            monthIndex += 1;
+            renderAdmit();
+          }, 950);
+        };
+        if (lastIndex >= 0) {
+          rangeEl.max = String(lastIndex);
+          rangeEl.addEventListener("input", () => { stopPlay(); monthIndex = Number(rangeEl.value); renderAdmit(); });
+          playBtn.addEventListener("click", () => (playTimer ? stopPlay() : startPlay()));
+          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。`;
+        } else {
+          section.querySelector(".bt-admit-stage").closest(".bt-card").hidden = true;
+        }
+
+        /* ---------- Headline ticker ---------- */
+        const renderTicker = () => {
+          const items = [];
+          const leader = standings[0];
+          const second = standings.find(team => team.overall < leader.overall);
+          items.push(`<b>総合1位 ${esc(teamName(leader.id))}</b> ${num(leader.overall)}点${second ? ` <em>2位 ${esc(teamName(second.id))}と${num(leader.overall - second.overall)}点差</em>` : ""}`);
+          if (comparable) {
+            standings.forEach(team => {
+              const prevRank = prevRankOf(team.id);
+              const rank = rankOf(team.id);
+              if (prevRank !== null && prevRank !== rank) items.push(`<b>${esc(teamName(team.id))}</b> <span class="${prevRank > rank ? "up" : "down"}">${prevRank}位 → ${rank}位 ${prevRank > rank ? "▲上昇" : "▼下降"}</span>`);
+              const prev = prevById[team.id];
+              metricKeys.forEach(key => {
+                const now = team.metrics?.[key];
+                const before = prev?.metrics?.[key];
+                if (Number.isFinite(now) && Number.isFinite(before) && now !== before) items.push(`<b>${esc(teamName(team.id))}</b> ${esc(labels[key])} <span class="${now > before ? "up" : "down"}">${num(before)} → ${num(now)}</span>`);
+              });
+              const nowRate = team.metricEvidence?.admission?.rate;
+              const prevRate = prev?.metricEvidence?.admission?.rate;
+              if (Number.isFinite(nowRate) && Number.isFinite(prevRate) && nowRate !== prevRate) items.push(`<b>${esc(teamName(team.id))}</b> 体験→入会率 <span class="${nowRate > prevRate ? "up" : "down"}">${signed(nowRate - prevRate, 1)}pt</span> <em>${num(nowRate, 1)}%</em>`);
+              const nowRef = team.metricEvidence?.family?.points;
+              const prevRef = prev?.metricEvidence?.family?.points;
+              if (Number.isFinite(nowRef) && Number.isFinite(prevRef) && nowRef > prevRef) items.push(`<b>${esc(teamName(team.id))}</b> 紹介ポイント <span class="up">+${num(nowRef - prevRef)}pt</span> <em>年度${num(nowRef)}pt</em>`);
+            });
+          }
+          if (admissionsComparable) {
+            teamIds.forEach(id => {
+              const added = (data.admissions.teams?.[id]?.cumulative ?? 0) - (comparison.admissions.teams?.[id]?.cumulative ?? 0);
+              if (added > 0) items.push(`<b>${esc(teamName(id))}</b> 新規入会 <span class="up">+${num(added)}人</span> <em>年度累計${num(data.admissions.teams[id].cumulative)}人</em>`);
+            });
+          }
+          if (lastIndex >= 0) {
+            const monthly = teamIds.map(id => ({ id, value: Number(history.teams?.[id]?.[lastIndex]) || 0 })).sort((a, b) => b.value - a.value);
+            if (monthly[0].value > 0) items.push(`<b>${esc(monthLabel(lastIndex))}の入会最多 ${esc(teamName(monthly[0].id))}</b> ${num(monthly[0].value)}人${monthly[1] ? ` <em>2位 ${esc(teamName(monthly[1].id))} ${num(monthly[1].value)}人</em>` : ""}`);
+          }
+          let closest = null;
+          for (let i = 0; i < standings.length - 1; i += 1) {
+            const gap = standings[i].overall - standings[i + 1].overall;
+            if (!closest || gap < closest.gap) closest = { gap, a: standings[i], b: standings[i + 1] };
+          }
+          if (closest) items.push(`<b>最小差</b> ${esc(teamName(closest.a.id))} vs ${esc(teamName(closest.b.id))} <em>${closest.gap === 0 ? "同点" : `${num(closest.gap)}点差`}</em>`);
+          metricKeys.forEach(key => {
+            const order = leaderOf(key);
+            if (order.length > 1 && order[0].metrics[key] - order[1].metrics[key] <= 5 && order[0].metrics[key] !== order[1].metrics[key]) items.push(`<b>${esc(labels[key])}</b> 首位差5点以内 ${esc(teamName(order[0].id))} ${num(order[0].metrics[key])} vs ${esc(teamName(order[1].id))} ${num(order[1].metrics[key])}`);
+          });
+          const seen = visit.previousSeen;
+          if (seen && seen.asOf !== data.asOf && seen.scoreVersion === data.scoreVersion) {
+            const moves = teamIds.filter(id => Number.isFinite(seen.overall?.[id]) && seen.overall[id] !== byId[id].overall)
+              .map(id => `${esc(id)} <span class="${byId[id].overall > seen.overall[id] ? "up" : "down"}">${signed(byId[id].overall - seen.overall[id])}</span>`);
+            items.push(`<b>前回閲覧（${esc(seen.asOf.slice(5).replace("-", "/"))}）から</b> ${moves.length ? moves.join("　") : "<em>総合点は変化なし</em>"}`);
+          }
+          if (!comparable) items.push(`<em>スコア版・定義の変更により、今日は前回比較を表示していません</em>`);
+          const track = document.getElementById("bt-ticker-track");
+          const html = items.map(item => `<span class="bt-ticker-item">${item}</span>`).join("");
+          track.innerHTML = `${html}<span aria-hidden="true" style="display:contents">${html}</span>`;
+          track.style.setProperty("--bt-dur", `${Math.max(24, items.length * 6)}s`);
+        };
+
+        /* ---------- Wiring ---------- */
+        const setMyTeam = id => {
+          myTeam = teamIds.includes(id) ? id : null;
+          store.set("savant-my-team", myTeam);
+          myTeamBox.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String((button.dataset.team || null) === myTeam)));
+          renderRace();
+          raceEl.querySelectorAll(".bt-bar").forEach(bar => { bar.style.width = `${bar.dataset.score}%`; });
+          raceEl.querySelectorAll("[data-count]").forEach(el => { el.textContent = num(Number(el.dataset.count)); });
+          renderMission();
+          [leftSel.value, rightSel.value] = defaultPair();
+          renderVs();
+        };
+        myTeamBox.addEventListener("click", event => {
+          const button = event.target.closest("button[data-team]");
+          if (button) setMyTeam(button.dataset.team);
+        });
+        document.getElementById("bt-replay").addEventListener("click", playRace);
+
+        renderRace();
+        renderMission();
+        renderTitles();
+        [leftSel.value, rightSel.value] = defaultPair();
+        renderVs();
+        renderAdmit();
+        renderTicker();
+        myTeamBox.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String((button.dataset.team || null) === myTeam)));
+
+        // Animate when the board actually becomes visible (view switch or scroll).
+        let played = false;
+        const onVisible = () => {
+          if (played) return;
+          played = true;
+          playRace();
+        };
+        const playAdmit = () => { if (lastIndex > 0) startPlay(); };
+        const whenVisible = (el, callback) => {
+          if (!("IntersectionObserver" in window)) { callback(); return; }
+          const observer = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); callback(); }
+          }, { threshold: 0.35 });
+          observer.observe(el);
+        };
+        whenVisible(raceEl, onVisible);
+        whenVisible(barsEl, playAdmit);
+
+        // Hero KPI count-up (numbers already rendered by the main dashboard script).
+        document.querySelectorAll("#headline-kpis .kpi-value").forEach(el => {
+          const node = [...el.childNodes].find(child => child.nodeType === Node.TEXT_NODE && /\d/.test(child.textContent));
+          if (!node) return;
+          const text = node.textContent.trim();
+          const match = text.match(/^([+−-]?)([\d,]+(?:\.(\d+))?)$/);
+          if (!match) return;
+          const target = Number(match[2].replace(/,/g, ""));
+          const digits = match[3] ? match[3].length : 0;
+          const span = document.createElement("span");
+          node.replaceWith(span);
+          countUp(span, target, { digits, prefix: match[1], duration: 1200 });
+        });
+      })();
+    </script>
+
+    <script>
+      // Team comparison layer: adds side-by-side views to each analysis without touching the original renderers.
+      (() => {
+        "use strict";
+        const data = window.PROSPECT_SAVANT_DATA;
+        if (!data) return;
+        const events = window.PROSPECT_EVENT_HISTORY;
+        const curve = window.PROSPECT_RETENTION_CURVE;
+        const school = window.PROSPECT_SCHOOL_AGE_RETENTION;
+        const ids = ['A', 'B', 'C', 'D'];
+        const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
+        const membersOf = Object.fromEntries((data.teams || []).map(team => [team.id, team.members]));
+        const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch]);
+        const num = (value, digits = 0) => Number(value).toLocaleString('ja-JP', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        const finite = value => typeof value === 'number' && Number.isFinite(value);
+        const monthLabel = month => `${Number(String(month).slice(5, 7))}月`;
+        const rowHead = id => `<th scope="row"><i style="--cx-c:${colorOf(id)}"></i>${id === 'ALL' ? '全体' : `${id} TEAM`}</th>`;
+
+        // Savant language: red = better than the reference, blue = worse, neutral near zero.
+        const diverging = (diff, maxAbs, higherIsBetter = true) => {
+          if (!finite(diff) || !maxAbs) return { bg: 'transparent', ink: 'inherit' };
+          const t = Math.min(1, Math.abs(diff) / maxAbs);
+          const good = higherIsBetter ? diff > 0 : diff < 0;
+          const to = good ? [168, 47, 43] : [36, 91, 134];
+          const from = [244, 246, 248];
+          return { bg: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t * 0.9)).join(',')})`, ink: t > 0.55 ? '#fff' : '#142235' };
+        };
+        const sequential = (value, max) => {
+          if (!finite(value) || !max) return { bg: 'transparent', ink: 'inherit' };
+          const t = Math.min(1, value / max);
+          const from = [244, 246, 248], to = [23, 57, 87];
+          return { bg: `rgb(${from.map((v, i) => Math.round(v + (to[i] - v) * t * 0.92)).join(',')})`, ink: t > 0.5 ? '#fff' : '#142235' };
+        };
+        const divergingKey = (good = '全体より高い', bad = '全体より低い') => `<div class="cx-key"><span><i style="background:rgb(168,47,43)"></i>${good}</span><span><i style="background:rgb(244,246,248);border:1px solid #dbe3ea"></i>全体と同程度</span><span><i style="background:rgb(36,91,134)"></i>${bad}</span></div>`;
+
+        const scopes = [];
+        const scope = el => { el.classList.add('cx-scope'); scopes.push(el); return el; };
+
+        // Toggle between the new comparison and the original per-team view.
+        const addToggle = (section, compare, labels = ['チームを比較', 'チーム別に見る'], hint = '') => {
+          const bar = document.createElement('div');
+          bar.className = 'cx-toolbar';
+          bar.innerHTML = `<div class="cmp-seg" role="group" aria-label="表示方法"><button type="button" data-cx="compare" aria-pressed="true">${labels[0]}</button><button type="button" data-cx="single" aria-pressed="false">${labels[1]}</button></div>${hint ? `<p>${hint}</p>` : ''}`;
+          section.classList.add('cx-section', 'cx-compare-on');
+          section.querySelector('.section-heading').after(bar, compare);
+          bar.addEventListener('click', event => {
+            const button = event.target.closest('[data-cx]');
+            if (!button) return;
+            section.classList.toggle('cx-compare-on', button.dataset.cx === 'compare');
+            bar.querySelectorAll('button').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            window.dispatchEvent(new Event('resize'));
+          });
+        };
+        // Comparison shown above the original content (for analyses that already overlay all teams).
+        const addAbove = (section, compare) => {
+          compare.classList.add('cx-above');
+          section.querySelector('.section-heading').after(compare);
+        };
+        const block = (title, note, body, extra = '') => `<div class="cx-block"><div class="cx-block-head"><div><h3>${title}</h3>${note ? `<p>${note}</p>` : ''}</div>${extra}</div>${body}</div>`;
+
+        // Simple multi-line chart; series = [{ id, values }], x labels per index.
+        const niceStep = raw => { const mag = 10 ** Math.floor(Math.log10(raw || 1)); return [1, 2, 2.5, 5, 10].map(f => f * mag).find(step => step >= raw) || 10 * mag; };
+        const lineChart = ({ labels, series, yMax: dataMax, yFormat = v => num(v), endFormat = yFormat, height = 260 }) => {
+          const step = niceStep(dataMax / 5);
+          const yMax = Math.max(step, Math.ceil(dataMax / step) * step);
+          const W = 760, H = height, L = 44, R = 70, T = 14, B = 30;
+          const x = i => L + (labels.length <= 1 ? 0 : i * (W - L - R) / (labels.length - 1));
+          const y = v => T + (H - T - B) * (1 - v / yMax);
+          const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step);
+          const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>`).join('');
+          const yAxis = ticks.map(t => `<text x="${L - 8}" y="${y(t) + 4}" text-anchor="end">${yFormat(t)}</text>`).join('');
+          const xAxis = labels.map((label, i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(label)}</text>`).join('');
+          // Spread end labels so they do not overlap.
+          const ends = series.map(s => { const last = s.values.reduce((acc, v, i) => finite(v) ? i : acc, -1); return { s, last, yy: last >= 0 ? y(s.values[last]) : null }; }).filter(e => e.last >= 0).sort((a, b) => a.yy - b.yy);
+          for (let i = 1; i < ends.length; i += 1) if (ends[i].yy - ends[i - 1].yy < 15) ends[i].yy = ends[i - 1].yy + 15;
+          const lines = series.map(s => {
+            const pts = s.values.map((v, i) => finite(v) ? [x(i), y(v), v, i] : null);
+            const segments = [];
+            let current = [];
+            pts.forEach(p => { if (p) current.push(p); else if (current.length) { segments.push(current); current = []; } });
+            if (current.length) segments.push(current);
+            const path = segments.map(seg => `<path class="line" d="${seg.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join('')}" stroke="${colorOf(s.id)}" ${s.id === 'ALL' ? 'stroke-dasharray="5 4" stroke-width="2"' : ''}/>`).join('');
+            const dots = pts.filter(Boolean).map(p => `<circle class="pt" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${s.id === 'ALL' ? 3 : 4}" fill="${colorOf(s.id)}"><title>${esc(`${s.id === 'ALL' ? '全体' : `${s.id} TEAM`} ${labels[p[3]]}: ${endFormat(p[2])}`)}</title></circle>`).join('');
+            return `<g data-team="${s.id}">${path}${dots}</g>`;
+          }).join('');
+          const endLabels = ends.map(e => `<text class="end" data-team="${e.s.id}" x="${x(e.last) + 9}" y="${e.yy + 4}" fill="${colorOf(e.s.id)}">${e.s.id === 'ALL' ? '全体' : e.s.id} ${endFormat(e.s.values[e.last])}</text>`).join('');
+          return `<div class="cx-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="チーム別の推移"><g class="grid">${grid}</g><g class="axis">${yAxis}${xAxis}</g>${lines}${endLabels}</svg></div>`;
+        };
+        const details = (summary, body) => `<details class="cx-details"><summary>${summary}</summary><div class="cx-details-body">${body}</div></details>`;
+        // One horizontal bar per team. base = lighter bar behind (e.g. trials), marker = reference line.
+        const hbars = (rows, max) => {
+          const top = max ?? Math.max(...rows.flatMap(r => [r.value, r.base]).filter(finite), 1);
+          const pct = v => Math.max(0, Math.min(100, v / top * 100));
+          return `<div class="cx-hbars">${rows.map(r => `<div class="cx-hbar" data-team="${r.id}" style="--cx-c:${colorOf(r.id)}"><span class="cx-hbar-name"><i></i>${r.id === 'ALL' ? '全体' : r.id}</span><span class="cx-hbar-track" title="${esc(r.title || '')}">${finite(r.base) ? `<span class="cx-hbar-base" style="width:${pct(r.base)}%"></span>` : ''}<span class="cx-hbar-fill${r.planned ? ' is-planned' : ''}" style="width:${finite(r.value) ? pct(r.value) : 0}%"></span>${finite(r.marker) ? `<span class="cx-hbar-marker" style="left:${pct(r.marker)}%"></span>` : ''}</span><span class="cx-hbar-val">${r.display}${r.sub ? `<small>${r.sub}</small>` : ''}</span></div>`).join('')}</div>`;
+        };
+        // Previous → current on one scale (rates).
+        const dumbbell = (rows, format = v => `${num(v, 1)}%`) => {
+          const values = rows.flatMap(r => [r.prev, r.now]).filter(finite);
+          if (!values.length) return '';
+          const lo = Math.max(0, Math.floor((Math.min(...values) - 5) / 10) * 10);
+          const hi = Math.min(100, Math.ceil((Math.max(...values) + 5) / 10) * 10);
+          const x = v => (v - lo) / (hi - lo) * 100;
+          return `<div class="cx-dumbbell">${rows.map(r => `<div class="cx-db-row" data-team="${r.id}" style="--cx-c:${colorOf(r.id)}"><span class="cx-hbar-name"><i></i>${r.id === 'ALL' ? '全体' : r.id}</span><span class="cx-db-track">${finite(r.prev) && finite(r.now) ? `<span class="cx-db-line" style="left:${Math.min(x(r.prev), x(r.now))}%;width:${Math.abs(x(r.now) - x(r.prev))}%"></span>` : ''}${finite(r.prev) ? `<span class="cx-db-dot" style="left:${x(r.prev)}%" title="前年 ${format(r.prev)}"></span>` : ''}${finite(r.now) ? `<span class="cx-db-dot is-now" style="left:${x(r.now)}%" title="今年 ${format(r.now)}"></span>` : ''}</span><span class="cx-hbar-val">${finite(r.now) ? format(r.now) : '—'}${finite(r.delta) ? `<small>前年比 ${r.delta > 0 ? '+' : r.delta < 0 ? '−' : '±'}${num(Math.abs(r.delta), 1)}pt</small>` : ''}</span></div>`).join('')}</div><div class="cx-db-axis"><span>${lo}%</span><span>${(lo + hi) / 2}%</span><span>${hi}%</span></div><div class="cx-db-key"><span><i></i>前年同期間</span><span><i class="is-now"></i>今年</span></div>`;
+        };
+        // Grouped vertical bars: one group per label, one bar per team. planned[i] = true draws that group hatched.
+        let patternSeq = 0;
+        const groupedBars = ({ labels, series, planned = [], height = 230, unit = '人' }) => {
+          const W = 760, H = height, L = 36, R = 8, T = 12, B = 28;
+          const max = Math.max(...series.flatMap(s => s.values).filter(finite), 1);
+          // Counts of people: keep integer ticks.
+          const step = Math.max(1, Math.ceil(niceStep(max / 4)));
+          const yMax = Math.max(step, Math.ceil(max / step) * step);
+          const y = v => T + (H - T - B) * (1 - v / yMax);
+          const groupW = (W - L - R) / labels.length;
+          const barW = Math.min(18, groupW * 0.78 / series.length);
+          const id = `cxhatch${(patternSeq += 1)}`;
+          const defs = `<defs>${series.map(s => `<pattern id="${id}${s.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><rect width="3" height="6" fill="${colorOf(s.id)}"/></pattern>`).join('')}</defs>`;
+          const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step);
+          const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>`).join('');
+          const yAxis = ticks.map(t => `<text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${num(t)}</text>`).join('');
+          const xAxis = labels.map((label, i) => `<text x="${L + groupW * (i + 0.5)}" y="${H - 8}" text-anchor="middle">${esc(label)}</text>`).join('');
+          const bars = series.map((s, k) => `<g data-team="${s.id}">${s.values.map((v, i) => {
+            if (!finite(v)) return '';
+            const x0 = L + groupW * i + (groupW - barW * series.length) / 2 + barW * k;
+            return `<rect class="bar" x="${x0.toFixed(1)}" y="${y(v).toFixed(1)}" width="${(barW - 2).toFixed(1)}" height="${Math.max(0, y(0) - y(v)).toFixed(1)}" rx="2" fill="${planned[i] ? `url(#${id}${s.id})` : colorOf(s.id)}" stroke="${planned[i] ? colorOf(s.id) : 'none'}"><title>${esc(`${s.id} TEAM ${labels[i]}: ${num(v)}${unit}${planned[i] ? '（予定）' : ''}`)}</title></rect>`;
+          }).join('')}</g>`).join('');
+          return `<div class="cx-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="月別の比較">${defs}<g class="grid">${grid}</g><g class="axis">${yAxis}${xAxis}</g>${bars}</svg></div>`;
+        };
+        const legend = list => `<div class="cx-legend">${list.map(id => `<span data-team="${id}"><i style="--cx-c:${colorOf(id)}"></i>${id === 'ALL' ? '全体（破線）' : `${id} TEAM`}</span>`).join('')}</div>`;
+
+        /* ---------- 実入会の推移 ---------- */
+        (() => {
+          const section = document.getElementById('admission-history-section');
+          const h = data.admissionHistory;
+          if (!section || !h?.months) return;
+          const last = h.months.reduce((acc, _, i) => ids.some(id => finite(h.teams?.[id]?.[i])) ? i : acc, -1);
+          if (last < 0) return;
+          const months = h.months.slice(0, last + 1);
+          const partial = String(data.asOf).slice(0, 7) === h.months[last];
+          const monthly = id => months.map((_, i) => Number(h.teams?.[id]?.[i]) || 0);
+          const cum = id => monthly(id).reduce((acc, v) => [...acc, (acc.at(-1) || 0) + v], []);
+          const totals = Object.fromEntries(ids.map(id => [id, cum(id).at(-1)]));
+          const totalRank = [...ids].sort((a, b) => totals[b] - totals[a]);
+          const fullMonths = partial ? months.length - 1 : months.length;
+          const conversion = data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear ? data.admissionConversion : null;
+          const conv = id => {
+            const team = id === 'ALL'
+              ? ['trials', 'admissions', 'previousTrials', 'previousAdmissions'].reduce((acc, key) => ({ ...acc, [key]: ids.reduce((sum, teamId) => sum + (Number(conversion?.teams?.[teamId]?.[key]) || 0), 0) }), {})
+              : conversion?.teams?.[id];
+            if (!team || !(team.trials > 0)) return null;
+            const rate = team.admissions / team.trials * 100;
+            const previousRate = team.previousTrials > 0 ? team.previousAdmissions / team.previousTrials * 100 : null;
+            // Prefer the published rates and year-over-year delta so this table matches the team profiles exactly.
+            const published = id === 'ALL' ? data.headline : (data.teams || []).find(item => item.id === id)?.benchmark;
+            const publishedRate = published?.admissionRate;
+            const publishedPrevious = published?.admissionPreviousRate;
+            const publishedDelta = published?.admissionYoYDelta;
+            return { ...team, rate: finite(publishedRate) ? publishedRate : rate, previousRate: finite(publishedPrevious) ? publishedPrevious : previousRate, delta: finite(publishedDelta) ? publishedDelta : finite(previousRate) ? rate - previousRate : null };
+          };
+          const series = ids.map(id => ({ id, values: cum(id) }));
+          const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
+          const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${months.map((m, i) => `<th scope="col">${monthLabel(m)}${partial && i === months.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">累計</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${monthly(id).map(v => { const c = sequential(v, maxMonthly); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}</td>`; }).join('')}<td class="cx-total">${num(totals[id])}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => `<td>${num(ids.reduce((s, id) => s + monthly(id)[i], 0))}</td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + totals[id], 0))}</td></tr>
+          </tbody></table></div><p class="cx-note">色が濃いほどその月の入会が多いことを示します（全チーム・全月で共通の基準）。</p>`;
+          const convRows = conversion ? (() => {
+            const overall = conv('ALL');
+            const diffs = ids.map(id => conv(id) && overall ? conv(id).rate - overall.rate : null).filter(finite);
+            const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+            const rateRank = [...ids].filter(id => conv(id)).sort((a, b) => conv(b).rate - conv(a).rate);
+            const row = id => {
+              const c = conv(id);
+              if (!c) return `<tr data-team="${id}">${rowHead(id)}<td class="cx-na" colspan="6">集計待ち</td></tr>`;
+              const tone = id === 'ALL' ? { bg: 'transparent', ink: 'inherit' } : diverging(c.rate - overall.rate, maxAbs, true);
+              const delta = finite(c.delta) ? `${c.delta > 0 ? '+' : c.delta < 0 ? '−' : '±'}${num(Math.abs(c.delta), 1)}pt` : '—';
+              return `<tr${id === 'ALL' ? ' class="is-overall"' : ''} data-team="${id}">${rowHead(id)}<td>${num(c.trials)}人</td><td>${num(c.admissions)}人</td><td class="cx-cell" style="--cx-bg:${tone.bg};--cx-ink:${tone.ink}">${num(c.rate, 1)}%${id === 'ALL' ? '' : `<small>${rateRank.indexOf(id) + 1}位</small>`}</td><td>${finite(c.previousRate) ? `${num(c.previousRate, 1)}%<small>体験${num(c.previousTrials)}人→入会${num(c.previousAdmissions)}人</small>` : '—'}</td><td>${delta}</td><td>${num(id === 'ALL' ? ids.reduce((sum, teamId) => sum + totals[teamId], 0) : totals[id])}人</td></tr>`;
+            };
+            return `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th><th scope="col">体験人数</th><th scope="col">体験からの入会</th><th scope="col">体験→入会率</th><th scope="col">前年同期間の入会率</th><th scope="col">前年差</th><th scope="col">年度実入会<br><small>入会日基準</small></th></tr></thead><tbody>${ids.map(row).join('')}${row('ALL')}</tbody></table></div>${divergingKey('全体より入会率が高い', '全体より入会率が低い')}<p class="cx-note">体験人数・体験からの入会は、${esc(h.fiscalYear)}年度（4月〜基準日）に実際に体験した人と、そのうち入会した人の数です。年度実入会（入会日が年度内の人数・再入会を含む）とは集計対象が異なるため、一致しません。前年同期間は前年度の同じ期間（4月〜基準日と同日）です。</p>`;
+          })() : '';
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          const conversionCharts = conversion ? `<div class="cx-grid2"><div><p class="cx-sub">体験した人数と、そのうち入会した人数</p>${hbars(ids.map(id => conv(id) ? { id, base: conv(id).trials, value: conv(id).admissions, display: `${num(conv(id).rate, 1)}%`, sub: `体験${num(conv(id).trials)}→入会${num(conv(id).admissions)}`, title: `体験${conv(id).trials}人のうち入会${conv(id).admissions}人` } : { id, value: null, display: '—' }))}<p class="cx-note">薄い棒が体験人数、濃い棒が体験からの入会。右の数字が体験→入会率です。</p></div><div><p class="cx-sub">体験→入会率の前年比較</p>${dumbbell([...ids, 'ALL'].map(id => ({ id, prev: conv(id)?.previousRate, now: conv(id)?.rate, delta: conv(id)?.delta })))}</div></div>` : '';
+          compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
+            + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
+            + block('月別の入会者数', `各月の入会人数${partial ? `（${monthLabel(months.at(-1))}は途中）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthly(id) })) })}${legend(ids)}${details('数値を表で見る', table)}`)
+            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`);
+          addToggle(section, compare);
+        })();
+
+        /* ---------- 退会の推移 ---------- */
+        (() => {
+          const section = document.getElementById('withdrawal-section');
+          const h = data.withdrawalHistory;
+          if (!section || !h?.months || h.asOf !== data.asOf) return;
+          const last = h.months.reduce((acc, _, i) => ids.some(id => h.teams?.[id]?.months?.[i]) ? i : acc, -1);
+          if (last < 0) return;
+          const months = h.months.slice(0, last + 1);
+          const currentIndex = String(data.asOf).slice(0, 7) === h.months[last] ? last : -1;
+          // Withdrawals are confirmed only after month end, so members currently marked 退会予定 are shown as this month's planned withdrawals.
+          const composition = data.memberComposition;
+          const scheduledOf = id => composition?.status === 'ok' && composition.asOf === data.asOf ? (id === 'ALL' ? composition.overall?.status?.scheduled : composition.teams?.[id]?.status?.scheduled) ?? null : null;
+          const hasScheduled = currentIndex >= 0 && ids.some(id => finite(scheduledOf(id)));
+          // Same reference rule as the per-team cards: month-start denominator when complete, otherwise the snapshot members.
+          const reference = (row, members) => {
+            if (!row) return null;
+            const monthly = Number.isSafeInteger(row.denominator) && row.denominator > 0 && row.missingEntry === 0;
+            const denominator = monthly ? row.denominator : members;
+            const numerator = monthly ? row.cohortCount : row.count;
+            return Number.isSafeInteger(denominator) && denominator > 0 ? 100 * numerator / denominator : null;
+          };
+          const rows = id => months.map((_, i) => h.teams?.[id]?.months?.[i] || null);
+          const known = id => rows(id).reduce((s, row) => s + (row?.count || 0), 0);
+          const rateOf = id => months.map((_, i) => reference(rows(id)[i], membersOf[id]));
+          const allMembers = ids.reduce((s, id) => s + (membersOf[id] || 0), 0);
+          const overallCount = i => ids.reduce((s, id) => s + (rows(id)[i]?.count || 0), 0);
+          const overallRate = months.map((_, i) => allMembers ? 100 * overallCount(i) / allMembers : null);
+          const confirmedMonth = i => i !== currentIndex;
+          const diffs = ids.flatMap(id => rateOf(id).map((v, i) => confirmedMonth(i) && finite(v) && finite(overallRate[i]) ? v - overallRate[i] : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 0.5);
+          const plannedCell = (id, row) => {
+            const planned = scheduledOf(id);
+            return `<td class="cx-cell cx-planned">${finite(planned) ? `予定 ${num(planned)}人` : '—'}<small>確定 ${num(row?.count || 0)}人</small></td>`;
+          };
+          const cell = (id, row, i) => {
+            if (i === currentIndex && hasScheduled) return plannedCell(id, row);
+            if (!row) return '<td class="cx-na">—</td>';
+            const rate = rateOf(id)[i];
+            const c = confirmedMonth(i) ? diverging(finite(rate) && finite(overallRate[i]) ? rate - overallRate[i] : null, maxAbs, false) : { bg: 'transparent', ink: 'inherit' };
+            return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(row.count)}人<small>${finite(rate) ? `${num(rate, 2)}%` : '—'}</small></td>`;
+          };
+          const head = months.map((m, i) => `<th scope="col">${monthLabel(m)}${i === currentIndex ? `<br><small>${hasScheduled ? '退会予定' : '途中'}</small>` : ''}</th>`).join('');
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${head}<th scope="col">確定合計</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${rows(id).map((row, i) => cell(id, row, i)).join('')}<td class="cx-total">${num(known(id))}人</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => i === currentIndex && hasScheduled ? `<td class="cx-planned">予定 ${num(ids.reduce((s, id) => s + (scheduledOf(id) || 0), 0))}人<small>確定 ${num(overallCount(i))}人</small></td>` : `<td>${num(overallCount(i))}人<small>${finite(overallRate[i]) ? `${num(overallRate[i], 2)}%` : '—'}</small></td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0))}人</td></tr>
+          </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          const unassigned = Number(h.unassigned) || 0;
+          const caution = `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>`;
+          const monthlyValues = id => rows(id).map((row, i) => i === currentIndex && hasScheduled ? scheduledOf(id) : row ? row.count : null);
+          compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員（${esc(data.asOfLabel)}時点）。月末を過ぎると退会として確定します`, hbars(ids.map(id => ({ id, value: scheduledOf(id), planned: true, display: finite(scheduledOf(id)) ? `${num(scheduledOf(id))}人` : '—', sub: `年度の確定 ${num(known(id))}人` })))) : '')
+            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${caution}${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
+          addToggle(section, compare);
+        })();
+
+        /* ---------- 入会後の定着曲線・学齢節目（既存グラフは全チーム重ね表示のため、比較表を上に追加） ---------- */
+        const rateMatrix = ({ section, source, labels, title, note, colLabel }) => {
+          if (!section || !source?.teams || !source.overall) return;
+          const overall = source.overall.rates || [];
+          const diffs = ids.flatMap(id => (source.teams[id]?.rates || []).map((v, i) => finite(v) && finite(overall[i]) ? v - overall[i] : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+          const cell = (id, i) => {
+            const team = id === 'ALL' ? source.overall : source.teams[id];
+            const rate = team?.rates?.[i];
+            const sample = team?.samples?.[i];
+            if (!finite(rate)) return `<td class="cx-na">—<small>${finite(sample) ? `対象${num(sample)}名` : ''}</small></td>`;
+            if (id === 'ALL') return `<td>${num(rate, 1)}%<small>対象${num(sample)}名</small></td>`;
+            const diff = rate - overall[i];
+            const c = diverging(diff, maxAbs, true);
+            return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}" title="対象${num(sample)}名">${num(rate, 1)}%<small>${diff >= 0 ? '+' : '−'}${num(Math.abs(diff), 1)}pt</small></td>`;
+          };
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${labels.map(label => `<th scope="col">${esc(label)}</th>`).join('')}</tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${labels.map((_, i) => cell(id, i)).join('')}</tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${labels.map((_, i) => cell('ALL', i)).join('')}</tr></tbody></table></div>${divergingKey()}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          compare.innerHTML = details(`${title}を表で見る`, `${table}<p class="cx-note">${esc(note)}。各セルの下段は全体との差（ポイント）。対象${num(source.minimumSample || 20)}名未満は「—」で、対象人数のみ表示します。${colLabel}</p>`);
+          addAbove(section, compare);
+        };
+        if (curve) {
+          const show = [3, 6, 12, 24, 36, 48];
+          const index = show.map(m => curve.months.indexOf(m)).filter(i => i >= 0);
+          rateMatrix({
+            section: document.getElementById('retention-section'),
+            source: { minimumSample: curve.minimumSample, overall: { rates: index.map(i => curve.overall.rates[i]), samples: index.map(i => curve.overall.samples[i]) }, teams: Object.fromEntries(ids.map(id => [id, { rates: index.map(i => curve.teams[id]?.rates?.[i]), samples: index.map(i => curve.teams[id]?.samples?.[i]) }])) },
+            labels: index.map(i => `${curve.months[i]}か月`),
+            title: '経過月ごとの継続率の比較',
+            note: '入会から各経過月の時点で在籍している割合',
+            colLabel: ''
+          });
+        }
+        if (school) rateMatrix({ section: document.getElementById('school-age-section'), source: school, labels: school.milestones, title: '節目ごとの継続率の比較', note: '進級・進学の節目をまたいで在籍が続いた割合', colLabel: '節目ごとに対象となる会員層は異なります。' });
+
+        /* ---------- イベント ---------- */
+        (() => {
+          const section = document.getElementById('event-section');
+          if (!section || !Array.isArray(events?.events) || !events.events.length) return;
+          const list = [...events.events].sort((a, b) => String(a.startDate).localeCompare(String(b.startDate)));
+          const short = event => event.shortName || event.name;
+          const evaluated = (event, id) => !(id === 'D' && String(event.startDate) < String(data.quality?.dEvaluationStart || '2025-04-01'));
+          const diffs = list.flatMap(event => ids.map(id => finite(event.teams?.[id]?.rate) && finite(event.total?.rate) && evaluated(event, id) ? event.teams[id].rate - event.total.rate : null)).filter(finite);
+          const maxAbs = Math.max(...diffs.map(Math.abs), 3);
+          const scores = events.teams || {};
+          const scoreRank = [...ids].sort((a, b) => (scores[b]?.score ?? -1) - (scores[a]?.score ?? -1));
+          const series = ids.map(id => ({ id, values: list.map(event => evaluated(event, id) && finite(event.teams?.[id]?.rate) ? event.teams[id].rate : null) }));
+          series.push({ id: 'ALL', values: list.map(event => event.total?.rate ?? null) });
+          const yMax = Math.max(...series.flatMap(s => s.values.filter(finite)), 10);
+          const chart = lineChart({ labels: list.map(short), series, yMax, yFormat: v => `${num(v)}%`, endFormat: v => `${num(v, 1)}%` });
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${list.map(event => `<th scope="col">${esc(short(event))}<br><small>${esc(String(event.startDate).slice(0, 7).replace('-', '/'))}</small></th>`).join('')}<th scope="col">平均</th><th scope="col">継続</th></tr></thead><tbody>
+            ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${list.map(event => { const t = event.teams?.[id]; if (!evaluated(event, id)) return '<td class="cx-na">対象外<small>発足前</small></td>'; if (!t || !finite(t.rate)) return '<td class="cx-na">—</td>'; const c = diverging(t.rate - event.total.rate, maxAbs, true); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}" title="${num(t.participants)}人 ／ 開催時会員${num(t.members)}名">${num(t.rate, 1)}%<small>${num(t.participants)}人</small></td>`; }).join('')}<td class="cx-total">${finite(scores[id]?.averageRate) ? `${num(scores[id].averageRate, 1)}%` : '—'}</td><td class="cx-total">${finite(scores[id]?.repeatRate) ? `${num(scores[id].repeatRate, 1)}%` : '—'}</td></tr>`).join('')}
+            <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${list.map(event => `<td>${finite(event.total?.rate) ? `${num(event.total.rate, 1)}%` : '—'}<small>${finite(event.total?.participants) ? `${num(event.total.participants)}人` : ''}</small></td>`).join('')}<td class="cx-total">—</td><td class="cx-total">—</td></tr>
+          </tbody></table></div>${divergingKey()}`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          const rateMax = Math.max(...ids.flatMap(id => [scores[id]?.averageRate, scores[id]?.repeatRate]).filter(finite), 1);
+          compare.innerHTML = block('参加率の比較', `開催済みの対象イベント${list.length}件。イベント力＝平均参加率${events.scoreWeights?.participation ?? 70}％＋継続参加率${events.scoreWeights?.repeat ?? 30}％`, `<div class="cx-grid2"><div><p class="cx-sub">平均参加率</p>${hbars(ids.map(id => ({ id, value: scores[id]?.averageRate, display: finite(scores[id]?.averageRate) ? `${num(scores[id].averageRate, 1)}%` : '—', sub: finite(scores[id]?.score) ? `イベント力 ${num(scores[id].score)}点` : '' })), rateMax)}</div><div><p class="cx-sub">継続参加率（2回以上参加した人の割合）</p>${hbars(ids.map(id => ({ id, value: scores[id]?.repeatRate, display: finite(scores[id]?.repeatRate) ? `${num(scores[id].repeatRate, 1)}%` : '—' })), rateMax)}</div></div>`)
+            + block('開催回ごとの参加率', '各チームの参加率（開催日時点の会員数が分母）。破線は全体', `${chart}${legend([...ids, 'ALL'])}${details('数値を表で見る', `${table}<p class="cx-note">上段：参加率　下段：参加人数。色は同じ開催回の全体参加率との差。Dチームは${(start => `${start.slice(0, 4)}年${Number(start.slice(5, 7))}月`)(String(data.quality?.dEvaluationStart || '2025-04-01'))}の発足前のイベントを評価対象外としています。大会参加者限定の練習は含みません。</p>`)}`);
+          addToggle(section, compare, ['チームを比較', '開催回ごとに見る']);
+        })();
+
+        /* ---------- 指標・データ：総合点の内訳 ---------- */
+        (() => {
+          const section = document.getElementById('method-title')?.closest('section');
+          const teams = (data.teams || []).filter(team => finite(team.overall));
+          if (!section || !teams.length) return;
+          const weights = data.weights || [];
+          const ramp = i => { const t = weights.length <= 1 ? 1 : i / (weights.length - 1); const from = [36, 91, 134], to = [13, 34, 56]; const mid = [111, 155, 191]; const a = t < .5 ? mid : from, b = t < .5 ? from : to; const k = t < .5 ? t / .5 : (t - .5) / .5; return `rgb(${a.map((v, j) => Math.round(v + (b[j] - v) * k)).join(',')})`; };
+          const colors = weights.map((_, i) => ramp(i));
+          const max = 100;
+          const rows = [...teams].sort((a, b) => b.overall - a.overall).map(team => {
+            const parts = weights.map((w, i) => { const value = (team.metrics?.[w.key] ?? 0) * w.value / 100; return `<span style="flex:${value} 1 0;--cx-c:${colors[i]}" title="${esc(`${w.label} ${team.metrics?.[w.key] ?? '—'}点 × ${w.value}% = ${num(value, 1)}点`)}">${value >= 6 ? num(value, 1) : ''}</span>`; }).join('');
+            const used = weights.reduce((s, w) => s + (team.metrics?.[w.key] ?? 0) * w.value / 100, 0);
+            return `<div class="cx-stack-row" data-team="${team.id}" style="--cx-c:${colorOf(team.id)}"><b><i></i>${team.id}</b><div class="cx-stack-bar" role="img" aria-label="${esc(`${team.id} TEAM 総合${team.overall}点の内訳`)}">${parts}<span style="flex:${Math.max(0, max - used)} 1 0;--cx-c:transparent"></span></div><strong>${num(team.overall)}</strong></div>`;
+          }).join('');
+          const key = `<div class="cx-legend">${weights.map((w, i) => `<span><i style="--cx-c:${colors[i]};height:10px;width:14px"></i>${esc(w.label)}（${w.value}％）</span>`).join('')}</div>`;
+          const metricKeys = weights.map(w => w.key);
+          const savant = score => { const s = Math.max(0, Math.min(100, score)); const [a, b] = s <= 50 ? [[36, 91, 134], [217, 225, 232]] : [[217, 225, 232], [168, 47, 43]]; const t = s <= 50 ? s / 50 : (s - 50) / 50; return { bg: `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`, ink: s > 32 && s < 68 ? '#142235' : '#fff' }; };
+          const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${weights.map(w => `<th scope="col">${esc(w.label)}<br><small>配点${w.value}％</small></th>`).join('')}<th scope="col">総合</th></tr></thead><tbody>
+            ${[...teams].sort((a, b) => b.overall - a.overall).map(team => `<tr data-team="${team.id}">${rowHead(team.id)}${metricKeys.map(k => { const v = team.metrics?.[k]; if (!finite(v)) return '<td class="cx-na">—</td>'; const c = savant(v); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}<small>総合へ ${num(v * (weights.find(w => w.key === k)?.value || 0) / 100, 1)}</small></td>`; }).join('')}<td class="cx-total">${num(team.overall)}</td></tr>`).join('')}
+          </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>0（低い）</span><span><i style="background:rgb(217,225,232)"></i>50</span><span><i style="background:rgb(168,47,43)"></i>100（高い）</span></div>`;
+          const compare = scope(document.createElement('div'));
+          compare.className = 'cx-compare cx-scope';
+          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合点（100点満点）', `${rows}${key}${details('指標スコアと総合への寄与を表で見る', `${table}<p class="cx-note">上段：指標スコア（0〜100）　下段：総合点への寄与（スコア×配点）</p>`)}`);
+          addAbove(section, compare);
+        })();
+
+        // Highlight the team chosen in "チームをまとめて切り替え" across every comparison.
+        const picker = document.getElementById('dashboard-team');
+        const applyFocus = () => {
+          const focus = picker && picker.value !== 'ALL' ? picker.value : '';
+          scopes.forEach(el => el.querySelectorAll('[data-team]').forEach(item => item.classList.toggle('cx-dim', Boolean(focus) && item.dataset.team !== 'ALL' && item.dataset.team !== focus)));
+        };
+        picker?.addEventListener('change', applyFocus);
+        applyFocus();
+      })();
+    </script>
+    <script>
+      (() => {
+        const data = window.PROSPECT_SAVANT_DATA || {};
         const main = document.getElementById('dashboard-main');
         const profiles = document.getElementById('profiles-title').closest('section');
         const comparison = document.getElementById('comparison-title').closest('section');
+        const guide = document.getElementById('guide-section');
         const sections = [...main.querySelectorAll(':scope > section')];
         const groups = {
-          overview: [document.getElementById('movement-section'), profiles, comparison],
+          overview: [guide, document.getElementById('movement-section'), profiles, comparison],
+          standings: [document.getElementById('standings-section')],
           composition: [document.getElementById('composition-section')],
           admissions: [document.getElementById('admission-history-section')],
           retention: [document.getElementById('withdrawal-section'), document.getElementById('retention-section'), document.getElementById('school-age-section')],
@@ -2562,36 +3918,136 @@
           reference: [document.getElementById('method-title').closest('section'), document.getElementById('quality-title').closest('section')],
           all: sections
         };
-        const descriptions = {
-          overview: 'まずは変化とチームの数値を確認。集計の詳しい説明は各カードから開けます。',
-          composition: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。',
-          admissions: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。',
-          retention: '入会後の定着と、進級・進学の節目の継続率を確認できます。',
-          events: '開催回を選んで参加状況を比較。推移の点からも詳細に切り替えられます。',
-          reference: 'スコアの定義・配点と、集計できているデータの範囲を確認できます。',
-          all: 'すべての情報を続けて表示しています。上のメニューで目的別に絞り込めます。'
+        const icons = {
+          overview: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+          standings: '<path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/>',
+          composition: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/>',
+          admissions: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+          retention: '<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>',
+          events: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+          reference: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+          all: '<path d="M4 6h16M4 12h16M4 18h16"/>'
         };
+        const icon = key => `<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[key] || ''}</svg></span>`;
+        // What staff want to know, in their words; the order matches the tab order.
+        const views = [
+          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Dの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
+          { key: 'standings', label: 'チーム順位', question: 'いま何位？ 上位との差は？', description: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。' },
+          { key: 'composition', label: '会員構成', question: '学年・在籍期間・男女比は？', description: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。' },
+          { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。' },
+          { key: 'retention', label: '定着・継続', question: '入会後どれくらい続いている？', description: '退会の推移、入会後の定着、進級・進学の節目の継続率を確認できます。' },
+          { key: 'events', label: 'イベント', question: 'イベントへの参加率は？', description: '開催回を選んで参加状況を比較。推移の点からも詳細に切り替えられます。' },
+          { key: 'reference', label: '指標・データ', question: 'スコアはどう計算している？', description: 'スコアの定義・配点と、集計できているデータの範囲を確認できます。' }
+        ];
+        const descriptions = Object.fromEntries(views.map(view => [view.key, view.description]));
+        descriptions.all = 'すべての分析を続けて表示しています。上のメニューで目的別に絞り込めます。';
+        const labelOf = key => (views.find(view => view.key === key) || { label: 'すべて' }).label;
+
+        // One key number per analysis so the menu also works as a daily summary.
+        const facts = (() => {
+          const out = {};
+          const n = value => Number(value).toLocaleString('ja-JP');
+          try {
+            const teams = (data.teams || []).filter(team => Number.isFinite(team.overall));
+            const leader = [...teams].sort((a, b) => b.overall - a.overall)[0];
+            if (leader) out.overview = `総合1位 ${leader.id} TEAM ${n(leader.overall)}点`;
+            const second = [...teams].sort((a, b) => b.overall - a.overall)[1];
+            if (leader && second) out.standings = `1位と2位の差 ${n(leader.overall - second.overall)}点`;
+            if (Number.isFinite(data.headline?.members)) out.composition = `運用会員 ${n(data.headline.members)}名`;
+            const admitted = Object.values(data.admissions?.teams || {}).reduce((sum, team) => sum + (Number(team.cumulative) || 0), 0);
+            if (admitted) out.admissions = `${data.admissions.fiscalYear || ''}年度 累計${n(admitted)}人`;
+            const rates = teams.map(team => team.benchmark?.retention12mRate).filter(Number.isFinite);
+            if (rates.length) out.retention = `12か月継続率 ${Math.min(...rates).toFixed(1)}〜${Math.max(...rates).toFixed(1)}%`;
+            if (Number.isFinite(data.headline?.latestEventParticipants)) out.events = `直近イベント 実参加${n(data.headline.latestEventParticipants)}名`;
+            const weights = (data.weights || []).length;
+            if (weights) out.reference = `${weights}指標の配点と集計範囲`;
+          } catch { /* facts are optional */ }
+          return out;
+        })();
+
+        // Analysis menu on the landing view.
+        guide.querySelector('#guide-grid').innerHTML = views.filter(view => view.key !== 'overview').map(view => `
+          <button type="button" class="guide-tile" data-goto="${view.key}">
+            ${icon(view.key)}
+            <span class="guide-copy"><span class="guide-q">${view.question}</span><span class="guide-label">${view.label}</span>${facts[view.key] ? `<span class="guide-fact">${facts[view.key]}</span>` : ''}</span>
+            <svg class="guide-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>`).join('');
+
         // Reorder existing nodes, preserving their data, listeners, and unavailable-data states.
-        [...groups.overview, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        [...groups.overview, ...groups.standings, ...groups.composition, ...groups.admissions, ...groups.retention, ...groups.events, ...groups.reference].forEach(section => main.append(section));
+        const pager = document.getElementById('view-pager');
+        main.append(pager);
+
+        const navInner = document.querySelector('.dashboard-nav-inner');
         const controls = document.querySelector('.view-controls');
+        const moreButton = document.getElementById('nav-more');
+        const menu = document.getElementById('nav-menu');
+        menu.innerHTML = [...views, { key: 'all', label: 'すべて', question: 'すべての分析を続けて表示' }].map(view => `
+          <button type="button" data-goto="${view.key}">${icon(view.key)}<span><strong>${view.label}</strong><span>${view.question}</span></span></button>`).join('');
+        const stepEl = document.querySelector('#workspace-heading .eyebrow');
+        let current = 'overview';
+
+        const updateOverflow = () => navInner.classList.toggle('is-overflow', controls.scrollWidth > controls.clientWidth + 2);
+        const revealActiveTab = () => {
+          const active = controls.querySelector('[aria-pressed="true"]');
+          if (active) controls.scrollTo({ left: active.offsetLeft - (controls.clientWidth - active.offsetWidth) / 2 });
+        };
+        const closeMenu = () => { menu.hidden = true; moreButton.setAttribute('aria-expanded', 'false'); };
+
+        const renderPager = view => {
+          const index = views.findIndex(item => item.key === view);
+          if (index < 0) { pager.hidden = true; return; }
+          const prev = views[index - 1];
+          const next = views[index + 1];
+          pager.hidden = false;
+          pager.innerHTML = [
+            prev ? `<button type="button" data-goto="${prev.key}" data-dir="prev"><small>← 前の分析</small><strong>${prev.label}</strong><span>${prev.question}</span></button>` : '',
+            next ? `<button type="button" data-goto="${next.key}" data-dir="next"><small>次の分析 →</small><strong>${next.label}</strong><span>${next.question}</span></button>` : ''
+          ].join('');
+        };
+
         const selectView = (view, focus = false) => {
           if (!groups[view]) view = 'overview';
+          current = view;
           sections.forEach(section => section.classList.toggle('view-hidden', !groups[view].includes(section)));
           controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
-          document.getElementById('workspace-title').textContent = controls.querySelector(`[data-view="${view}"]`).textContent;
+          menu.querySelectorAll('button').forEach(button => button.setAttribute('aria-current', String(button.dataset.goto === view)));
+          document.getElementById('workspace-title').textContent = labelOf(view);
           document.getElementById('workspace-description').textContent = descriptions[view];
-          document.querySelector('.team-picker').hidden = view === 'reference';
+          const index = views.findIndex(item => item.key === view);
+          stepEl.innerHTML = index >= 0 ? `ANALYSIS <span class="workspace-step">${index + 1} / ${views.length}</span>` : 'ALL ANALYSES';
+          document.querySelector('.team-picker').hidden = view === 'reference' || view === 'standings';
+          renderPager(view);
+          revealActiveTab();
           if (focus) document.getElementById('workspace-title').focus({preventScroll: true});
           window.dispatchEvent(new Event('resize'));
         };
-        controls.addEventListener('click', event => {
-          const button = event.target.closest('[data-view]');
-          if (!button) return;
-          const view = button.dataset.view;
+        const goTo = view => {
+          closeMenu();
           history.replaceState(null, '', `#view-${view}`);
           selectView(view, true);
           document.getElementById('workspace-heading').scrollIntoView({block: 'start', behavior: 'instant'});
+        };
+
+        controls.addEventListener('click', event => {
+          const button = event.target.closest('[data-view]');
+          if (button) goTo(button.dataset.view);
         });
+        document.addEventListener('click', event => {
+          const target = event.target.closest('[data-goto]');
+          if (target) { goTo(target.dataset.goto); return; }
+          if (!menu.hidden && !event.target.closest('#nav-menu, #nav-more')) closeMenu();
+        });
+        moreButton.addEventListener('click', () => {
+          const open = menu.hidden;
+          menu.hidden = !open;
+          moreButton.setAttribute('aria-expanded', String(open));
+          if (open) menu.querySelector('[aria-current="true"]')?.focus();
+        });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape' && !menu.hidden) { closeMenu(); moreButton.focus(); }
+        });
+
         const readHash = () => {
           const hash = location.hash.slice(1);
           if (hash.startsWith('view-') || !hash) selectView(hash.slice(5) || 'overview');
@@ -2608,10 +4064,18 @@
             document.querySelector(`#${id} [${attr}="${team}"]`)?.click();
           });
         });
+
+        const toTop = document.getElementById('to-top');
+        const onScroll = () => toTop.classList.toggle('is-visible', window.scrollY > 900);
+        toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', updateOverflow);
         window.addEventListener('hashchange', readHash);
         document.querySelector('.dashboard-nav').hidden = false;
         document.getElementById('workspace-heading').hidden = false;
         readHash();
+        updateOverflow();
+        onScroll();
       })();
     </script>
   </body>
