@@ -1,5 +1,5 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1-composition-v1",
+  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1",
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-10-18",
   "asOfLabel": "2026年10月18日",
@@ -2444,6 +2444,178 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "medianTenureMonths": 13
         }
       }
+    }
+  },
+  "admissionConversionHistory": {
+    "status": "ok",
+    "definition": "trial-attendance-fiscal-monthly-v1",
+    "asOf": "2026-10-18",
+    "fiscalYear": "2026",
+    "months": [
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11",
+      "2026-12",
+      "2027-01",
+      "2027-02",
+      "2027-03"
+    ],
+    "teams": {
+      "A": {
+        "trials": [
+          35,
+          33,
+          17,
+          18,
+          6,
+          19,
+          7,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "admissions": [
+          33,
+          26,
+          13,
+          18,
+          5,
+          17,
+          4,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "B": {
+        "trials": [
+          61,
+          21,
+          15,
+          10,
+          0,
+          17,
+          12,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "admissions": [
+          49,
+          18,
+          8,
+          10,
+          0,
+          14,
+          5,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "C": {
+        "trials": [
+          28,
+          38,
+          15,
+          9,
+          1,
+          4,
+          8,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "admissions": [
+          22,
+          23,
+          8,
+          5,
+          0,
+          3,
+          4,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "D": {
+        "trials": [
+          42,
+          21,
+          7,
+          6,
+          2,
+          11,
+          9,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "admissions": [
+          23,
+          15,
+          5,
+          3,
+          1,
+          11,
+          2,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "total": {
+      "trials": [
+        166,
+        113,
+        54,
+        43,
+        9,
+        51,
+        36,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "admissions": [
+        127,
+        82,
+        34,
+        36,
+        6,
+        45,
+        15,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
     }
   }
 });
