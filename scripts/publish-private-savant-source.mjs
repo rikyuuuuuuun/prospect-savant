@@ -4,6 +4,7 @@ import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
+import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -342,6 +343,8 @@ async function publishInto(root, snapshot) {
   data.periodLabel = `${data.admissionConversion.fiscalYear}年度累計`;
   if (snapshot.admissionHistory) data.admissionHistory = validateAdmissionHistory(snapshot.admissionHistory, data);
   else delete data.admissionHistory; // Legacy sources must never carry a stale monthly series forward.
+  if (snapshot.trialConversionHistory) data.admissionConversionHistory = validateTrialConversionHistory(snapshot.trialConversionHistory, data);
+  else delete data.admissionConversionHistory;
   if (snapshot.withdrawalHistory) data.withdrawalHistory = applyWithdrawalBaseline(snapshot.withdrawalHistory, data);
   else delete data.withdrawalHistory;
   updateEventHistory(events, ranges.events, data.snapshotId, asOf);

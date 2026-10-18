@@ -3,6 +3,7 @@ import { validateMemberComposition } from './member-composition.mjs';
 import { validateRetentionAvailability } from './retention-availability.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAnnualConversion } from './annual-conversion-source.mjs';
+import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { percentileScore } from './metric-retention-evidence.mjs';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -112,6 +113,11 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   }
   if (data.admissionHistory !== undefined) {
     try { validateAdmissionHistory(data.admissionHistory, data); } catch (error) { add(errors, false, error.message); }
+  }
+  if (data.admissionConversionHistory !== undefined) {
+    // An ok monthly series is only meaningful against the annual counts it must add up to.
+    add(errors, data.admissionConversionHistory?.status !== 'ok' || data.admissionConversion !== undefined, 'TRIAL_CONVERSION_HISTORY_ANNUAL_MISSING');
+    try { validateTrialConversionHistory(data.admissionConversionHistory, data); } catch (error) { add(errors, false, error.message); }
   }
   if (data.comparison?.admissions !== undefined) {
     try { validateAdmissions(data.comparison.admissions, 'COMPARISON_ADMISSIONS'); } catch (error) { add(errors, false, error.message); }

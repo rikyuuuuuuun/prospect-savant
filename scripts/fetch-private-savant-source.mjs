@@ -2,6 +2,7 @@ import { unavailableDailyTrial, isDailyTrialSourceFailure } from './daily-trial-
 import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
+import { fetchTrialConversionHistory, trialConversionFailureReason, unavailableTrialConversionHistory } from './trial-conversion-history.mjs';
 import { fetchMemberComposition, unavailableComposition } from './member-composition.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
@@ -336,10 +337,18 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   validateSourceQuality(ranges["'99_データ品質'!A1:F20"]);
   const asOf = sourceAsOf(valueRanges);
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
-  assertAnnualConversionSource({ ranges }, asOf);
+  const conversion = assertAnnualConversionSource({ ranges }, asOf);
   const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions, allowUnavailable: true });
   const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
   const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  let trialConversionHistory;
+  try {
+    trialConversionHistory = await fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  } catch (error) {
+    // The monthly breakdown is optional; the verified annual counts still publish.
+    trialConversionHistory = unavailableTrialConversionHistory(asOf, trialConversionFailureReason(error));
+    console.warn(`TRIAL_CONVERSION_HISTORY_DEFERRED reason=${trialConversionHistory.reason}`);
+  }
   let memberComposition;
   try {
     memberComposition = await fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts: memberReceipt.counts, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
@@ -354,6 +363,7 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
     memberComposition,
     withdrawalHistory,
     admissionHistory,
+    trialConversionHistory,
     fetchedAt: new Date().toISOString(),
     ranges,
     trialAggregate,

@@ -101,3 +101,10 @@ test('comparison views lead with charts and keep number tables folded', async ()
   assert.ok(source.split("details('数値を表で見る'").length - 1 >= 4);
   assert.ok(!source.includes('<div class="cx-kpis">'));
 });
+
+test('admissions tab shows monthly trials and trial-to-admission rates only from a reconciled monthly series', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  assert.ok(source.includes("mc?.status === 'ok' && mc.asOf === data.asOf && mc.fiscalYear === h.fiscalYear"));
+  assert.ok(source.includes("block('月別の体験と入会率'"));
+  assert.ok(source.includes("details('数値を表で見る', table)"));
+});

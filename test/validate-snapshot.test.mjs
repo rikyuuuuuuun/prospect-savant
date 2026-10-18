@@ -200,3 +200,23 @@ test('referral snapshot validates volume/rate blend and rejects a mismatched den
     assert.ok(invalid.errors.some(e=>e.includes('referral denominator')));
   } finally { await rm(root,{recursive:true,force:true}); }
 });
+
+test('rejects a monthly trial conversion series published without the annual counts it must sum to', async () => {
+  const root = await fixture();
+  try {
+    const months = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2026, i + 3, 1)).toISOString().slice(0, 7));
+    const series = () => ({ trials: months.map(m => m <= '2026-08' ? 0 : null), admissions: months.map(m => m <= '2026-08' ? 0 : null) });
+    const history = { status: 'ok', definition: 'trial-attendance-fiscal-monthly-v1', asOf: '2026-08-12', fiscalYear: '2026', months,
+      teams: Object.fromEntries(['A', 'B', 'C', 'D'].map(id => [id, series()])), total: series() };
+    const path = join(root, 'data.js');
+    const content = (await readFile(path, 'utf8')).replace('"asOf":"2026-08-12",', `"asOf":"2026-08-12","admissionConversionHistory":${JSON.stringify(history)},`);
+    await writeFile(path, content);
+    const manifestPath = join(root, 'snapshot-manifest.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    manifest.files['data.js'] = blobSha(content);
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const result = await validateSnapshot(root);
+    assert.equal(result.ok, false);
+    assert(result.errors.some((message) => message.includes('TRIAL_CONVERSION_HISTORY_ANNUAL_MISSING')));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
