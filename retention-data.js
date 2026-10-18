@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1",
-  "asOf": "2026-10-18",
+  "snapshotId": "savant-2026-10-19-0730-trial-ytd-v1",
+  "asOf": "2026-10-19",
   "minimumSample": 20,
   "months": [
     1,
@@ -21,7 +21,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       93.5,
       86.1,
       78.7,
-      69.2,
+      69.1,
       56.5,
       38,
       31.7
@@ -29,10 +29,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "samples": [
       1813,
       1765,
-      1528,
-      1448,
+      1534,
+      1449,
       1375,
-      1077,
+      1078,
       944,
       450,
       164
@@ -43,7 +43,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         99.7,
         98.6,
-        95.1,
+        95.2,
         88.6,
         82.7,
         70.3,
@@ -54,7 +54,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         652,
         630,
-        556,
+        558,
         527,
         503,
         454,
@@ -67,8 +67,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         98.6,
-        94.1,
-        86.8,
+        94.2,
+        86.9,
         79.4,
         74.2,
         58.4,
@@ -78,8 +78,8 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         526,
         509,
-        444,
-        425,
+        446,
+        426,
         407,
         345,
         320,
@@ -94,7 +94,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         90.2,
         80.5,
         71.2,
-        59.2,
+        59,
         47.6,
         null,
         null
@@ -102,10 +102,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         383,
         378,
-        326,
+        327,
         308,
         295,
-        228,
+        229,
         166,
         0,
         0
@@ -126,7 +126,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         252,
         248,
-        202,
+        203,
         188,
         170,
         50,
