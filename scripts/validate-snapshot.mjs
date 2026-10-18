@@ -1,4 +1,5 @@
 import { validateWithdrawalHistory } from './withdrawal-history.mjs';
+import { validateMemberComposition } from './member-composition.mjs';
 import { validateRetentionAvailability } from './retention-availability.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAnnualConversion } from './annual-conversion-source.mjs';
@@ -97,6 +98,9 @@ export async function validateSnapshot(rootDir = process.cwd()) {
 
   add(errors, data.asOf === manifest.asOf, 'data.js asOf must match manifest');
   add(errors, data.snapshotId === manifest.snapshotId, 'data.js snapshotId must match manifest');
+  if (data.memberComposition !== undefined) {
+    try { validateMemberComposition(data.memberComposition, data); } catch (error) { add(errors, false, error.message); }
+  }
   if (data.admissions !== undefined) {
     try { validateAdmissions(data.admissions); } catch (error) { add(errors, false, error.message); }
   }

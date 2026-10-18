@@ -1,5 +1,5 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1",
+  "snapshotId": "savant-2026-10-18-0730-trial-ytd-v1-composition-v1",
   "scoreVersion": "v7-operational-member-denominator",
   "asOf": "2026-10-18",
   "asOfLabel": "2026年10月18日",
@@ -2101,6 +2101,348 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "historicalWithdrawals": 60,
         "billingWithdrawals": 0,
         "scoreAvailable": true
+      }
+    }
+  },
+  "memberComposition": {
+    "definition": "operational-member-composition-v1",
+    "memberDefinition": "operational-person-v1",
+    "asOf": "2026-10-18",
+    "status": "ok",
+    "overall": {
+      "members": 1092,
+      "grade": {
+        "preschool": 0,
+        "k1": 6,
+        "k2": 48,
+        "k3": 51,
+        "p1": 137,
+        "p2": 180,
+        "p3": 167,
+        "p4": 175,
+        "p5": 170,
+        "p6": 98,
+        "j1": 37,
+        "j2": 15,
+        "j3": 6,
+        "h1": 1,
+        "h2": 0,
+        "h3": 0,
+        "adult": 0,
+        "unknown": 1
+      },
+      "gender": {
+        "male": 469,
+        "female": 622,
+        "other": 0,
+        "unknown": 1
+      },
+      "tenure": {
+        "lt3": 88,
+        "m3to6": 211,
+        "m6to12": 147,
+        "y1to2": 281,
+        "y2to3": 236,
+        "y3to5": 124,
+        "y5plus": 4,
+        "unknown": 1
+      },
+      "age": {
+        "lt5": 28,
+        "a5to6": 135,
+        "a7to9": 506,
+        "a10to12": 377,
+        "a13to15": 44,
+        "a16plus": 1,
+        "unknown": 1
+      },
+      "status": {
+        "active": 1046,
+        "paused": 23,
+        "scheduled": 22,
+        "unknown": 1
+      },
+      "entryYear": {
+        "2021": 13,
+        "2022": 31,
+        "2023": 119,
+        "2024": 257,
+        "2025": 323,
+        "2026": 348,
+        "unknown": 1
+      },
+      "summary": {
+        "knownTenure": 1091,
+        "tenureMonthsTotal": 19053,
+        "meanTenureMonths": 17.5,
+        "medianTenureMonths": 16
+      }
+    },
+    "teams": {
+      "A": {
+        "members": 345,
+        "grade": {
+          "preschool": 0,
+          "k1": 4,
+          "k2": 15,
+          "k3": 10,
+          "p1": 51,
+          "p2": 47,
+          "p3": 58,
+          "p4": 47,
+          "p5": 59,
+          "p6": 27,
+          "j1": 14,
+          "j2": 8,
+          "j3": 4,
+          "h1": 1,
+          "h2": 0,
+          "h3": 0,
+          "adult": 0,
+          "unknown": 0
+        },
+        "gender": {
+          "male": 161,
+          "female": 184,
+          "other": 0,
+          "unknown": 0
+        },
+        "tenure": {
+          "lt3": 35,
+          "m3to6": 68,
+          "m6to12": 52,
+          "y1to2": 55,
+          "y2to3": 60,
+          "y3to5": 71,
+          "y5plus": 4,
+          "unknown": 0
+        },
+        "age": {
+          "lt5": 15,
+          "a5to6": 32,
+          "a7to9": 157,
+          "a10to12": 120,
+          "a13to15": 20,
+          "a16plus": 1,
+          "unknown": 0
+        },
+        "status": {
+          "active": 337,
+          "paused": 6,
+          "scheduled": 2,
+          "unknown": 0
+        },
+        "entryYear": {
+          "2021": 13,
+          "2022": 31,
+          "2023": 44,
+          "2024": 64,
+          "2025": 73,
+          "2026": 120
+        },
+        "summary": {
+          "knownTenure": 345,
+          "tenureMonthsTotal": 6946,
+          "meanTenureMonths": 20.1,
+          "medianTenureMonths": 16
+        }
+      },
+      "B": {
+        "members": 319,
+        "grade": {
+          "preschool": 0,
+          "k1": 0,
+          "k2": 13,
+          "k3": 25,
+          "p1": 33,
+          "p2": 40,
+          "p3": 48,
+          "p4": 53,
+          "p5": 56,
+          "p6": 38,
+          "j1": 7,
+          "j2": 3,
+          "j3": 2,
+          "h1": 0,
+          "h2": 0,
+          "h3": 0,
+          "adult": 0,
+          "unknown": 1
+        },
+        "gender": {
+          "male": 137,
+          "female": 181,
+          "other": 0,
+          "unknown": 1
+        },
+        "tenure": {
+          "lt3": 29,
+          "m3to6": 59,
+          "m6to12": 34,
+          "y1to2": 60,
+          "y2to3": 83,
+          "y3to5": 53,
+          "y5plus": 0,
+          "unknown": 1
+        },
+        "age": {
+          "lt5": 7,
+          "a5to6": 50,
+          "a7to9": 132,
+          "a10to12": 119,
+          "a13to15": 10,
+          "a16plus": 0,
+          "unknown": 1
+        },
+        "status": {
+          "active": 312,
+          "paused": 0,
+          "scheduled": 6,
+          "unknown": 1
+        },
+        "entryYear": {
+          "2023": 75,
+          "2024": 73,
+          "2025": 69,
+          "2026": 101,
+          "unknown": 1
+        },
+        "summary": {
+          "knownTenure": 318,
+          "tenureMonthsTotal": 6016,
+          "meanTenureMonths": 18.9,
+          "medianTenureMonths": 17
+        }
+      },
+      "C": {
+        "members": 227,
+        "grade": {
+          "preschool": 0,
+          "k1": 0,
+          "k2": 4,
+          "k3": 8,
+          "p1": 34,
+          "p2": 46,
+          "p3": 30,
+          "p4": 40,
+          "p5": 29,
+          "p6": 20,
+          "j1": 13,
+          "j2": 3,
+          "j3": 0,
+          "h1": 0,
+          "h2": 0,
+          "h3": 0,
+          "adult": 0,
+          "unknown": 0
+        },
+        "gender": {
+          "male": 103,
+          "female": 124,
+          "other": 0,
+          "unknown": 0
+        },
+        "tenure": {
+          "lt3": 10,
+          "m3to6": 44,
+          "m6to12": 30,
+          "y1to2": 71,
+          "y2to3": 72,
+          "y3to5": 0,
+          "y5plus": 0,
+          "unknown": 0
+        },
+        "age": {
+          "lt5": 2,
+          "a5to6": 22,
+          "a7to9": 113,
+          "a10to12": 80,
+          "a13to15": 10,
+          "a16plus": 0,
+          "unknown": 0
+        },
+        "status": {
+          "active": 205,
+          "paused": 13,
+          "scheduled": 9,
+          "unknown": 0
+        },
+        "entryYear": {
+          "2024": 93,
+          "2025": 68,
+          "2026": 66
+        },
+        "summary": {
+          "knownTenure": 227,
+          "tenureMonthsTotal": 3610,
+          "meanTenureMonths": 15.9,
+          "medianTenureMonths": 16
+        }
+      },
+      "D": {
+        "members": 201,
+        "grade": {
+          "preschool": 0,
+          "k1": 2,
+          "k2": 16,
+          "k3": 8,
+          "p1": 19,
+          "p2": 47,
+          "p3": 31,
+          "p4": 35,
+          "p5": 26,
+          "p6": 13,
+          "j1": 3,
+          "j2": 1,
+          "j3": 0,
+          "h1": 0,
+          "h2": 0,
+          "h3": 0,
+          "adult": 0,
+          "unknown": 0
+        },
+        "gender": {
+          "male": 68,
+          "female": 133,
+          "other": 0,
+          "unknown": 0
+        },
+        "tenure": {
+          "lt3": 14,
+          "m3to6": 40,
+          "m6to12": 31,
+          "y1to2": 95,
+          "y2to3": 21,
+          "y3to5": 0,
+          "y5plus": 0,
+          "unknown": 0
+        },
+        "age": {
+          "lt5": 4,
+          "a5to6": 31,
+          "a7to9": 104,
+          "a10to12": 58,
+          "a13to15": 4,
+          "a16plus": 0,
+          "unknown": 0
+        },
+        "status": {
+          "active": 192,
+          "paused": 4,
+          "scheduled": 5,
+          "unknown": 0
+        },
+        "entryYear": {
+          "2024": 27,
+          "2025": 113,
+          "2026": 61
+        },
+        "summary": {
+          "knownTenure": 201,
+          "tenureMonthsTotal": 2481,
+          "meanTenureMonths": 12.3,
+          "medianTenureMonths": 13
+        }
       }
     }
   }
