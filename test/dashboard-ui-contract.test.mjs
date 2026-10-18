@@ -54,7 +54,7 @@ test('member composition opens in side-by-side team comparison and keeps the sin
 
 test('every analysis except the overview offers a side-by-side team comparison', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
-  for (const title of ['年度の入会実績', '累計の推移', '月別の入会者数', '月別の退会', '経過月ごとの継続率の比較', '節目ごとの継続率の比較', 'イベント参加の実績', '開催回×チームの一覧', '総合点の内訳', '指標スコアと総合への寄与']) {
+  for (const title of ['年度の入会者数', '体験と入会率', '累計の推移', '月別の入会者数', '月別の退会', '経過月ごとの継続率の比較', '節目ごとの継続率の比較', '参加率の比較', '開催回ごとの参加率', '総合点の内訳', '指標スコアと総合への寄与を表で見る']) {
     assert.ok(source.includes(`'${title}'`), `missing comparison: ${title}`);
   }
   // Withdrawal comparison reuses the per-team card rule: month-start denominator only when complete.
@@ -90,7 +90,14 @@ test('no analysis shows per-100-member values', async () => {
 test('admissions tab shows fiscal trials and trial-to-admission rates from the published conversion data', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.ok(source.includes("data.admissionConversion?.asOf === data.asOf && data.admissionConversion.fiscalYear === h.fiscalYear"));
-  assert.ok(source.includes("block('体験人数と入会率'"));
+  assert.ok(source.includes("block('体験と入会率'"));
   // Rates and year-over-year deltas come from the published values used by the team profiles.
   assert.ok(source.includes('const publishedDelta = published?.admissionYoYDelta;'));
+});
+
+test('comparison views lead with charts and keep number tables folded', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  for (const helper of ['const hbars = ', 'const dumbbell = ', 'const groupedBars = ', 'const details = ']) assert.ok(source.includes(helper), helper);
+  assert.ok(source.split("details('数値を表で見る'").length - 1 >= 4);
+  assert.ok(!source.includes('<div class="cx-kpis">'));
 });

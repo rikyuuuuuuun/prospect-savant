@@ -1244,6 +1244,41 @@
         .cx-stack-row strong { font-size: 15px; }
       }
       @media print { .cx-toolbar { display: none !important; } }
+      /* ---- Chart-first comparison parts ---- */
+      .cx-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .cx-sub { margin: 0 0 8px; color: #34485a; font-size: 13px; font-weight: 800; }
+      .cx-hbars { display: grid; gap: 10px; }
+      .cx-hbar { display: grid; grid-template-columns: 40px minmax(0, 1fr) 74px; align-items: center; gap: 10px; transition: opacity .2s; }
+      .cx-hbar-name { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 900; white-space: nowrap; }
+      .cx-hbar-name i { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-c); }
+      .cx-hbar-track { position: relative; height: 22px; border-radius: 6px; background: #edf2f6; }
+      .cx-hbar-base { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: color-mix(in srgb, var(--cx-c) 22%, #fff); }
+      .cx-hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--cx-c); transition: width .9s cubic-bezier(.2,.8,.2,1); }
+      .cx-hbar-fill.is-planned { background: repeating-linear-gradient(135deg, var(--cx-c) 0 6px, color-mix(in srgb, var(--cx-c) 45%, #fff) 6px 12px); }
+      .cx-hbar-marker { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy-950); opacity: .6; }
+      .cx-hbar-val { text-align: right; font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .cx-hbar-val small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; }
+      .cx-dumbbell { display: grid; gap: 14px; }
+      .cx-db-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) 74px; align-items: center; gap: 10px; transition: opacity .2s; }
+      .cx-db-track { position: relative; height: 26px; }
+      .cx-db-track::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #e3e9ef; }
+      .cx-db-line { position: absolute; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; background: var(--cx-c); opacity: .35; }
+      .cx-db-dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border: 3px solid var(--cx-c); border-radius: 50%; background: #fff; }
+      .cx-db-dot.is-now { background: var(--cx-c); border-color: #fff; box-shadow: 0 1px 4px rgba(8,24,39,.4); width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+      .cx-db-axis { display: flex; justify-content: space-between; margin: 2px 84px 0 50px; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+      .cx-db-key { display: flex; gap: 14px; margin-top: 8px; color: var(--muted); font-size: 11px; }
+      .cx-db-key span { display: inline-flex; align-items: center; gap: 6px; }
+      .cx-db-key i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--navy-800); }
+      .cx-db-key i.is-now { background: var(--navy-800); }
+      .cx-details { margin-top: 14px; border-top: 1px solid #e6ecf1; padding-top: 10px; }
+      .cx-details summary { width: fit-content; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--navy-800); font-size: 12px; font-weight: 800; cursor: pointer; list-style: none; }
+      .cx-details summary::-webkit-details-marker { display: none; }
+      .cx-details summary::before { content: "▸ "; }
+      .cx-details[open] summary::before { content: "▾ "; }
+      .cx-details-body { margin-top: 12px; }
+      .cx-chart .bar { transition: opacity .2s; }
+      @media (max-width: 780px) { .cx-grid2 { grid-template-columns: minmax(0, 1fr); } }
+      @media (max-width: 560px) { .cx-hbar, .cx-db-row { grid-template-columns: 44px minmax(0, 1fr) 64px; gap: 8px; } .cx-db-axis { margin: 2px 72px 0 52px; } }
     </style>
   </head>
   <body>
@@ -3606,6 +3641,46 @@
           const endLabels = ends.map(e => `<text class="end" data-team="${e.s.id}" x="${x(e.last) + 9}" y="${e.yy + 4}" fill="${colorOf(e.s.id)}">${e.s.id === 'ALL' ? '全体' : e.s.id} ${endFormat(e.s.values[e.last])}</text>`).join('');
           return `<div class="cx-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="チーム別の推移"><g class="grid">${grid}</g><g class="axis">${yAxis}${xAxis}</g>${lines}${endLabels}</svg></div>`;
         };
+        const details = (summary, body) => `<details class="cx-details"><summary>${summary}</summary><div class="cx-details-body">${body}</div></details>`;
+        // One horizontal bar per team. base = lighter bar behind (e.g. trials), marker = reference line.
+        const hbars = (rows, max) => {
+          const top = max ?? Math.max(...rows.flatMap(r => [r.value, r.base]).filter(finite), 1);
+          const pct = v => Math.max(0, Math.min(100, v / top * 100));
+          return `<div class="cx-hbars">${rows.map(r => `<div class="cx-hbar" data-team="${r.id}" style="--cx-c:${colorOf(r.id)}"><span class="cx-hbar-name"><i></i>${r.id === 'ALL' ? '全体' : r.id}</span><span class="cx-hbar-track" title="${esc(r.title || '')}">${finite(r.base) ? `<span class="cx-hbar-base" style="width:${pct(r.base)}%"></span>` : ''}<span class="cx-hbar-fill${r.planned ? ' is-planned' : ''}" style="width:${finite(r.value) ? pct(r.value) : 0}%"></span>${finite(r.marker) ? `<span class="cx-hbar-marker" style="left:${pct(r.marker)}%"></span>` : ''}</span><span class="cx-hbar-val">${r.display}${r.sub ? `<small>${r.sub}</small>` : ''}</span></div>`).join('')}</div>`;
+        };
+        // Previous → current on one scale (rates).
+        const dumbbell = (rows, format = v => `${num(v, 1)}%`) => {
+          const values = rows.flatMap(r => [r.prev, r.now]).filter(finite);
+          if (!values.length) return '';
+          const lo = Math.max(0, Math.floor((Math.min(...values) - 5) / 10) * 10);
+          const hi = Math.min(100, Math.ceil((Math.max(...values) + 5) / 10) * 10);
+          const x = v => (v - lo) / (hi - lo) * 100;
+          return `<div class="cx-dumbbell">${rows.map(r => `<div class="cx-db-row" data-team="${r.id}" style="--cx-c:${colorOf(r.id)}"><span class="cx-hbar-name"><i></i>${r.id === 'ALL' ? '全体' : r.id}</span><span class="cx-db-track">${finite(r.prev) && finite(r.now) ? `<span class="cx-db-line" style="left:${Math.min(x(r.prev), x(r.now))}%;width:${Math.abs(x(r.now) - x(r.prev))}%"></span>` : ''}${finite(r.prev) ? `<span class="cx-db-dot" style="left:${x(r.prev)}%" title="前年 ${format(r.prev)}"></span>` : ''}${finite(r.now) ? `<span class="cx-db-dot is-now" style="left:${x(r.now)}%" title="今年 ${format(r.now)}"></span>` : ''}</span><span class="cx-hbar-val">${finite(r.now) ? format(r.now) : '—'}${finite(r.delta) ? `<small>前年比 ${r.delta > 0 ? '+' : r.delta < 0 ? '−' : '±'}${num(Math.abs(r.delta), 1)}pt</small>` : ''}</span></div>`).join('')}</div><div class="cx-db-axis"><span>${lo}%</span><span>${(lo + hi) / 2}%</span><span>${hi}%</span></div><div class="cx-db-key"><span><i></i>前年同期間</span><span><i class="is-now"></i>今年</span></div>`;
+        };
+        // Grouped vertical bars: one group per label, one bar per team. planned[i] = true draws that group hatched.
+        let patternSeq = 0;
+        const groupedBars = ({ labels, series, planned = [], height = 230, unit = '人' }) => {
+          const W = 760, H = height, L = 36, R = 8, T = 12, B = 28;
+          const max = Math.max(...series.flatMap(s => s.values).filter(finite), 1);
+          // Counts of people: keep integer ticks.
+          const step = Math.max(1, Math.ceil(niceStep(max / 4)));
+          const yMax = Math.max(step, Math.ceil(max / step) * step);
+          const y = v => T + (H - T - B) * (1 - v / yMax);
+          const groupW = (W - L - R) / labels.length;
+          const barW = Math.min(18, groupW * 0.78 / series.length);
+          const id = `cxhatch${(patternSeq += 1)}`;
+          const defs = `<defs>${series.map(s => `<pattern id="${id}${s.id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><rect width="3" height="6" fill="${colorOf(s.id)}"/></pattern>`).join('')}</defs>`;
+          const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step);
+          const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>`).join('');
+          const yAxis = ticks.map(t => `<text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${num(t)}</text>`).join('');
+          const xAxis = labels.map((label, i) => `<text x="${L + groupW * (i + 0.5)}" y="${H - 8}" text-anchor="middle">${esc(label)}</text>`).join('');
+          const bars = series.map((s, k) => `<g data-team="${s.id}">${s.values.map((v, i) => {
+            if (!finite(v)) return '';
+            const x0 = L + groupW * i + (groupW - barW * series.length) / 2 + barW * k;
+            return `<rect class="bar" x="${x0.toFixed(1)}" y="${y(v).toFixed(1)}" width="${(barW - 2).toFixed(1)}" height="${Math.max(0, y(0) - y(v)).toFixed(1)}" rx="2" fill="${planned[i] ? `url(#${id}${s.id})` : colorOf(s.id)}" stroke="${planned[i] ? colorOf(s.id) : 'none'}"><title>${esc(`${s.id} TEAM ${labels[i]}: ${num(v)}${unit}${planned[i] ? '（予定）' : ''}`)}</title></rect>`;
+          }).join('')}</g>`).join('');
+          return `<div class="cx-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="月別の比較">${defs}<g class="grid">${grid}</g><g class="axis">${yAxis}${xAxis}</g>${bars}</svg></div>`;
+        };
         const legend = list => `<div class="cx-legend">${list.map(id => `<span data-team="${id}"><i style="--cx-c:${colorOf(id)}"></i>${id === 'ALL' ? '全体（破線）' : `${id} TEAM`}</span>`).join('')}</div>`;
 
         /* ---------- 実入会の推移 ---------- */
@@ -3637,11 +3712,6 @@
             const publishedDelta = published?.admissionYoYDelta;
             return { ...team, rate: finite(publishedRate) ? publishedRate : rate, previousRate: finite(publishedPrevious) ? publishedPrevious : previousRate, delta: finite(publishedDelta) ? publishedDelta : finite(previousRate) ? rate - previousRate : null };
           };
-          const kpis = ids.map(id => {
-            const avg = fullMonths ? monthly(id).slice(0, fullMonths).reduce((a, b) => a + b, 0) / fullMonths : null;
-            return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>累計 ${totalRank.indexOf(id) + 1}位</span></div><strong>${num(totals[id])}<small>人</small></strong>
-              <dl>${conv(id) ? `<dt>年度の体験人数</dt><dd>${num(conv(id).trials)}人</dd><dt>体験→入会率</dt><dd>${num(conv(id).rate, 1)}%</dd>` : ''}<dt>${monthLabel(months.at(-1))}${partial ? '（途中）' : ''}</dt><dd>${num(monthly(id).at(-1))}人</dd><dt>月平均${partial ? '（確定月）' : ''}</dt><dd>${finite(avg) ? `${num(avg, 1)}人` : '—'}</dd></dl></div>`;
-          }).join('');
           const series = ids.map(id => ({ id, values: cum(id) }));
           const chart = lineChart({ labels: months.map(monthLabel), series, yMax: Math.max(...series.flatMap(s => s.values), 1), yFormat: v => num(v), endFormat: v => `${num(v)}人` });
           const maxMonthly = Math.max(...ids.flatMap(monthly), 1);
@@ -3665,10 +3735,11 @@
           })() : '';
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block('年度の入会実績', `${h.fiscalYear}年度・入会日基準（再入会を含む）。体験人数と体験→入会率は体験した年度が基準`, `<div class="cx-kpis">${kpis}</div>`)
-            + (convRows ? block('体験人数と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）の実体験と、そのうちの入会`, convRows) : '')
-            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`)
-            + block('月別の入会者数', 'チーム×月の一覧', table);
+          const conversionCharts = conversion ? `<div class="cx-grid2"><div><p class="cx-sub">体験した人数と、そのうち入会した人数</p>${hbars(ids.map(id => conv(id) ? { id, base: conv(id).trials, value: conv(id).admissions, display: `${num(conv(id).rate, 1)}%`, sub: `体験${num(conv(id).trials)}→入会${num(conv(id).admissions)}`, title: `体験${conv(id).trials}人のうち入会${conv(id).admissions}人` } : { id, value: null, display: '—' }))}<p class="cx-note">薄い棒が体験人数、濃い棒が体験からの入会。右の数字が体験→入会率です。</p></div><div><p class="cx-sub">体験→入会率の前年比較</p>${dumbbell([...ids, 'ALL'].map(id => ({ id, prev: conv(id)?.previousRate, now: conv(id)?.rate, delta: conv(id)?.delta })))}</div></div>` : '';
+          compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
+            + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
+            + block('月別の入会者数', `各月の入会人数${partial ? `（${monthLabel(months.at(-1))}は途中）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthly(id) })) })}${legend(ids)}${details('数値を表で見る', table)}`)
+            + block('累計の推移', '4月からの累計を同じグラフで比較', `${chart}${legend(ids)}`);
           addToggle(section, compare);
         })();
 
@@ -3718,12 +3789,13 @@
             ${ids.map(id => `<tr data-team="${id}">${rowHead(id)}${rows(id).map((row, i) => cell(id, row, i)).join('')}<td class="cx-total">${num(known(id))}人</td></tr>`).join('')}
             <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${months.map((_, i) => i === currentIndex && hasScheduled ? `<td class="cx-planned">予定 ${num(ids.reduce((s, id) => s + (scheduledOf(id) || 0), 0))}人<small>確定 ${num(overallCount(i))}人</small></td>` : `<td>${num(overallCount(i))}人<small>${finite(overallRate[i]) ? `${num(overallRate[i], 2)}%` : '—'}</small></td>`).join('')}<td class="cx-total">${num(ids.reduce((s, id) => s + known(id), 0))}人</td></tr>
           </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
-          const plannedSummary = hasScheduled ? `<div class="cx-kpis">${ids.map(id => `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>${monthLabel(months[currentIndex])}末に確定</span></div><strong>${finite(scheduledOf(id)) ? num(scheduledOf(id)) : '—'}<small>人 退会予定</small></strong><dl><dt>${monthLabel(months[currentIndex])}の確定退会</dt><dd>${num(rows(id)[currentIndex]?.count || 0)}人</dd><dt>年度の確定退会</dt><dd>${num(known(id))}人</dd></dl></div>`).join('')}</div>` : '';
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
           const unassigned = Number(h.unassigned) || 0;
-          compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員数（${esc(data.asOfLabel)}時点）。退会は月末を過ぎてから確定します`, plannedSummary) : '')
-            + block('月別の退会', `上段：退会月が判明した人数　下段：会員数に対する割合（参考）${hasScheduled ? '。当月は退会予定者数' : ''}`, `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`);
+          const caution = `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>`;
+          const monthlyValues = id => rows(id).map((row, i) => i === currentIndex && hasScheduled ? scheduledOf(id) : row ? row.count : null);
+          compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員（${esc(data.asOfLabel)}時点）。月末を過ぎると退会として確定します`, hbars(ids.map(id => ({ id, value: scheduledOf(id), planned: true, display: finite(scheduledOf(id)) ? `${num(scheduledOf(id))}人` : '—', sub: `年度の確定 ${num(known(id))}人` })))) : '')
+            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${caution}${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
           addToggle(section, compare);
         })();
 
@@ -3748,7 +3820,7 @@
             <tr class="is-overall" data-team="ALL">${rowHead('ALL')}${labels.map((_, i) => cell('ALL', i)).join('')}</tr></tbody></table></div>${divergingKey()}`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block(title, note, `${table}<p class="cx-note">各セルの下段は全体との差（ポイント）。対象${num(source.minimumSample || 20)}名未満は「—」で、対象人数のみ表示します。${colLabel}</p>`);
+          compare.innerHTML = details(`${title}を表で見る`, `${table}<p class="cx-note">${esc(note)}。各セルの下段は全体との差（ポイント）。対象${num(source.minimumSample || 20)}名未満は「—」で、対象人数のみ表示します。${colLabel}</p>`);
           addAbove(section, compare);
         };
         if (curve) {
@@ -3760,7 +3832,7 @@
             labels: index.map(i => `${curve.months[i]}か月`),
             title: '経過月ごとの継続率の比較',
             note: '入会から各経過月の時点で在籍している割合',
-            colLabel: '下のグラフでは全経過月の曲線を確認できます。'
+            colLabel: ''
           });
         }
         if (school) rateMatrix({ section: document.getElementById('school-age-section'), source: school, labels: school.milestones, title: '節目ごとの継続率の比較', note: '進級・進学の節目をまたいで在籍が続いた割合', colLabel: '節目ごとに対象となる会員層は異なります。' });
@@ -3776,12 +3848,6 @@
           const maxAbs = Math.max(...diffs.map(Math.abs), 3);
           const scores = events.teams || {};
           const scoreRank = [...ids].sort((a, b) => (scores[b]?.score ?? -1) - (scores[a]?.score ?? -1));
-          const kpis = ids.map(id => {
-            const s = scores[id] || {};
-            const latest = list.at(-1)?.teams?.[id];
-            return `<div class="cx-kpi" data-team="${id}" style="--cx-c:${colorOf(id)}"><div class="cx-kpi-head">${id} TEAM<span>イベント力 ${scoreRank.indexOf(id) + 1}位</span></div><strong>${finite(s.averageRate) ? num(s.averageRate, 1) : '—'}<small>% 平均参加率</small></strong>
-              <dl><dt>継続参加率</dt><dd>${finite(s.repeatRate) ? `${num(s.repeatRate, 1)}%` : '—'}</dd><dt>イベント力</dt><dd>${finite(s.score) ? `${num(s.score)}点` : '—'}</dd><dt>直近（${esc(short(list.at(-1)))}）</dt><dd>${latest ? `${num(latest.participants)}人・${num(latest.rate, 1)}%` : '—'}</dd></dl></div>`;
-          }).join('');
           const series = ids.map(id => ({ id, values: list.map(event => evaluated(event, id) && finite(event.teams?.[id]?.rate) ? event.teams[id].rate : null) }));
           series.push({ id: 'ALL', values: list.map(event => event.total?.rate ?? null) });
           const yMax = Math.max(...series.flatMap(s => s.values.filter(finite)), 10);
@@ -3792,9 +3858,9 @@
           </tbody></table></div>${divergingKey()}`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block('イベント参加の実績', `開催済みの対象イベント${list.length}件。イベント力＝平均参加率${events.scoreWeights?.participation ?? 70}％＋継続参加率${events.scoreWeights?.repeat ?? 30}％`, `<div class="cx-kpis">${kpis}</div>`)
-            + block('開催回ごとの参加率', '各チームの参加率（開催日時点の会員数が分母）。破線は全体', `${chart}${legend([...ids, 'ALL'])}`)
-            + block('開催回×チームの一覧', '上段：参加率　下段：参加人数。色は同じ開催回の全体参加率との差', `${table}<p class="cx-note">Dチームは${(start => `${start.slice(0, 4)}年${Number(start.slice(5, 7))}月`)(String(data.quality?.dEvaluationStart || '2025-04-01'))}の発足前のイベントを評価対象外としています。大会参加者限定の練習は含みません。</p>`);
+          const rateMax = Math.max(...ids.flatMap(id => [scores[id]?.averageRate, scores[id]?.repeatRate]).filter(finite), 1);
+          compare.innerHTML = block('参加率の比較', `開催済みの対象イベント${list.length}件。イベント力＝平均参加率${events.scoreWeights?.participation ?? 70}％＋継続参加率${events.scoreWeights?.repeat ?? 30}％`, `<div class="cx-grid2"><div><p class="cx-sub">平均参加率</p>${hbars(ids.map(id => ({ id, value: scores[id]?.averageRate, display: finite(scores[id]?.averageRate) ? `${num(scores[id].averageRate, 1)}%` : '—', sub: finite(scores[id]?.score) ? `イベント力 ${num(scores[id].score)}点` : '' })), rateMax)}</div><div><p class="cx-sub">継続参加率（2回以上参加した人の割合）</p>${hbars(ids.map(id => ({ id, value: scores[id]?.repeatRate, display: finite(scores[id]?.repeatRate) ? `${num(scores[id].repeatRate, 1)}%` : '—' })), rateMax)}</div></div>`)
+            + block('開催回ごとの参加率', '各チームの参加率（開催日時点の会員数が分母）。破線は全体', `${chart}${legend([...ids, 'ALL'])}${details('数値を表で見る', `${table}<p class="cx-note">上段：参加率　下段：参加人数。色は同じ開催回の全体参加率との差。Dチームは${(start => `${start.slice(0, 4)}年${Number(start.slice(5, 7))}月`)(String(data.quality?.dEvaluationStart || '2025-04-01'))}の発足前のイベントを評価対象外としています。大会参加者限定の練習は含みません。</p>`)}`);
           addToggle(section, compare, ['チームを比較', '開催回ごとに見る']);
         })();
 
@@ -3820,8 +3886,7 @@
           </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>0（低い）</span><span><i style="background:rgb(217,225,232)"></i>50</span><span><i style="background:rgb(168,47,43)"></i>100（高い）</span></div>`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合点（100点満点）', `${rows}${key}`)
-            + block('指標スコアと総合への寄与', '上段：指標スコア（0〜100）　下段：総合点への寄与（スコア×配点）', table);
+          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合点（100点満点）', `${rows}${key}${details('指標スコアと総合への寄与を表で見る', `${table}<p class="cx-note">上段：指標スコア（0〜100）　下段：総合点への寄与（スコア×配点）</p>`)}`);
           addAbove(section, compare);
         })();
 
