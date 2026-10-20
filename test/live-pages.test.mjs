@@ -66,6 +66,13 @@ test('pending source remains pending when the bounded wait expires', async () =>
   let clock = 0;
   assert.deepEqual(await waitForPrivateSource({ capture: async () => ({}), probe: () => ({ ready: false }), waitMinutes: 5, now: () => clock, sleep: async ms => clock += ms, logger: () => {} }), { attempts: 2, ready: false });
 });
+test('pending source logs its anonymous date and reason code', async () => {
+  let clock = 0;
+  const logs = [];
+  await waitForPrivateSource({ capture: async () => ({}), probe: () => ({ ready: false, sourceAsOf: '2026-10-19', pendingReason: 'MEMBER_SYNC_PENDING' }), waitMinutes: 5, now: () => clock, sleep: async ms => clock += ms, logger: m => logs.push(m) });
+  assert.match(logs[0], /attempt 1; sourceAsOf=2026-10-19 reason=MEMBER_SYNC_PENDING\); retrying/);
+  assert.match(logs.at(-1), /wait window exhausted/);
+});
 
 // Recovery loads this module from a stdin Node script, where argv[1] is absent.
 test('live verifier is importable from the recovery stdin entry point', async () => {
