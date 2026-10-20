@@ -13,20 +13,26 @@ export async function waitForPrivateSource({ capture, probe, waitMinutes = 0, no
   for (;;) {
     attempts++;
     let blocked;
+    let detail = '';
     try {
       const source = await capture();
-      if (probe(source).ready) return { attempts, ready: true };
+      const result = probe(source);
+      if (result.ready) return { attempts, ready: true };
+      // Anonymous diagnostics only: the source date and the upstream pending reason code.
+      detail = `; sourceAsOf=${result.sourceAsOf || 'pending'} reason=${result.pendingReason || 'unknown'}`;
     } catch (error) {
       // R5 can lag the daily source refresh, and an exhausted transient Sheets read (quota 429,
       // 5xx, timeout) is retried on the next cycle. All other quality/schema errors stop immediately.
       if (error.message !== 'SOURCE_QUALITY_BLOCKED_R5' && !TRANSIENT_SOURCE_ERROR.test(error.message)) throw error;
       blocked = error;
+      detail = `; reason=${error.message}`;
     }
     if (now() + 300000 > deadline) {
       if (blocked) throw blocked;
+      logger(`Source not ready (attempt ${attempts}${detail}); wait window exhausted`);
       return { attempts, ready: false };
     }
-    logger(`Source not ready (attempt ${attempts}); retrying in 5 minutes`);
+    logger(`Source not ready (attempt ${attempts}${detail}); retrying in 5 minutes`);
     await sleep(300000);
   }
 }

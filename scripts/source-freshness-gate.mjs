@@ -10,7 +10,8 @@ export function evaluateSourceFreshness(source, { targetDate = tokyoDate(), now 
   const ready = asOf === targetDate && source?.readiness?.ready !== false;
   const waiting = source?.readiness?.reason === 'MEMBER_SYNC_PENDING' || (asOf && asOf < targetDate);
   if (!ready && !waiting) throw new Error('SOURCE_READINESS_INVALID');
-  return { sourceAsOf: asOf, targetDate, ready, action: ready ? 'generate-candidate' : 'waiting-for-source', errorCode: !ready && clock >= '09:30' ? 'DAILY_SOURCE_DEADLINE_MISSED' : null };
+  const pendingReason = ready ? null : (source?.readiness?.reason || (asOf && asOf < targetDate ? 'SOURCE_ASOF_BEHIND' : 'SOURCE_NOT_READY'));
+  return { sourceAsOf: asOf, targetDate, ready, pendingReason, action: ready ? 'generate-candidate' : 'waiting-for-source', errorCode: !ready && clock >= '09:30' ? 'DAILY_SOURCE_DEADLINE_MISSED' : null };
 }
 
 async function main() {
