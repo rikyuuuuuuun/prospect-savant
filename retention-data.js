@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-23-0730-trial-ytd-v1",
-  "asOf": "2026-10-23",
+  "snapshotId": "savant-2026-10-24-0730-trial-ytd-v1",
+  "asOf": "2026-10-24",
   "minimumSample": 20,
   "months": [
     1,
@@ -21,20 +21,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       93.5,
       86,
       78.7,
-      69,
+      69.1,
       56.3,
-      38,
+      37.9,
       31.3
     ],
     "samples": [
-      1817,
-      1767,
-      1548,
+      1818,
+      1768,
+      1553,
       1452,
-      1375,
-      1099,
-      949,
-      453,
+      1376,
+      1107,
+      950,
+      456,
       166
     ]
   },
@@ -53,7 +53,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       ],
       "samples": [
         652,
-        631,
+        632,
         560,
         528,
         503,
@@ -70,20 +70,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         94.2,
         86.4,
         79.4,
-        74.2,
+        74.3,
         58.2,
         33.1,
         null
       ],
       "samples": [
-        526,
+        527,
         509,
         451,
         428,
         407,
-        349,
+        350,
         323,
-        172,
+        175,
         0
       ]
     },
@@ -91,10 +91,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         99.2,
         97.1,
-        90.3,
+        90.1,
         80.5,
-        71.2,
-        59.2,
+        71.3,
+        59.7,
         47.3,
         null,
         null
@@ -102,10 +102,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         385,
         379,
-        329,
+        332,
         308,
-        295,
-        233,
+        296,
+        238,
         167,
         0,
         0
@@ -115,22 +115,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         96.8,
-        92.8,
+        92.9,
         86.7,
         78.2,
-        69.5,
-        61.1,
+        70.5,
+        62.2,
         null,
         null
       ],
       "samples": [
         254,
         248,
-        208,
+        210,
         188,
         170,
-        59,
-        36,
+        61,
+        37,
         0,
         0
       ]
