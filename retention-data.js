@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-24-0730-trial-ytd-v1",
-  "asOf": "2026-10-24",
+  "snapshotId": "savant-2026-10-25-0730-trial-ytd-v1",
+  "asOf": "2026-10-25",
   "minimumSample": 20,
   "months": [
     1,
@@ -21,19 +21,19 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       93.5,
       86,
       78.7,
-      69.1,
-      56.3,
+      69,
+      56.4,
       37.9,
       31.3
     ],
     "samples": [
-      1818,
-      1768,
-      1553,
-      1452,
-      1376,
-      1107,
-      950,
+      1819,
+      1769,
+      1554,
+      1453,
+      1378,
+      1110,
+      951,
       456,
       166
     ]
@@ -44,7 +44,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         99.7,
         98.6,
         95.2,
-        88.6,
+        88.7,
         82.7,
         69.9,
         57.9,
@@ -55,7 +55,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         652,
         632,
         560,
-        528,
+        529,
         503,
         458,
         423,
@@ -76,7 +76,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         null
       ],
       "samples": [
-        527,
+        528,
         509,
         451,
         428,
@@ -93,20 +93,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         97.1,
         90.1,
         80.5,
-        71.3,
+        71.5,
         59.7,
-        47.3,
+        47.6,
         null,
         null
       ],
       "samples": [
         385,
-        379,
+        380,
         332,
         308,
-        296,
+        298,
         238,
-        167,
+        168,
         0,
         0
       ]
@@ -118,7 +118,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.9,
         86.7,
         78.2,
-        70.5,
+        68.8,
         62.2,
         null,
         null
@@ -126,10 +126,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         254,
         248,
-        210,
+        211,
         188,
         170,
-        61,
+        64,
         37,
         0,
         0
