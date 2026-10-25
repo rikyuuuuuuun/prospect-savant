@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-25-0730-trial-ytd-v1",
-  "asOf": "2026-10-25",
+  "snapshotId": "savant-2026-10-26-0730-trial-ytd-v1",
+  "asOf": "2026-10-26",
   "minimumSample": 20,
   "months": [
     1,
@@ -18,23 +18,23 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "rates": [
       99.7,
       98,
-      93.5,
+      93.6,
       86,
       78.7,
       69,
-      56.4,
-      37.9,
+      56.3,
+      38,
       31.3
     ],
     "samples": [
-      1819,
-      1769,
-      1554,
+      1821,
+      1770,
+      1569,
       1453,
       1378,
-      1110,
-      951,
-      456,
+      1113,
+      952,
+      458,
       166
     ]
   },
@@ -54,7 +54,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         652,
         632,
-        560,
+        564,
         529,
         503,
         458,
@@ -67,23 +67,23 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         98.6,
-        94.2,
+        94.3,
         86.4,
         79.4,
         74.3,
         58.2,
-        33.1,
+        33.3,
         null
       ],
       "samples": [
         528,
-        509,
-        451,
+        510,
+        459,
         428,
         407,
         350,
         323,
-        175,
+        177,
         0
       ]
     },
@@ -95,18 +95,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         80.5,
         71.5,
         59.7,
-        47.6,
+        47.3,
         null,
         null
       ],
       "samples": [
         385,
         380,
-        332,
+        335,
         308,
         298,
         238,
-        168,
+        169,
         0,
         0
       ]
@@ -118,18 +118,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.9,
         86.7,
         78.2,
-        68.8,
+        68.7,
         62.2,
         null,
         null
       ],
       "samples": [
-        254,
+        256,
         248,
         211,
         188,
         170,
-        64,
+        67,
         37,
         0,
         0
