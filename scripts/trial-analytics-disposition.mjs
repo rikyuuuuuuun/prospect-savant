@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { serialToIsoDate, TEAM_IDS } from './private-trial-aggregate.mjs';
+import { PREPARING_TEAM_IDS, serialToIsoDate, TEAM_IDS } from './private-trial-aggregate.mjs';
 
 export const TRIAL_ANALYTICS_DEFINITION = 'reflected-trial-receipt-disposition-v1';
 const PREFIX = 'PROSPECT_ANALYTICS_DISPOSITION_';
@@ -50,10 +50,11 @@ export function buildTrialIntakeIndex(rows) {
     check(!index.has(receipt), 'RECEIPT_NOT_UNIQUE');
     if (form && (disposition || text(row[23]) === '反映済')) {
       check(RECEIPT.test(receipt), 'RECEIPT_INVALID');
-      check(TEAM_IDS.includes(text(row[4])), 'TEAM_INVALID');
+      check(TEAM_IDS.includes(text(row[4])) || PREPARING_TEAM_IDS.includes(text(row[4])), 'TEAM_INVALID');
       check(normaliseTrialRoute(row[6]) && normaliseTrialRoute(row[7]), 'ROUTE_INVALID');
     }
-    index.set(receipt, { row, disposition, form });
+    const preparing = PREPARING_TEAM_IDS.includes(text(row[4]));
+    index.set(receipt, { row, disposition, form, preparing });
   }
   return index;
 }
@@ -65,8 +66,9 @@ export function buildTrialAnalyticsQuality(intakeRows, experienceRows) {
     excludedTest: 0, excludedOwner: 0, pendingDate: 0, eligible: 0,
     receiptColumnUniqueMatched: 0, receiptNoteConflicts: 0, legacyEvidenceRows: 0, exactUniqueMatched: 0, unresolvedEligible: 0, invalidEligibleDate: 0,
     ambiguousMatches: 0, archivedMatchRows: 0 };
-  for (const [receipt, { row, disposition, form }] of intake) {
-    if (!form) continue;
+  for (const [receipt, { row, disposition, form, preparing }] of intake) {
+    // Preparing teams are outside the published A〜D cohort until formally launched.
+    if (!form || preparing) continue;
     if (text(row[23]) !== '反映済' && !disposition) { summary.pendingWorkflow++; continue; }
     summary.total++;
     if (disposition) {
@@ -135,7 +137,8 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
   for (const [receipt, matches] of receiptGroups) {
     const record = intake.get(receipt);
     check(record?.form, 'SOURCE_RECEIPT_UNRESOLVED');
-    const { row, disposition } = record;
+    const { row, disposition, preparing } = record;
+    if (preparing) { dailyReceipt.excludedRows++; continue; }
     const team = text(row[4]);
     check(TEAM_IDS.includes(team), 'TEAM_INVALID');
     for (const { sheet } of matches) {
@@ -176,8 +179,8 @@ export function canDeferTrialReconciliation(intakeRows, experienceRows, targetDa
   if (trialDate(targetDate) !== targetDate) return false;
   const index = buildTrialIntakeIndex(intakeRows);
   const deferred = new Set();
-  for (const [receipt, { row, disposition, form }] of index) {
-    if (!form || disposition || text(row[23]) !== '反映済') continue;
+  for (const [receipt, { row, disposition, form, preparing }] of index) {
+    if (!form || preparing || disposition || text(row[23]) !== '反映済') continue;
     const date = trialDate(row[14]);
     if (!date || date < targetDate) continue;
     const generatedId = `EXP-LINE-${createHash('sha256').update(receipt).digest('hex').slice(0, 16)}`;
