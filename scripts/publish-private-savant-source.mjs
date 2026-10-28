@@ -367,7 +367,7 @@ async function publishInto(root, snapshot) {
     memberSourceSnapshotId: memberReceipt.snapshotId,
     operationalMemberDefinition: memberReceipt.definitionId,
     sourceKind: 'private-sheets-readonly-anonymous-aggregate-v1',
-    publication: { status: ranges.trialAggregate.status === 'unavailable' || data.teams.some(team => team.metrics.retention === null) ? 'partial' : 'complete' },
+    publication: { status: ranges.trialAggregate.status === 'unavailable' ? 'partial' : 'complete' },
     files: Object.fromEntries(Object.entries(output).map(([file, content]) => [file, gitBlobSha(content)])),
   };
   await writeFile(join(root, 'snapshot-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
