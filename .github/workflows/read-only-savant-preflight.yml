@@ -35,6 +35,7 @@ jobs:
             node scripts/fetch-private-savant-source.mjs .private/savant-source.json
             node --input-type=module -e "import {readFileSync} from 'node:fs'; import {evaluateSourceFreshness} from './scripts/source-freshness-gate.mjs'; const r=evaluateSourceFreshness(JSON.parse(readFileSync('.private/savant-source.json'))); if(!r.ready) throw Error(r.errorCode || 'SOURCE_NOT_READY');"
             node scripts/publish-private-savant-with-explanations.mjs .private/savant-source.json .
+            node -e 'const w={};new Function("window",require("fs").readFileSync("data.js","utf8"))(w);const d=Object.values(w).find(v=>v&&v.teams);console.log("DIAG", JSON.stringify({ids:d.teams.map(t=>t.id),teams:d.teams.map(t=>[t.id,t.rank,t.overall,t.metrics.retention]),avail:d.retentionAvailability}))'
             npm test
             npm run validate:snapshot
             echo "Live read-only preflight ${pass}/3 passed" >> "$GITHUB_STEP_SUMMARY"
