@@ -144,9 +144,7 @@ export async function validatePublishedTrialData(rootDir = process.cwd()) {
   const add = (condition, message) => { if (!condition) errors.push(message); };
   const snapshot = JSON.parse(await readFile(resolve(rootDir, 'snapshot-manifest.json'), 'utf8'));
   if (snapshot.publication !== undefined) {
-    const main = parseFrozenJson(await readFile(resolve(rootDir, 'data.js'), 'utf8'), 'data.js');
-    const retentionUnavailable = main.retentionAvailability && main.teams?.some(team => main.retentionAvailability.teams?.[team.id]?.scoreAvailable === false);
-    const expected = data.today?.status === 'unavailable' || retentionUnavailable ? 'partial' : 'complete';
+    const expected = data.today?.status === 'unavailable' ? 'partial' : 'complete';
     add(snapshot.publication && Object.keys(snapshot.publication).join() === 'status' &&
       snapshot.publication.status === expected, 'publication status must match verified data availability');
     add(data.today?.date === snapshot.asOf, 'trial date must match snapshot asOf');

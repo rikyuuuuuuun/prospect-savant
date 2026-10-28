@@ -86,3 +86,22 @@ test('publication health cannot claim complete with withheld counts or a mismatc
     }
   } finally { await rm(root, {recursive:true, force:true}); }
 });
+
+
+test('retention-only withholding does not downgrade trial publication health', async () => {
+  const root = await fixture();
+  try {
+    await publishTrialData({ rootDir: root, input: input() });
+    const teams = Object.entries(rates).map(([id, admissionRate]) => ({ id, benchmark: { admissionRate } }));
+    await writeFile(join(root, 'data.js'), `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify({
+      teams,
+      retentionAvailability: { teams: { C: { scoreAvailable: false } } },
+    })});\n`, 'utf8');
+    await writeFile(join(root, 'snapshot-manifest.json'), JSON.stringify({
+      asOf: '2026-08-21',
+      publication: { status: 'complete' },
+    }));
+    const result = await validatePublishedTrialData(root);
+    assert.equal(result.ok, true, result.errors.join('\n'));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

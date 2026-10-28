@@ -57,7 +57,7 @@ test('confirmed unknown withdrawal dates withhold retention without stopping oth
       assert.match(team.note, /定着力.*確認中/);
       assert.doesNotMatch(team.note, /null点/);
     }
-    assert.equal(JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'))).publication.status, 'partial');
+    assert.equal(JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'))).publication.status, 'complete');
     // Corrupted/unexplained values remain a hard failure; original public files stay intact.
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
     ranges[RANGES.retention][4][5] = '#REF!';
@@ -443,6 +443,6 @@ test('partial publication updates the complete bundle and recovers daily counts 
     await writeFile(sourcePath,JSON.stringify(snapshot));
     await publishPrivateSavantWithExplanations({rootDir:dir,sourcePath});
     assert.equal((await read('trial-data.js')).today.total,3);
-    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,data.teams.some(team => team.metrics.retention === null) ? 'partial' : 'complete');
+    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status, 'complete');
   } finally { await rm(dir,{recursive:true,force:true}); }
 });
