@@ -27,3 +27,14 @@ test('mixed policies and invalid historical counts are rejected', () => {
   const f=fixture(), availability=readRetentionAvailability(f.members,f.retention,'2026-10-11'); availability.teams.A.historicalWithdrawals=-1;
   assert.throws(() => validateRetentionAvailability({asOf:'2026-10-11',retentionAvailability:availability,teams:ids.map(id=>({id,metrics:{retention:50}}))}),/RETENTION_AVAILABILITY_INVALID_A/);
 });
+test('roster archive dates are counted separately and do not withhold the rate', () => {
+  const {members, retention} = fixture();
+  members.forEach((row, i) => { row[30] = `0件実移動確認／${[320,220,154,60][i]}件過去基準維持／0件課金停止確認／${i === 2 ? 1 : 0}件名簿退会日確認／0件退会日不明`; });
+  const result = readRetentionAvailability(members, retention, '2026-10-28');
+  assert.equal(result.teams.C.rosterDateWithdrawals, 1);
+  assert.equal(result.teams.C.unknownWithdrawals, 0);
+  assert.equal(result.teams.C.scoreAvailable, true);
+  validateRetentionAvailability({asOf:'2026-10-28',retentionAvailability:result,teams:ids.map(id=>({id,rank:1,metrics:{retention:50}}))});
+  result.teams.C.rosterDateWithdrawals = -1;
+  assert.throws(() => validateRetentionAvailability({asOf:'2026-10-28',retentionAvailability:result,teams:ids.map(id=>({id,metrics:{retention:50}}))}), /RETENTION_AVAILABILITY_INVALID_C/);
+});

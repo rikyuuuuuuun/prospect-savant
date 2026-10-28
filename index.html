@@ -3081,7 +3081,7 @@
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
               ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">退会日の根拠が未確認のため、定着力・継続率・総合評価を保留しています。他の指標は基準日まで更新済みです。</p>' : ""}
-              ${data.retentionAvailability?.teams?.[team.id]?.historicalWithdrawals > 0 ? '<p class="rate-comparison-note">過去の退会分は従来の集計基準を維持。新しい退会分は名簿への実移動日時を優先し、不明な場合は会費ペイで確認できた課金停止日を使います。</p>' : ""}
+              ${data.retentionAvailability?.teams?.[team.id]?.historicalWithdrawals > 0 ? '<p class="rate-comparison-note">過去の退会分は従来の集計基準を維持。新しい退会分は名簿への実移動日時を優先し、不明な場合は会費ペイで確認できた課金停止日、名簿の退会者タブに記入された退会日の順に使います。</p>' : ""}
               <p class="rate-comparison-note">割合の増減：${escapeHtml(data.comparison?.previousAsOfLabel || "比較元なし")} → ${escapeHtml(data.asOfLabel)}。ポイントは割合の差です。定義・年度の変更や比較データ不足は比較対象外。</p>
               ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
             </article>`;

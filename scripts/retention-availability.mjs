@@ -11,8 +11,9 @@ export function readRetentionAvailability(memberRows, retentionRows, asOf) {
   const rows = TEAM_IDS.map(id => memberRows.find(row => row?.[0] === id));
   const receipts = rows.map(row => {
     const text = String(row?.[30] ?? '');
-    const forward = text.match(/^(\d+)件実移動確認／(\d+)件過去基準維持／(\d+)件課金停止確認／(\d+)件退会日不明$/);
-    if (forward) return { confirmed: +forward[1], historical: +forward[2], billing: +forward[3], unknown: +forward[4], definition: HISTORICAL_RETENTION_DEFINITION };
+    // 名簿退会日確認は退会者タブに記入された退会日。導入前の4区分の受領表記も受け付ける。
+    const forward = text.match(/^(\d+)件実移動確認／(\d+)件過去基準維持／(\d+)件課金停止確認／(?:(\d+)件名簿退会日確認／)?(\d+)件退会日不明$/);
+    if (forward) return { confirmed: +forward[1], historical: +forward[2], billing: +forward[3], ...(forward[4] !== undefined ? { rosterDate: +forward[4] } : {}), unknown: +forward[5], definition: HISTORICAL_RETENTION_DEFINITION };
     const legacy = text.match(/^(\d+)件実移動確認／(\d+)件実日時不明$/);
     return legacy ? { confirmed: +legacy[1], unknown: +legacy[2], definition: RETENTION_DEFINITION } : null;
   });
@@ -21,7 +22,7 @@ export function readRetentionAvailability(memberRows, retentionRows, asOf) {
   check(receipts.every(receipt => receipt.definition === receipts[0].definition), 'RETENTION_SOURCE_POLICY_MIXED');
   const evidence = buildRetentionEvidenceFromSource(retentionRows);
   const teams = Object.fromEntries(TEAM_IDS.map((id, index) => {
-    const { confirmed, unknown, historical, billing } = receipts[index];
+    const { confirmed, unknown, historical, billing, rosterDate } = receipts[index];
     check(Number.isSafeInteger(confirmed) && Number.isSafeInteger(unknown), 'RETENTION_SOURCE_RECEIPT_INVALID');
     const row = retentionRows.find(row => row?.[0] === id);
     for (const period of evidence[id].periods) {
@@ -32,6 +33,7 @@ export function readRetentionAvailability(memberRows, retentionRows, asOf) {
     }
     return [id, { confirmedWithdrawals: confirmed, unknownWithdrawals: unknown,
       ...(historical !== undefined ? { historicalWithdrawals: historical, billingWithdrawals: billing } : {}),
+      ...(rosterDate !== undefined ? { rosterDateWithdrawals: rosterDate } : {}),
       scoreAvailable: evidence[id].weightedIndex !== null }];
   }));
   return { definition: receipts[0].definition, asOf, teams };
@@ -55,6 +57,7 @@ export function validateRetentionAvailability(data, curve, schoolAge) {
     const state = availability.teams[id], team = data.teams.find(team => team.id === id);
     check(Number.isSafeInteger(state.confirmedWithdrawals) && state.confirmedWithdrawals >= 0 && Number.isSafeInteger(state.unknownWithdrawals) && state.unknownWithdrawals >= 0 && typeof state.scoreAvailable === 'boolean', `RETENTION_AVAILABILITY_INVALID_${id}`);
     if (availability.definition === HISTORICAL_RETENTION_DEFINITION) for (const key of ['historicalWithdrawals', 'billingWithdrawals']) check(Number.isSafeInteger(state[key]) && state[key] >= 0, `RETENTION_AVAILABILITY_INVALID_${id}`);
+    if (state.rosterDateWithdrawals !== undefined) check(availability.definition === HISTORICAL_RETENTION_DEFINITION && Number.isSafeInteger(state.rosterDateWithdrawals) && state.rosterDateWithdrawals >= 0, `RETENTION_AVAILABILITY_INVALID_${id}`);
     unknownTotal += state.unknownWithdrawals;
     check(state.scoreAvailable ? Number.isFinite(team.metrics.retention) : team.metrics.retention === null, `RETENTION_SCORE_AVAILABILITY_MISMATCH_${id}`);
     if (!state.scoreAvailable) unavailable = true;
