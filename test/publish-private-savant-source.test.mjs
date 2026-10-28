@@ -443,6 +443,6 @@ test('partial publication updates the complete bundle and recovers daily counts 
     await writeFile(sourcePath,JSON.stringify(snapshot));
     await publishPrivateSavantWithExplanations({rootDir:dir,sourcePath});
     assert.equal((await read('trial-data.js')).today.total,3);
-    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status,data.teams.some(team => team.metrics.retention === null) ? 'partial' : 'complete');
+    assert.equal(JSON.parse(await readFile(join(dir,'snapshot-manifest.json'),'utf8')).publication.status, 'complete');
   } finally { await rm(dir,{recursive:true,force:true}); }
 });
