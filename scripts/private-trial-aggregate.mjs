@@ -1,8 +1,10 @@
 const TEAM_IDS = Object.freeze(['A', 'B', 'C', 'D']);
+// 準備中のチーム。受付データに現れても公開集計の対象外にし、正式導入まで公開を止めない。
+const PREPARING_TEAM_IDS = Object.freeze(['E']);
 const DATE_HEADERS = new Set(['体験予約日', '体験日']);
 const ATTENDANCE_HEADERS = new Set(['出席確認', '出席、フォーム確認']);
 
-export { TEAM_IDS };
+export { TEAM_IDS, PREPARING_TEAM_IDS };
 
 export function normalise(value) {
   return String(value ?? '').normalize('NFKC').replace(/\s+/g, '').trim();

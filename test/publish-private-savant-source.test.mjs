@@ -84,6 +84,13 @@ test('late explanation failure leaves all original public files byte-identical',
   } finally { await rm(dir, {recursive:true, force:true}); }
 });
 
+// Publication clears every rank while any team's retention is withheld, but the
+// sheet still ranks the scored teams. Rebuild that sheet rank from the score.
+function rankForSource(team) {
+  if (team.rank !== null) return team.rank;
+  return team.overall === null ? '' : 1;
+}
+
 function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   const source = {};
   const conversion = Object.fromEntries(data.teams.map(team => [team.id, {
@@ -93,7 +100,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   }]));
   source[ANNUAL_CONVERSION_RANGE] = conversionRows(data.asOf, conversion);
   source[RANGES.dashboard] = [[], [], [], ['運用会員数', '前月差（参考）', '年度入会率', '直近イベント実参加'], [data.headline.members, data.headline.monthlyDelta, data.headline.admissionRate / 100, data.headline.latestEventParticipants]];
-  source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, team.rank, team.status])];
+  source[RANGES.teams] = [[], [], [], [], ...data.teams.map((team) => [team.id, team.members, team.monthlyDelta, 0, team.metrics.retention, team.benchmark.admissionRate / 100, team.metrics.admission, team.benchmark.eventRate / 100, team.benchmark.repeatRate / 100, team.metrics.event, team.metrics.growth, team.metrics.family, 1, team.overall, rankForSource(team), team.status])];
   source[RANGES.monthly] = [[], [], [], [], ...data.teams.map((team) => ['', team.id, team.members, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', serial(data.asOf)])];
   source[RANGES.retention] = [[], [], [], [], ...data.teams.map((team) => [team.id, '', '', '', '', team.benchmark.retention12mRate / 100, team.benchmark.retention12mSample])];
   if (data.retentionAvailability) source[RANGES.retention] = [[], [], [], ['チーム', '3か月\n継続率'], ...data.teams.map(team => [team.id, ...team.metricEvidence.retention.periods.flatMap(period => [period.rate === null ? '' : period.rate / 100, period.sample])])];

@@ -81,6 +81,19 @@ test('notes require one complete receipt, and source duplicate, missing receipt,
   assert.throws(() => read([excluded], [sourceSheet([{ receipt: excluded[0] }])]), /ROUTE_MISMATCH/);
 });
 
+test('preparing team E receipts stay outside the published A〜D cohort without blocking it', () => {
+  const { intakeRows, experienceRows } = cohort();
+  const preparing = intakeRow('FORM-synthetic-team-e'); preparing[4] = 'E';
+  const quality = assertTrialAnalyticsQuality(buildTrialAnalyticsQuality([...intakeRows, preparing], experienceRows));
+  assert.equal(quality.total, 79);
+  const row = intakeRow();
+  const result = read([row, preparing], [sourceSheet([{ receipt: row[0] }, { receipt: preparing[0] }])]);
+  assert.deepEqual(result.aggregates, { A: { today: 1 }, B: { today: 0 }, C: { today: 0 }, D: { today: 0 } });
+  assert.equal(result.dailyReceipt.excludedRows, 1);
+  const unknown = intakeRow('FORM-synthetic-team-z'); unknown[4] = 'Z';
+  assert.throws(() => buildTrialIntakeIndex([unknown]), /TEAM_INVALID/);
+});
+
 test('one canonical date reconciles older receipt copies once, regardless of row order', () => {
   const row = intakeRow();
   const old = { receipt: row[0], date: serial('2026-08-15') };
