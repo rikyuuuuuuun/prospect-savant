@@ -11,10 +11,10 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
   "overall": {
     "label": "全体",
     "rates": [
-      null,
-      null,
-      null,
-      null
+      78.2,
+      72.2,
+      33.4,
+      4.2
     ],
     "samples": [
       179,
@@ -54,9 +54,9 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
     },
     "C": {
       "rates": [
-        null,
-        null,
-        null,
+        72.7,
+        64.2,
+        51.4,
         null
       ],
       "samples": [

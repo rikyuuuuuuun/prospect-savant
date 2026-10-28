@@ -16,15 +16,15 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
   "overall": {
     "label": "全体",
     "rates": [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null
+      99.7,
+      98,
+      93.6,
+      86,
+      78.8,
+      69.1,
+      56.3,
+      38.1,
+      31.1
     ],
     "samples": [
       1823,
@@ -89,13 +89,13 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     },
     "C": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        99.2,
+        97.1,
+        90.1,
+        80.5,
+        71.7,
+        59.9,
+        47.3,
         null,
         null
       ],
