@@ -3,12 +3,12 @@
   "snapshotId": "savant-2026-10-28-0730-trial-ytd-v1",
   "asOf": "2026-10-28",
   "scoreVersion": "v7-operational-member-denominator",
-  "sourceCommit": "sheets-readback-sha256:ef01e4782111c0eef6fb97318091ffb2223d6f3b936e59e229fceff40c3a96fd",
+  "sourceCommit": "sheets-readback-sha256:39f961aaba3ccc58d9b89452abd9e16244ddfef94a855b1bf59a64f916c44bb0",
   "files": {
-    "data.js": "aeeab01846136792059dc0cdb7e9cb4113db6b8d",
+    "data.js": "b79cbec0869433893775fe4c8f7bf81821ceab32",
     "event-data.js": "0178293c36b66bfe963c2f5e2cfbbb4f0926e155",
-    "retention-data.js": "fff2fd93aa99ccf899d0fba9fba5689bbc19e2f8",
-    "school-age-data.js": "f00747af5483b1592c78a9d6aef8bf72969212b7"
+    "retention-data.js": "c10c22aa027a6d80f233ff80c3e7c62938efe27f",
+    "school-age-data.js": "eeb8f8e1cee9de4c10c262571568dc4e26d3ef63"
   },
   "invariants": {
     "expectedEligibleEventCount": 6,

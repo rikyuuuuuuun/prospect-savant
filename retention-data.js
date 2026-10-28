@@ -41,15 +41,15 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
   "teams": {
     "A": {
       "rates": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        99.7,
+        98.6,
+        95.3,
+        88.7,
+        82.8,
+        69.9,
+        57.9,
+        40.9,
+        31.1
       ],
       "samples": [
         653,

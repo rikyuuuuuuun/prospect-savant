@@ -26,10 +26,10 @@ window.PROSPECT_SCHOOL_AGE_RETENTION = Object.freeze({
   "teams": {
     "A": {
       "rates": [
-        null,
-        null,
-        null,
-        null
+        81.8,
+        73.1,
+        31.2,
+        4.3
       ],
       "samples": [
         66,
