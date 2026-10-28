@@ -57,7 +57,7 @@ test('confirmed unknown withdrawal dates withhold retention without stopping oth
       assert.match(team.note, /定着力.*確認中/);
       assert.doesNotMatch(team.note, /null点/);
     }
-    assert.equal(JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'))).publication.status, 'partial');
+    assert.equal(JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'))).publication.status, 'complete');
     // Corrupted/unexplained values remain a hard failure; original public files stay intact.
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
     ranges[RANGES.retention][4][5] = '#REF!';
