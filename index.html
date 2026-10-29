@@ -4102,11 +4102,10 @@
       .overtake-goal { margin:14px 20px; padding:16px; border:1px solid #cfdae4; border-left:4px solid #3475a7; border-radius:10px; background:#f6f9fc; color:#142235; font-size:12px; line-height:1.7; }
       .overtake-grid .overtake-goal { margin:0; }
       .overtake-goal h4 { margin:0 0 8px; font-size:14px; }
-      .overtake-goal ol { margin:8px 0; padding-left:20px; }
-      .overtake-goal li { margin:10px 0; }
       .overtake-goal small { display:block; color:#526578; font-size:11px; }
       .overtake-goal p { margin:6px 0 0; }
-      .overtake-goal details { margin:6px 0; }
+      .overtake-assumptions { grid-column:1/-1; margin:8px 0; color:#526578; font-size:11px; line-height:1.7; }
+      .overtake-assumptions p { max-width:900px; margin:8px 0; }
       @media(max-width:680px) { .overtake-grid { grid-template-columns:1fr; } .overtake-goal { margin:12px; padding:12px; } }
     </style>
     <script>
@@ -4114,27 +4113,23 @@
         const data = window.PROSPECT_SAVANT_DATA;
         if (!data?.overtakeTargets) return;
         const esc = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
-        const number = value => Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
-        const actionText = action => {
-          if (action.metric === 'retention') return `${esc(action.label)}を各＋${action.delta}ポイント（上限100％）`;
-          return `${esc(action.label)}を ${number(action.from)}→<b>${number(action.to)}${esc(action.unit)}</b>（＋${number(action.delta)}${action.metric === 'event' ? 'ポイント' : esc(action.unit)}）${action.denominator ? `／体験${action.denominator}人を固定` : ''}`;
-        };
+        const assumptions = '<details class="overtake-assumptions"><summary>目標の試算条件</summary><p>他チームの実績と、継続率・大会・イベントの過去実績は固定。入会が増えた分の会員数と紹介率を再計算します。紹介入会は入会人数に含み、二重には数えません。紹介は新たな体験参加から入会する想定です。それ以外の入会は、今いる未入会の体験者を優先し、不足分は新たな体験から全員入会する想定です。将来の予測ではなく、毎回更新する条件付きの目安です。代表的な組み合わせで逆転条件が出ない場合は、人数を表示しません。</p></details>';
         const render = id => {
           const goal = data.overtakeTargets[id];
           const heading = `<h4>${esc(id)} TEAM · 逆転までの目安</h4>`;
-          if (!goal || goal.status === 'unavailable') return `${heading}<p>比較データが不足しているため、目標は確認中です。</p>`;
-          if (goal.status === 'leader') return `${heading}<p><b>現在首位です。</b>上位チームはありません。${goal.lead !== null ? `次のチームとの差は${goal.lead}点です。` : ''}</p>`;
-          if (goal.status === 'no-plan') return `${heading}<p>上位 ${esc(goal.targetId)} TEAMとの差は${goal.gap}点。この試算範囲では逆転条件を確定できません。</p>`;
-          const plans = goal.scenarios.map(plan => {
-            const periods = plan.actions.find(action => action.periods)?.periods;
-            const detail = periods ? `<details><summary>継続率の目標人数を見る</summary>${periods.map(p => `<small>${esc(p.label)}：${p.fromRetained}→${p.retained}人継続／対象${p.sample}人</small>`).join('')}</details>` : '';
-            return `<li><b>${plan.combined ? '組み合わせ例' : 'この指標だけで伸ばす場合'}</b><br>${plan.actions.map(actionText).join('<br>＋ ')}<small>試算後：${esc(id)} ${plan.ownScore}点 ＞ ${esc(goal.targetId)} ${plan.rivalScore}点</small>${detail}</li>`;
-          }).join('');
-          return `${heading}<p>${goal.targetRank}位 <b>${esc(goal.targetId)} TEAM</b> との差 <b>${goal.gap}点</b>。以下はいずれか1つの方法です。</p><ol>${plans}</ol><small>他チームの実績と、会員数・体験人数・評価対象を固定した試算です。目安は毎回の集計で変わります。</small>${goal.scenarios.some(plan => plan.actions.some(a => a.metric === 'retention')) ? '<small>継続率は今後の改善目標です。過去の退会履歴を変更する意味ではありません。</small>' : ''}`;
+          if (!goal || goal.status === 'unavailable') return `${heading}<p>比較データ確認中</p>`;
+          if (goal.status === 'leader') return `${heading}<p><b>現在首位</b>${goal.lead !== null ? `・次のチームと${goal.lead}点差` : ''}</p>`;
+          if (goal.status === 'no-plan') return `${heading}<p><b>入会・紹介だけの逆転目安なし</b></p><small>今回の試算では${esc(goal.targetId)} TEAMを上回る条件が出ません</small>`;
+          const plan = goal.scenarios[0];
+          const target = plan.admissions > 0
+            ? `入会あと${plan.admissions}人${plan.referredAdmissions ? `（うち紹介入会${plan.referredAdmissions}人）` : ''}`
+            : `紹介体験あと${plan.referralTrials}人`;
+          return `${heading}<p><b>${target}</b></p><small>${esc(goal.targetId)} TEAMを上回る目安</small>`;
         };
         document.querySelectorAll('[data-overtake-team]').forEach(el => { el.innerHTML = render(el.dataset.overtakeTeam); });
         const grid = document.getElementById('overtake-targets');
-        if (grid) grid.innerHTML = data.teams.map(team => `<article class="overtake-goal" data-team="${esc(team.id)}">${render(team.id)}</article>`).join('');
+        if (grid) grid.innerHTML = data.teams.map(team => `<article class="overtake-goal" data-team="${esc(team.id)}">${render(team.id)}</article>`).join('') + assumptions;
+        document.getElementById('team-grid')?.insertAdjacentHTML('afterend',assumptions);
       })();
     </script>
   </body>
