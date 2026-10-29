@@ -136,7 +136,7 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
   if (methodology) methodology.body = '点数は達成率ではなく、60を基準とする比較指数です。定着・年度入会・成長・紹介は、比較可能な全チームの実績平均からの差を、共通の比較幅でなめらかに換算します。通常の比較範囲は35〜85で、低い指数は「何もしていない」、高い指数は「完璧」という意味ではありません。全チーム同じ実績なら60です。定着の期間重み、紹介の人数70％＋率30％、イベントの参加70％＋継続30％と歴代MAXの集計基準は維持します。イベントは歴代MAX到達度を35〜85の指数へ換算。総合は丸め前の指数と既存配点から計算し、整数で表示・順位判定します。前回も同じ方式で再計算します。';
   data.scoreGuide = [{value:35,label:'比較下側'},{value:60,label:'比較基準'},{value:85,label:'比較上側'}];
   data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'group-mean', center: REFERENCE, range: [35,85], transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: REFERENCE };
-  data.overtakeTargets = buildOvertakeTargets({ source, currentTeams: data.teams, events: sourceEvents,
+  data.overtakeTargets = buildOvertakeTargets({ source, currentTeams: data.teams,
     evaluate: teams => { scoreTeams(teams, source.weights, minimumSample); return teams; },
   });
   return { data, events };
