@@ -19,19 +19,19 @@ test('score increases before passing a peer, including the lowest and highest te
 });
 
 test('ties, zeros and unavailable evidence have explicit, finite behavior', () => {
-  assert.equal(continuousScore(10, [10, 10, 10]), 50);
-  assert.equal(continuousScore(0, [0, 0, 0]), 0);
-  assert.ok(continuousScore(0, [10, 20, 30]) < 5);
-  assert.ok(continuousScore(10, [0, 0, 0]) > 95);
+  assert.equal(continuousScore(10, [10, 10, 10]), 60);
+  assert.equal(continuousScore(0, [0, 0, 0]), 60);
+  assert.ok(continuousScore(0, [10, 20, 30]) > 35);
+  assert.ok(continuousScore(10, [0, 0, 0]) < 85);
   assert.equal(continuousScore(null, [10]), null);
   assert.equal(continuousScore(10, [null, undefined, NaN]), null);
-  assert.equal(continuousScore(10, [10, null]), 50);
+  assert.equal(continuousScore(10, [10, null]), 60);
 });
 
 test('clear performance gaps produce wide scores while closing the gap changes points before overtaking', () => {
   const values = [60, 70, 80, 90];
   const scores = values.map((value, index) => continuousScore(value, values.filter((_, i) => i !== index)));
-  assert.ok(scores[3] - scores[0] > 70, 'a clear performance gap must not compress near 50');
+  assert.ok(scores[3] - scores[0] > 35, 'clear differences should remain visible on the comparison index');
   const before = continuousScore(70, [60, 80, 90]);
   const closer = continuousScore(75, [60, 80, 90]);
   assert.ok(Math.round(closer) > Math.round(before), 'visible integer points rise before passing 80');
@@ -41,9 +41,10 @@ test('clear performance gaps produce wide scores while closing the gap changes p
 test('all teams share the same comparison width, preserving ordering and proportional scale', () => {
   for (const values of [[1, 2, 50, 100], [98.4, 98.5, 98.6, 98.7], [0, 0, 1, 3]]) {
     const scores = values.map((value, index) => continuousScore(value, values.filter((_, i) => i !== index)));
-    assert.ok(Math.abs(scores.reduce((sum, score) => sum + score, 0) - 50 * values.length) < 1e-9);
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    assert.ok(Math.abs(continuousScore(mean, values) - 60) < 1e-9);
     scores.forEach((score, index) => {
-      assert.ok(score >= 0 && score <= 100);
+      assert.ok(score > 35 && score < 85);
       if (index > 0 && values[index] > values[index - 1]) assert.ok(score > scores[index - 1]);
       const scaled = continuousScore(values[index] * 10, values.filter((_, i) => i !== index).map(value => value * 10));
       assert.ok(Math.abs(scaled - score) < 1e-9);
@@ -71,7 +72,7 @@ test('projects all teams and the previous publication without mutating validated
     assert.ok(Object.values(team.metrics).every(Number.isInteger));
     assert.equal(team.rank, 1 + projected.data.teams.filter(other => other.overall > team.overall).length);
     assert.deepEqual(team.benchmark, source.teams.find(other => other.id === team.id).benchmark);
-    assert.equal(team.metrics.event, Math.round(team.metricEvidence.event.participationScore * .7 + team.metricEvidence.event.repeatScore * .3));
+    assert.equal(team.metrics.event, Math.round(35 + (team.metricEvidence.event.participationScore * .7 + team.metricEvidence.event.repeatScore * .3) / 2));
     assert.equal(projected.events.teams[team.id].score, team.metrics.event);
     assert.doesNotMatch(team.note, /相対順位を加重|\d+\.\d+点/);
   }

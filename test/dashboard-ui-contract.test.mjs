@@ -16,11 +16,13 @@ test('team overview is the landing view and every analysis is reachable from it'
   assert.match(source, /id="view-pager"/);
 });
 
-test('standings view keeps the Savant percentile scale', async () => {
+test('standings view uses the comparison index scale centered on 60', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.match(source, /<section class="section" id="standings-section"/);
   // Same stops as .metric-track: blue-deep → neutral → red-deep.
-  assert.match(source, /\[0, \[36, 91, 134\]\], \[50, \[217, 225, 232\]\], \[100, \[168, 47, 43\]\]/);
+  assert.match(source, /\[35, \[36, 91, 134\]\], \[60, \[217, 225, 232\]\], \[85, \[168, 47, 43\]\]/);
+  assert.ok(source.includes('60を基準にした比較指数'));
+  assert.ok(!source.includes('100点満点'));
 });
 
 test('standings view compares with the previous publication only under the same score version and definitions', async () => {

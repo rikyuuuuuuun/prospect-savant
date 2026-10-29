@@ -219,7 +219,7 @@
       }
 
       .scale-title { color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
-      .scale-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep), #d9e1e8 50%, var(--red-deep)); }
+      .scale-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep) 35%, #d9e1e8 60%, var(--red-deep) 85%); }
       .scale-tick { position: absolute; top: -25px; transform: translateX(-50%); color: var(--muted); font-size: 10px; font-weight: 700; }
       .scale-tick::after { content: ""; position: absolute; top: 19px; left: 50%; width: 1px; height: 13px; background: rgba(255,255,255,0.82); }
 
@@ -311,8 +311,8 @@
       .metric-row:last-child { margin-bottom: 0; }
       .metric-label { color: #34485a; font-size: 12px; font-weight: 700; white-space: nowrap; }
       .metric-label small { display: block; margin-top: 3px; font-size: 9px; line-height: 1.3; white-space: normal; font-variant-numeric: tabular-nums; }
-      .metric-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep), #d9e1e8 50%, var(--red-deep)); }
-      .metric-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
+      .metric-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep) 35%, #d9e1e8 60%, var(--red-deep) 85%); }
+      .metric-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 60%; width: 1px; background: rgba(20,34,53,0.28); }
       .metric-marker { --position: 50; --marker: var(--red); position: absolute; top: 50%; left: clamp(5px, calc(var(--position) * 1%), calc(100% - 5px)); width: 17px; height: 17px; border: 4px solid white; border-radius: 50%; background: var(--marker); box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(-50%, -50%); z-index: 1; }
       .metric-score { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
       .metric-score small { display: block; margin-top: 1px; font-size: 8px; }
@@ -940,7 +940,7 @@
       .bt-move.up { background: #e2f3eb; color: var(--green); } .bt-move.down { background: #fae7e5; color: var(--red-deep); }
       .bt-mine-tag { padding: 2px 8px; border-radius: 999px; background: var(--navy-800); color: #fff; font-size: 9px; font-weight: 900; letter-spacing: .12em; }
       .bt-track { position: relative; height: 12px; margin-right: 18px; border-radius: 999px; background: #e5ebf0; }
-      .bt-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%; width: 1px; background: rgba(20,34,53,0.28); }
+      .bt-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 60%; width: 1px; background: rgba(20,34,53,0.28); }
       .bt-bar { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 999px; background: var(--bt-s); transition: width 1.6s cubic-bezier(.2,.75,.15,1); }
       .bt-runner { position: absolute; z-index: 1; top: 50%; right: 0; display: grid; place-items: center; width: 34px; height: 34px; border: 3px solid #fff; border-radius: 50%; background: var(--bt-s); color: #fff; font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums; box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(50%, -50%); }
       .bt-gap { margin-top: 10px; color: var(--muted); font-size: 11px; }
@@ -1348,6 +1348,10 @@
             <div id="bt-mission-body" aria-live="polite"></div>
           </article>
           <article class="bt-card bt-full">
+            <div class="bt-card-head"><div><p class="eyebrow">NEXT TARGET</p><h3>各チームの逆転目標</h3></div><span>実績を伸ばす具体的な目安</span></div>
+            <div class="overtake-grid" id="overtake-targets"></div>
+          </article>
+          <article class="bt-card bt-full">
             <div class="bt-card-head"><div><p class="eyebrow">CATEGORY LEADERS</p><h3>部門別首位</h3></div><span>2位との差が5点以内は「僅差」</span></div>
             <div class="bt-titles" id="bt-titles"></div>
           </article>
@@ -1428,7 +1432,7 @@
       <section class="section" aria-labelledby="profiles-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">TEAM PROFILES</p><h2 id="profiles-title">チーム・プロフィール</h2></div>
-          <p>各指標を0〜100で表示。イベント力は参加率を主軸にした歴代MAX到達度です。</p>
+          <p>60を基準にした比較指数です。達成率ではなく、低い点数は「何もしていない」、高い点数は「完璧」という意味ではありません。</p>
         </div>
         <div class="scale-card" aria-label="スコアの読み方">
           <div class="scale-title">SCORE SCALE</div>
@@ -1494,7 +1498,7 @@
       <section class="section" aria-labelledby="comparison-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">COMPARISON</p><h2 id="comparison-title">5指標の比較</h2></div>
-          <p>各スコアは0〜100。色と数字をセットで見ると、チームごとの個性が分かります。</p>
+          <p>比較指数の範囲は35〜85、比較の基準は60です。実際の人数・率は各チームのカードで確認できます。</p>
         </div>
         <div class="comparison-wrap"><table class="comparison-table" id="comparison-table"></table></div>
       </section>
@@ -1547,8 +1551,8 @@
         const memberDeltaLabel = `前月末比 純増減${memberDeltaEstimated ? "（推定）" : ""}`;
         const memberDeltaComparable = data.memberDeltaDefinition === "previous-month-end-v1";
         const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
-        const scoreColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 60 ? "var(--red)" : score < 50 ? "var(--blue)" : "#7f8b96";
-        const heatColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 80 ? "#a82f2b" : score >= 60 ? "#c85a53" : score >= 50 ? "#7f8b96" : score >= 30 ? "#4f86ad" : "#245b86";
+        const scoreColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 65 ? "var(--red)" : score < 55 ? "var(--blue)" : "#7f8b96";
+        const heatColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 77 ? "#a82f2b" : score >= 66 ? "#c85a53" : score >= 55 ? "#7f8b96" : score >= 45 ? "#4f86ad" : "#245b86";
         const displayScore = (score) => Number.isFinite(score) ? score : "—";
         const strongest = (team) => metricKeys.filter(key => Number.isFinite(team.metrics[key])).sort((a,b) => team.metrics[b] - team.metrics[a]);
         const svgNamespace = "http://www.w3.org/2000/svg";
@@ -2131,7 +2135,7 @@
               <span class="event-chip-name">${escapeHtml(event.shortName)}</span>
             </button>`).join("");
           document.getElementById("event-scale-label").textContent =
-            `歴代MAX ${eventHistory.historicalMaxRate.toFixed(1)}% = 100`;
+            `歴代MAX ${eventHistory.historicalMaxRate.toFixed(1)}% = 比較指数85`;
           document.getElementById("event-note").textContent = eventHistory.note;
 
           const filters = [{ id: "ALL", label: "全体" }, ...eventTeamIds().map((teamId) => ({ id: teamId, label: `${teamId} TEAM` }))];
@@ -3074,6 +3078,7 @@
                 </div>
               </div>
               <div class="metric-list">${metrics}</div>
+              <div class="overtake-goal" data-overtake-team="${team.id}"></div>
               ${team.chase ? `<p class="rate-comparison-note">上位 ${escapeHtml(team.chase.targetId)} TEAMとの差 <strong>${team.chase.gap}点</strong>${team.chase.closed > 0 ? `・前回より${team.chase.closed}点接近` : ""}</p>` : ""}
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${Number.isFinite(team.benchmark.retention12mRate) ? team.benchmark.retention12mRate.toFixed(1) + "%" : "確認中"}</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
@@ -3144,15 +3149,15 @@
           set(key, value) { try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ } }
         };
 
-        // Savant percentile scale: blue-deep (0) → neutral (50) → red-deep (100), same stops as .metric-track.
-        const stops = [[0, [36, 91, 134]], [50, [217, 225, 232]], [100, [168, 47, 43]]];
+        // Savant percentile scale: blue-deep (35) → neutral (60) → red-deep (85), same stops as .metric-track.
+        const stops = [[35, [36, 91, 134]], [60, [217, 225, 232]], [85, [168, 47, 43]]];
         const savantColor = score => {
-          const s = Math.max(0, Math.min(100, Number(score) || 0));
-          const [a, b] = s <= 50 ? [stops[0], stops[1]] : [stops[1], stops[2]];
+          const s = Math.max(35, Math.min(85, Number(score) || 60));
+          const [a, b] = s <= 60 ? [stops[0], stops[1]] : [stops[1], stops[2]];
           const t = (s - a[0]) / (b[0] - a[0]);
           return `rgb(${a[1].map((c, i) => Math.round(c + (b[1][i] - c) * t)).join(",")})`;
         };
-        const savantInk = score => (score > 32 && score < 68 ? "#142235" : "#fff");
+        const savantInk = score => (score > 47 && score < 73 ? "#142235" : "#fff");
 
         // Previous-publication comparison only when score version and metric definitions match.
         const comparison = data.comparison || {};
@@ -3894,13 +3899,13 @@
           }).join('');
           const key = `<div class="cx-legend">${weights.map((w, i) => `<span><i style="--cx-c:${colors[i]};height:10px;width:14px"></i>${esc(w.label)}（${w.value}％）</span>`).join('')}</div>`;
           const metricKeys = weights.map(w => w.key);
-          const savant = score => { const s = Math.max(0, Math.min(100, score)); const [a, b] = s <= 50 ? [[36, 91, 134], [217, 225, 232]] : [[217, 225, 232], [168, 47, 43]]; const t = s <= 50 ? s / 50 : (s - 50) / 50; return { bg: `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`, ink: s > 32 && s < 68 ? '#142235' : '#fff' }; };
+          const savant = score => { const s = Math.max(35, Math.min(85, score)); const [a, b] = s <= 60 ? [[36, 91, 134], [217, 225, 232]] : [[217, 225, 232], [168, 47, 43]]; const t = s <= 60 ? (s - 35) / 25 : (s - 60) / 25; return { bg: `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`, ink: s > 32 && s < 68 ? '#142235' : '#fff' }; };
           const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${weights.map(w => `<th scope="col">${esc(w.label)}<br><small>配点${w.value}％</small></th>`).join('')}<th scope="col">総合</th></tr></thead><tbody>
             ${[...teams].sort((a, b) => b.overall - a.overall).map(team => `<tr data-team="${team.id}">${rowHead(team.id)}${metricKeys.map(k => { const v = team.metrics?.[k]; if (!finite(v)) return '<td class="cx-na">—</td>'; const c = savant(v); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}<small>総合へ ${num(v * (weights.find(w => w.key === k)?.value || 0) / 100)}</small></td>`; }).join('')}<td class="cx-total">${num(team.overall)}</td></tr>`).join('')}
-          </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>0（低い）</span><span><i style="background:rgb(217,225,232)"></i>50</span><span><i style="background:rgb(168,47,43)"></i>100（高い）</span></div>`;
+          </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>35（比較下側）</span><span><i style="background:rgb(217,225,232)"></i>60（基準）</span><span><i style="background:rgb(168,47,43)"></i>85（比較上側）</span></div>`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合点（100点満点）', `${rows}${key}${details('指標スコアと総合への寄与を表で見る', `${table}<p class="cx-note">上段：指標スコア（0〜100）　下段：総合点への寄与（スコア×配点）</p>`)}`);
+          compare.innerHTML = block('総合点の内訳', '各指標のスコア×配点を積み上げたもの。棒全体の長さが総合比較指数', `${rows}${key}${details('指標スコアと総合への寄与を表で見る', `${table}<p class="cx-note">上段：比較指数（35〜85・基準60）　下段：総合点への寄与（スコア×配点）</p>`)}`);
           addAbove(section, compare);
         })();
 
@@ -4090,6 +4095,46 @@
         readHash();
         updateOverflow();
         onScroll();
+      })();
+    </script>
+    <style>
+      .overtake-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:14px; }
+      .overtake-goal { margin:14px 20px; padding:16px; border:1px solid #cfdae4; border-left:4px solid #3475a7; border-radius:10px; background:#f6f9fc; color:#142235; font-size:12px; line-height:1.7; }
+      .overtake-grid .overtake-goal { margin:0; }
+      .overtake-goal h4 { margin:0 0 8px; font-size:14px; }
+      .overtake-goal ol { margin:8px 0; padding-left:20px; }
+      .overtake-goal li { margin:10px 0; }
+      .overtake-goal small { display:block; color:#526578; font-size:11px; }
+      .overtake-goal p { margin:6px 0 0; }
+      .overtake-goal details { margin:6px 0; }
+      @media(max-width:680px) { .overtake-grid { grid-template-columns:1fr; } .overtake-goal { margin:12px; padding:12px; } }
+    </style>
+    <script>
+      (() => {
+        const data = window.PROSPECT_SAVANT_DATA;
+        if (!data?.overtakeTargets) return;
+        const esc = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+        const number = value => Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+        const actionText = action => {
+          if (action.metric === 'retention') return `${esc(action.label)}を各＋${action.delta}ポイント（上限100％）`;
+          return `${esc(action.label)}を ${number(action.from)}→<b>${number(action.to)}${esc(action.unit)}</b>（＋${number(action.delta)}${action.metric === 'event' ? 'ポイント' : esc(action.unit)}）${action.denominator ? `／体験${action.denominator}人を固定` : ''}`;
+        };
+        const render = id => {
+          const goal = data.overtakeTargets[id];
+          const heading = `<h4>${esc(id)} TEAM · 逆転までの目安</h4>`;
+          if (!goal || goal.status === 'unavailable') return `${heading}<p>比較データが不足しているため、目標は確認中です。</p>`;
+          if (goal.status === 'leader') return `${heading}<p><b>現在首位です。</b>上位チームはありません。${goal.lead !== null ? `次のチームとの差は${goal.lead}点です。` : ''}</p>`;
+          if (goal.status === 'no-plan') return `${heading}<p>上位 ${esc(goal.targetId)} TEAMとの差は${goal.gap}点。この試算範囲では逆転条件を確定できません。</p>`;
+          const plans = goal.scenarios.map(plan => {
+            const periods = plan.actions.find(action => action.periods)?.periods;
+            const detail = periods ? `<details><summary>継続率の目標人数を見る</summary>${periods.map(p => `<small>${esc(p.label)}：${p.fromRetained}→${p.retained}人継続／対象${p.sample}人</small>`).join('')}</details>` : '';
+            return `<li><b>${plan.combined ? '組み合わせ例' : 'この指標だけで伸ばす場合'}</b><br>${plan.actions.map(actionText).join('<br>＋ ')}<small>試算後：${esc(id)} ${plan.ownScore}点 ＞ ${esc(goal.targetId)} ${plan.rivalScore}点</small>${detail}</li>`;
+          }).join('');
+          return `${heading}<p>${goal.targetRank}位 <b>${esc(goal.targetId)} TEAM</b> との差 <b>${goal.gap}点</b>。以下はいずれか1つの方法です。</p><ol>${plans}</ol><small>他チームの実績と、会員数・体験人数・評価対象を固定した試算です。目安は毎回の集計で変わります。</small>${goal.scenarios.some(plan => plan.actions.some(a => a.metric === 'retention')) ? '<small>継続率は今後の改善目標です。過去の退会履歴を変更する意味ではありません。</small>' : ''}`;
+        };
+        document.querySelectorAll('[data-overtake-team]').forEach(el => { el.innerHTML = render(el.dataset.overtakeTeam); });
+        const grid = document.getElementById('overtake-targets');
+        if (grid) grid.innerHTML = data.teams.map(team => `<article class="overtake-goal" data-team="${esc(team.id)}">${render(team.id)}</article>`).join('');
       })();
     </script>
   </body>
