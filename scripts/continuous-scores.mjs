@@ -1,24 +1,25 @@
 import { baseNote, buildTeamMetricExplanation, EXPLANATION_PREFIX, OPERATION_NOTE_PREFIX } from './metric-explanation-text.mjs';
+import { buildOvertakeTargets } from './overtake-targets.mjs';
 
-export const CONTINUOUS_SCORE_VERSION = 'continuous-soft-rank-v2';
-const RANGE_SHARE = 0.2;
+export const CONTINUOUS_SCORE_VERSION = 'reference-index-v3';
+const RANGE_SHARE = 0.3;
 const LEVEL_SHARE = 0.01;
+const REFERENCE = 60;
+const RADIUS = 25;
+const eventIndex = value => Number.isFinite(value) ? 35 + Math.max(0, Math.min(100, value)) / 2 : null;
 const valid = value => Number.isFinite(value) && value >= 0;
 
-// Smooth each head-to-head comparison rather than compressing all teams toward
-// the overall mean. A shared, proportional transition width keeps ordering fair
-// and lets teams approach one another without a step at the crossing point.
+// A comparison index, not a completion percentage. The group mean is 60;
+// bounded continuous differences approach 35/85 without implying zero/perfection.
 export function continuousScore(value, peers) {
   const available = peers.filter(valid);
   if (!valid(value) || !available.length) return null;
   const values = [value, ...available];
   const mean = values.reduce((sum, item) => sum + item, 0) / values.length;
-  if (mean === 0) return 0;
+  if (mean === 0) return REFERENCE;
   const width = (Math.max(...values) - Math.min(...values)) * RANGE_SHARE + mean * LEVEL_SHARE;
-  return available.reduce((sum, peer) => {
-    const difference = value - peer;
-    return sum + 50 * (1 + difference / Math.hypot(difference, width));
-  }, 0) / available.length;
+  const difference = value - mean;
+  return REFERENCE + RADIUS * difference / Math.hypot(difference, width);
 }
 
 const weighted = entries => {
@@ -54,10 +55,11 @@ function scoreTeams(teams, weights, minimumSample) {
         return item ? ratio(item.admissions, item.trials, item.rate) : null;
       }) : null,
       growth: Number.isFinite(original.growth) ? relative(team, other => evidence(other)?.growth?.weightedPoints) : null,
-      // Event denominators and historical-max normalization remain unchanged.
+      // Preserve historical-max normalization and 70/30 weights, then use the
+      // same display range instead of a 100-point completion percentage.
       event: Number.isFinite(original.event) ? weighted([
-        { score: ev.event.participationScore, weight: ev.event.participationWeight },
-        { score: ev.event.repeatScore, weight: ev.event.repeatWeight },
+        { score: eventIndex(ev.event.participationScore), weight: ev.event.participationWeight },
+        { score: eventIndex(ev.event.repeatScore), weight: ev.event.repeatWeight },
       ]) : null,
     };
     const pointScore = relative(team, other => evidence(other)?.family?.points);
@@ -131,7 +133,11 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
     }
   }
   const methodology = data.methodology.find(item => item.title === '指標ごとに正規化');
-  if (methodology) methodology.body = '定着・年度入会・成長・紹介は、各チームとの実績差を連続的に点数化し、その平均で採点します。実績差が大きいほど点差が開き、追い上げる途中でも点数が動きます。同じ実績なら50点、全チーム実績ゼロなら0点。定着は比較可能な期間を加重、紹介は人数70％＋紹介率30％。イベント力は従来の歴代MAX到達度と参加70％＋継続30％を維持します。総合点は丸め前の各指標×既存配点で計算し、点数と点差は整数表示・整数で順位判定します。前回分も同じ方式で再計算します。小さな改善は表示できる点数に達すると1点ずつ変わります。他チームの実績の変化でも点数は動きます。';
-  data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'smooth-pairwise-comparison', transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: 0 };
+  if (methodology) methodology.body = '点数は達成率ではなく、60を基準とする比較指数です。定着・年度入会・成長・紹介は、比較可能な全チームの実績平均からの差を、共通の比較幅でなめらかに換算します。通常の比較範囲は35〜85で、低い指数は「何もしていない」、高い指数は「完璧」という意味ではありません。全チーム同じ実績なら60です。定着の期間重み、紹介の人数70％＋率30％、イベントの参加70％＋継続30％と歴代MAXの集計基準は維持します。イベントは歴代MAX到達度を35〜85の指数へ換算。総合は丸め前の指数と既存配点から計算し、整数で表示・順位判定します。前回も同じ方式で再計算します。';
+  data.scoreGuide = [{value:35,label:'比較下側'},{value:60,label:'比較基準'},{value:85,label:'比較上側'}];
+  data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'group-mean', center: REFERENCE, range: [35,85], transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: REFERENCE };
+  data.overtakeTargets = buildOvertakeTargets({ source, currentTeams: data.teams, events: sourceEvents,
+    evaluate: teams => { scoreTeams(teams, source.weights, minimumSample); return teams; },
+  });
   return { data, events };
 }

@@ -6,6 +6,7 @@ on:
       - 'index.html'
       - 'scripts/build-staff-pages.mjs'
       - 'scripts/continuous-scores.mjs'
+      - 'scripts/overtake-targets.mjs'
       - 'scripts/verify-live-pages.mjs'
       - '.github/workflows/deploy-savant-display.yml'
 permissions:
