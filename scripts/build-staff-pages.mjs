@@ -3,7 +3,8 @@ import { createHash } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateSnapshot } from './validate-snapshot.mjs';
-import { validatePublishedTrialData } from './trial-publication.mjs';
+import { validatePublishedTrialData, parseFrozenJson } from './trial-publication.mjs';
+import { projectContinuousScores } from './continuous-scores.mjs';
 
 export const STAFF_SAVANT_URL = 'https://prospect-portal.rikuhirata713.chatgpt.site/savant/';
 const scripts = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'];
@@ -13,10 +14,16 @@ export async function buildSavantBundle(root) {
   const [snapshot, trial] = await Promise.all([validateSnapshot(root), validatePublishedTrialData(root)]);
   if (!snapshot.ok || !trial.ok) throw Error('Snapshot validation failed before staff bundle generation');
   let html = await readFile(join(root, 'index.html'), 'utf8');
+  const readData = async file => parseFrozenJson(await readFile(join(root, file), 'utf8'), file);
+  const [data, events, curve] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js'].map(readData));
+  const projected = projectContinuousScores(data, events, curve.minimumSample || 20);
+  const projections = { 'data.js': ['PROSPECT_SAVANT_DATA', projected.data], 'event-data.js': ['PROSPECT_EVENT_HISTORY', projected.events] };
   for (const file of scripts) {
     const tag = `<script src="./${file}"></script>`;
     if (html.split(tag).length !== 2) throw Error(`Missing or repeated data script: ${file}`);
-    const source = (await readFile(join(root, file), 'utf8')).replace(/<\/script/gi, '<\\/script');
+    const source = (projections[file]
+      ? `window.${projections[file][0]} = Object.freeze(${JSON.stringify(projections[file][1])});`
+      : await readFile(join(root, file), 'utf8')).replace(/<\/script/gi, '<\\/script');
     html = html.replace(tag, () => `<script>${source}</script>`);
   }
   if (/<script\b[^>]*\bsrc\s*=/i.test(html)) throw Error('Unexpected external dashboard script');

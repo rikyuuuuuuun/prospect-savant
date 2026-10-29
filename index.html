@@ -3074,6 +3074,7 @@
                 </div>
               </div>
               <div class="metric-list">${metrics}</div>
+              ${team.chase ? `<p class="rate-comparison-note">上位 ${escapeHtml(team.chase.targetId)} TEAMとの差 <strong>${team.chase.gap}点</strong>${team.chase.closed > 0 ? `・前回より${team.chase.closed}点接近` : ""}</p>` : ""}
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${Number.isFinite(team.benchmark.retention12mRate) ? team.benchmark.retention12mRate.toFixed(1) + "%" : "確認中"}</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
                 <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度 体験→入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span><span class="benchmark-sample">${annualRealAdmissionSample(team)}</span>前年同期間 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
@@ -3178,9 +3179,9 @@
           if (key === "retention" && Number.isFinite(bench.retention12mRate)) return `12か月継続率 ${num(bench.retention12mRate, 1)}%`;
           if (key === "admission" && Number.isFinite(bench.admissionRate)) return `体験→入会率 ${num(bench.admissionRate, 1)}%`;
           if (key === "event" && Number.isFinite(bench.eventRate)) return `平均参加率 ${num(bench.eventRate, 1)}%`;
-          if (key === "growth" && Number.isFinite(ev.growth?.top30Children)) return `大会上位30% ${num(ev.growth.top30Children)}人`;
-          if (key === "family" && Number.isFinite(bench.referralPoints)) return `紹介 ${num(bench.referralPoints)}pt・${num(bench.referralRate, 2)}%`;
-          if (key === "overall") return `会員 ${num(team.members)}名`;
+          if (key === "growth" && Number.isFinite(ev.growth?.top30Children)) return `大会上位30% ${num(ev.growth.top30Children, 0)}人`;
+          if (key === "family" && Number.isFinite(bench.referralPoints)) return `紹介 ${num(bench.referralPoints, 0)}pt・${num(bench.referralRate, 2)}%`;
+          if (key === "overall") return `会員 ${num(team.members, 0)}名`;
           return "";
         };
 
@@ -3239,12 +3240,12 @@
               <div class="bt-lane-body">
                 <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">所属</span>` : ""}${move}</div>
                 <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
-                <div class="bt-gap">${gapText}</div>
+                <div class="bt-gap">${gapText}${team.chase?.closed > 0 ? `　／　前回より <b>${team.chase.closed}点接近</b>` : ""}</div>
               </div>
               <div class="bt-score"><strong data-count="${team.overall}">0</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
             </div>`;
           }).join("");
-          document.getElementById("bt-race-note").textContent = `総合点は5指標×配点（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
+          document.getElementById("bt-race-note").textContent = `順位を抜く前も、実績差に応じて点数が動きます。点数と点差は整数表示。小さな改善は表示できる点数に達すると1点ずつ変わります。総合点は5指標×配点（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}を同じ採点方式で再計算した結果との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
         };
         const playRace = () => {
           const bars = [...raceEl.querySelectorAll(".bt-bar")];
@@ -3286,14 +3287,14 @@
             if (above) {
               lead = `<p>${rank - 1}位 <b>${esc(teamName(above.id))}</b> との差は <b>${num(gap)}点</b>。総合点への影響が大きい指標から順に示します。</p>`;
               items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
-                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点差（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact, 1)}点分）` }));
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> で ${num(-edge.diff)}点差（配点${weights[edge.key]}％ → 総合で約${num(-edge.impact)}点分）` }));
             } else {
               lead = `<p><b>現在首位。</b>2位 <b>${esc(teamName(below.id))}</b> との差は <b>${num(gap)}点</b>。2位が上回っている指標を示します。</p>`;
               items = edges.filter(edge => edge.diff < 0).sort((a, b) => a.impact - b.impact).slice(0, 3)
-                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact, 1)}点分）` }));
+                .map(edge => ({ score: mine.metrics[edge.key], html: `<b>${esc(labels[edge.key])}</b> は ${esc(teamName(below.id))} が ${num(-edge.diff)}点上（総合で約${num(-edge.impact)}点分）` }));
             }
             const strong = edges.filter(edge => edge.diff > 0).sort((a, b) => b.impact - a.impact)[0];
-            if (strong) items.push({ score: mine.metrics[strong.key], html: `優位な指標：<b>${esc(labels[strong.key])}</b>（${esc(teamName(rival.id))}より ${num(strong.diff)}点上・総合で約${num(strong.impact, 1)}点分）` });
+            if (strong) items.push({ score: mine.metrics[strong.key], html: `優位な指標：<b>${esc(labels[strong.key])}</b>（${esc(teamName(rival.id))}より ${num(strong.diff)}点上・総合で約${num(strong.impact)}点分）` });
             if (above && below) items.push({ score: mine.overall, html: `下位 ${esc(teamName(below.id))} との差 <b>${num(mine.overall - below.overall)}点</b>` });
           }
           missionBody.innerHTML = `<div class="bt-mission-big"><strong>${rank}<small style="font-size:20px">位</small></strong><span>${esc(teamName(myTeam))}・総合 ${num(mine.overall)}点</span></div>${lead}
@@ -3895,7 +3896,7 @@
           const metricKeys = weights.map(w => w.key);
           const savant = score => { const s = Math.max(0, Math.min(100, score)); const [a, b] = s <= 50 ? [[36, 91, 134], [217, 225, 232]] : [[217, 225, 232], [168, 47, 43]]; const t = s <= 50 ? s / 50 : (s - 50) / 50; return { bg: `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`, ink: s > 32 && s < 68 ? '#142235' : '#fff' }; };
           const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${weights.map(w => `<th scope="col">${esc(w.label)}<br><small>配点${w.value}％</small></th>`).join('')}<th scope="col">総合</th></tr></thead><tbody>
-            ${[...teams].sort((a, b) => b.overall - a.overall).map(team => `<tr data-team="${team.id}">${rowHead(team.id)}${metricKeys.map(k => { const v = team.metrics?.[k]; if (!finite(v)) return '<td class="cx-na">—</td>'; const c = savant(v); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}<small>総合へ ${num(v * (weights.find(w => w.key === k)?.value || 0) / 100, 1)}</small></td>`; }).join('')}<td class="cx-total">${num(team.overall)}</td></tr>`).join('')}
+            ${[...teams].sort((a, b) => b.overall - a.overall).map(team => `<tr data-team="${team.id}">${rowHead(team.id)}${metricKeys.map(k => { const v = team.metrics?.[k]; if (!finite(v)) return '<td class="cx-na">—</td>'; const c = savant(v); return `<td class="cx-cell" style="--cx-bg:${c.bg};--cx-ink:${c.ink}">${num(v)}<small>総合へ ${num(v * (weights.find(w => w.key === k)?.value || 0) / 100)}</small></td>`; }).join('')}<td class="cx-total">${num(team.overall)}</td></tr>`).join('')}
           </tbody></table></div><div class="cx-key"><span><i style="background:rgb(36,91,134)"></i>0（低い）</span><span><i style="background:rgb(217,225,232)"></i>50</span><span><i style="background:rgb(168,47,43)"></i>100（高い）</span></div>`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
