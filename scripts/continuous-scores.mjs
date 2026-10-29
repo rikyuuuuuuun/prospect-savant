@@ -1,15 +1,24 @@
 import { baseNote, buildTeamMetricExplanation, EXPLANATION_PREFIX, OPERATION_NOTE_PREFIX } from './metric-explanation-text.mjs';
 
-export const CONTINUOUS_SCORE_VERSION = 'continuous-peer-mean-v1';
+export const CONTINUOUS_SCORE_VERSION = 'continuous-soft-rank-v2';
+const RANGE_SHARE = 0.2;
+const LEVEL_SHARE = 0.01;
 const valid = value => Number.isFinite(value) && value >= 0;
 
-// A team's own improvement changes its score even before it passes a peer.
-// Unlike min/max scaling, neither the best nor the worst team is pinned in place.
+// Smooth each head-to-head comparison rather than compressing all teams toward
+// the overall mean. A shared, proportional transition width keeps ordering fair
+// and lets teams approach one another without a step at the crossing point.
 export function continuousScore(value, peers) {
   const available = peers.filter(valid);
   if (!valid(value) || !available.length) return null;
-  const mean = available.reduce((sum, item) => sum + item, 0) / available.length;
-  return value + mean === 0 ? 0 : 100 * value / (value + mean);
+  const values = [value, ...available];
+  const mean = values.reduce((sum, item) => sum + item, 0) / values.length;
+  if (mean === 0) return 0;
+  const width = (Math.max(...values) - Math.min(...values)) * RANGE_SHARE + mean * LEVEL_SHARE;
+  return available.reduce((sum, peer) => {
+    const difference = value - peer;
+    return sum + 50 * (1 + difference / Math.hypot(difference, width));
+  }, 0) / available.length;
 }
 
 const weighted = entries => {
@@ -122,7 +131,7 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
     }
   }
   const methodology = data.methodology.find(item => item.title === '指標ごとに正規化');
-  if (methodology) methodology.body = '定着・年度入会・成長・紹介は、実績÷（実績＋他チームの実績平均）×100で実績差に応じて採点。他チーム平均と同じなら50点、全チーム実績ゼロなら0点です。定着は比較可能な期間を加重、紹介は人数70％＋紹介率30％。イベント力は従来の歴代MAX到達度と参加70％＋継続30％を維持します。総合点は丸め前の各指標×既存配点で計算し、点数と点差は整数表示・整数で順位判定します。前回分も同じ方式で再計算します。小さな改善は蓄積し、表示できる点数に達すると1点ずつ変わります。他チームの実績の変化でも点数は動きます。';
-  data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'other-team-mean', allZeroScore: 0 };
+  if (methodology) methodology.body = '定着・年度入会・成長・紹介は、各チームとの実績差を連続的に点数化し、その平均で採点します。実績差が大きいほど点差が開き、追い上げる途中でも点数が動きます。同じ実績なら50点、全チーム実績ゼロなら0点。定着は比較可能な期間を加重、紹介は人数70％＋紹介率30％。イベント力は従来の歴代MAX到達度と参加70％＋継続30％を維持します。総合点は丸め前の各指標×既存配点で計算し、点数と点差は整数表示・整数で順位判定します。前回分も同じ方式で再計算します。小さな改善は表示できる点数に達すると1点ずつ変わります。他チームの実績の変化でも点数は動きます。';
+  data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'smooth-pairwise-comparison', transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: 0 };
   return { data, events };
 }

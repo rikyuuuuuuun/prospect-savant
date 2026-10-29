@@ -21,11 +21,40 @@ test('score increases before passing a peer, including the lowest and highest te
 test('ties, zeros and unavailable evidence have explicit, finite behavior', () => {
   assert.equal(continuousScore(10, [10, 10, 10]), 50);
   assert.equal(continuousScore(0, [0, 0, 0]), 0);
-  assert.equal(continuousScore(0, [10, 20, 30]), 0);
-  assert.equal(continuousScore(10, [0, 0, 0]), 100);
+  assert.ok(continuousScore(0, [10, 20, 30]) < 5);
+  assert.ok(continuousScore(10, [0, 0, 0]) > 95);
   assert.equal(continuousScore(null, [10]), null);
   assert.equal(continuousScore(10, [null, undefined, NaN]), null);
   assert.equal(continuousScore(10, [10, null]), 50);
+});
+
+test('clear performance gaps produce wide scores while closing the gap changes points before overtaking', () => {
+  const values = [60, 70, 80, 90];
+  const scores = values.map((value, index) => continuousScore(value, values.filter((_, i) => i !== index)));
+  assert.ok(scores[3] - scores[0] > 70, 'a clear performance gap must not compress near 50');
+  const before = continuousScore(70, [60, 80, 90]);
+  const closer = continuousScore(75, [60, 80, 90]);
+  assert.ok(Math.round(closer) > Math.round(before), 'visible integer points rise before passing 80');
+  assert.ok(closer < continuousScore(80, [60, 75, 90]), 'the pursuing team stays behind until its actual performance catches up');
+});
+
+test('all teams share the same comparison width, preserving ordering and proportional scale', () => {
+  for (const values of [[1, 2, 50, 100], [98.4, 98.5, 98.6, 98.7], [0, 0, 1, 3]]) {
+    const scores = values.map((value, index) => continuousScore(value, values.filter((_, i) => i !== index)));
+    assert.ok(Math.abs(scores.reduce((sum, score) => sum + score, 0) - 50 * values.length) < 1e-9);
+    scores.forEach((score, index) => {
+      assert.ok(score >= 0 && score <= 100);
+      if (index > 0 && values[index] > values[index - 1]) assert.ok(score > scores[index - 1]);
+      const scaled = continuousScore(values[index] * 10, values.filter((_, i) => i !== index).map(value => value * 10));
+      assert.ok(Math.abs(scaled - score) < 1e-9);
+    });
+  }
+});
+
+test('two-team periods also improve continuously without a rank crossing', () => {
+  assert.ok(continuousScore(79, [80]) > continuousScore(78, [80]));
+  assert.ok(continuousScore(82, [80]) > continuousScore(81, [80]));
+  assert.ok(Math.abs(continuousScore(80 - 1e-6, [80]) - continuousScore(80 + 1e-6, [80])) < 0.001);
 });
 
 test('projects all teams and the previous publication without mutating validated source data', async () => {
@@ -48,9 +77,9 @@ test('projects all teams and the previous publication without mutating validated
   }
 });
 
-test('one extra referral improves the integer metric without overtaking another team', async () => {
+test('one extra referral near a competitor improves the integer metric before overtaking', async () => {
   const { source, events } = await fixture();
-  source.teams.forEach((team, index) => Object.assign(team.metricEvidence.family, { points: [10, 20, 30, 40][index], members: 100 }));
+  source.teams.forEach((team, index) => Object.assign(team.metricEvidence.family, { points: [16, 18, 6, 19][index], members: 100 }));
   const before = projectContinuousScores(source, events);
   const team = source.teams.find(team => team.id === 'A');
   team.metricEvidence.family.points += 1;
