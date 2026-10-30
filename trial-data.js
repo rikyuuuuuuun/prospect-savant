@@ -1,16 +1,16 @@
 window.PROSPECT_TRIAL_DATA = Object.freeze({
   "schemaVersion": 1,
-  "snapshotId": "2026-10-29-trial-001",
+  "snapshotId": "2026-10-30-trial-001",
   "timezone": "Asia/Tokyo",
   "sourceKind": "private-sheets-readonly-anonymous-aggregate-v2",
   "today": {
     "status": "ok",
-    "date": "2026-10-29",
-    "total": 1,
+    "date": "2026-10-30",
+    "total": 0,
     "teams": {
       "A": 0,
       "B": 0,
-      "C": 1,
+      "C": 0,
       "D": 0
     }
   },
