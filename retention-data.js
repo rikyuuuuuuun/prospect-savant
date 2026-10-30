@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-10-30-0730-trial-ytd-v1",
-  "asOf": "2026-10-30",
+  "snapshotId": "savant-2026-10-31-0730-trial-ytd-v1",
+  "asOf": "2026-10-31",
   "minimumSample": 20,
   "months": [
     1,
@@ -20,22 +20,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       98,
       93.6,
       86,
-      78.9,
+      79,
       69.1,
       56.3,
-      38.2,
-      31.1
+      38,
+      31
     ],
     "samples": [
       1830,
-      1777,
+      1779,
       1589,
       1455,
-      1385,
+      1388,
       1127,
       954,
-      466,
-      167
+      469,
+      168
     ]
   },
   "teams": {
@@ -48,19 +48,19 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         82.8,
         69.9,
         57.9,
-        40.9,
-        31.1
+        40.8,
+        31
       ],
       "samples": [
         657,
-        635,
+        636,
         571,
         529,
         507,
         458,
         423,
-        281,
-        167
+        282,
+        168
       ]
     },
     "B": {
@@ -72,18 +72,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         79.4,
         73.7,
         58,
-        34.1,
+        33.7,
         null
       ],
       "samples": [
         529,
-        514,
+        515,
         469,
         430,
         407,
         353,
         324,
-        185,
+        187,
         0
       ]
     },
@@ -93,7 +93,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         97.1,
         90.1,
         80.5,
-        71.7,
+        71.9,
         59.9,
         47.3,
         null,
@@ -104,7 +104,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         379,
         334,
         307,
-        297,
+        299,
         237,
         169,
         0,
@@ -117,7 +117,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         96.8,
         92.6,
         86.8,
-        78.7,
+        78.9,
         72.2,
         63.2,
         null,
@@ -128,7 +128,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         249,
         215,
         189,
-        174,
+        175,
         79,
         38,
         0,
