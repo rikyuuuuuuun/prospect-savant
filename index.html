@@ -1452,6 +1452,14 @@
         <div class="admission-history-panel" id="admission-history-content"></div>
       </section>
 
+      <section class="section" id="acquisition-section" aria-labelledby="acquisition-title">
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">HOW PEOPLE FIND US</p><h2 id="acquisition-title">クラブを知ったきっかけ</h2></div><p>チラシ・紹介・その他の割合を、LINEの申込回答から確認できます。紹介者のお名前が空欄でも「紹介」に含めます。</p></div>
+        <div class="admission-history-panel">
+          <div class="acquisition-tools"><label for="acquisition-team">流入経路の表示チーム</label><select id="acquisition-team"><option value="all">全チーム（A〜E）</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option><option value="E">E TEAM</option></select></div>
+          <div id="acquisition-content" aria-live="polite"></div>
+        </div>
+      </section>
+
       <section class="section" id="withdrawal-section" aria-labelledby="withdrawal-title">
         <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">WITHDRAWAL · SUPPORTING METRIC</p><h2 id="withdrawal-title">退会の推移</h2></div><p>総合スコアには含めない補助指標です。退会月が判明している人数と、データの確認状況を表示します。</p></div>
         <div class="retention-panel" id="withdrawal-content"></div>
@@ -3931,7 +3939,7 @@
           overview: [guide, document.getElementById('movement-section'), profiles, comparison],
           standings: [document.getElementById('standings-section')],
           composition: [document.getElementById('composition-section')],
-          admissions: [document.getElementById('admission-history-section')],
+          admissions: [document.getElementById('admission-history-section'), document.getElementById('acquisition-section')],
           retention: [document.getElementById('withdrawal-section'), document.getElementById('retention-section'), document.getElementById('school-age-section')],
           events: [document.getElementById('event-section')],
           reference: [document.getElementById('method-title').closest('section'), document.getElementById('quality-title').closest('section')],
@@ -3953,7 +3961,7 @@
           { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Dの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
           { key: 'standings', label: 'チーム順位', question: 'いま何位？ 上位との差は？', description: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。' },
           { key: 'composition', label: '会員構成', question: '学年・在籍期間・男女比は？', description: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。' },
-          { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの入会人数と、4月から積み上がる累計。棒や点を選ぶと人数を確認できます。' },
+          { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの実入会人数と累計、チラシ・紹介などクラブを知ったきっかけを確認できます。' },
           { key: 'retention', label: '定着・継続', question: '入会後どれくらい続いている？', description: '退会の推移、入会後の定着、進級・進学の節目の継続率を確認できます。' },
           { key: 'events', label: 'イベント', question: 'イベントへの参加率は？', description: '開催回を選んで参加状況を比較。推移の点からも詳細に切り替えられます。' },
           { key: 'reference', label: '指標・データ', question: 'スコアはどう計算している？', description: 'スコアの定義・配点と、集計できているデータの範囲を確認できます。' }
@@ -4130,6 +4138,28 @@
         const grid = document.getElementById('overtake-targets');
         if (grid) grid.innerHTML = data.teams.map(team => `<article class="overtake-goal" data-team="${esc(team.id)}">${render(team.id)}</article>`).join('') + assumptions;
         document.getElementById('team-grid')?.insertAdjacentHTML('afterend',assumptions);
+      })();
+    </script>
+    <style>
+      .acquisition-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:20px 22px 0;font-size:13px;font-weight:700}.acquisition-tools select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink)}
+      #acquisition-content{padding:20px 22px 24px}.acquisition-summary{font-size:18px;font-weight:800;margin:0 0 6px}.acquisition-note{font-size:12px;color:var(--muted);line-height:1.8;margin:8px 0 20px}.acquisition-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}.acquisition-grid h3{font-size:15px;margin:0 0 12px}.acquisition-stack{display:flex;height:26px;background:#edf0f2;border-radius:5px;overflow:hidden;min-width:100px}.acquisition-stack span{display:block;min-width:0}.acquisition-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;margin:12px 0}.acquisition-legend i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px}.acquisition-table{width:100%;border-collapse:collapse;font-size:12px}.acquisition-table td,.acquisition-table th{padding:8px 5px;border-bottom:1px solid var(--line);text-align:right}.acquisition-table td:first-child,.acquisition-table th:first-child{text-align:left}.acquisition-row{display:grid;grid-template-columns:74px 1fr 78px;gap:9px;align-items:center;margin:12px 0;font-size:12px}.acquisition-empty{display:flex;align-items:center;min-height:26px;color:var(--muted);font-size:12px}.acquisition-months{margin-top:26px}.acquisition-months h3{font-size:15px}.acquisition-months .acquisition-row{grid-template-columns:74px 1fr 140px}.acquisition-unknown{color:var(--muted);font-size:12px;margin-top:10px}@media(max-width:780px){.acquisition-grid{grid-template-columns:1fr}.acquisition-row{grid-template-columns:62px 1fr 68px}#acquisition-content{padding:16px}.acquisition-tools{padding:16px 16px 0}}
+    </style>
+    <style>@media(max-width:520px){.acquisition-months .acquisition-row{grid-template-columns:62px 1fr}.acquisition-months .acquisition-row>span{grid-column:2}}</style>
+    <script>
+      (()=>{
+        const history=window.PROSPECT_SAVANT_DATA?.acquisitionHistory;
+        const content=document.getElementById('acquisition-content'),select=document.getElementById('acquisition-team');
+        const ids=['A','B','C','D','E'],categories=[['flyer','チラシ','#346996'],['referral','紹介','#35836a'],['other','その他','#929fa8']];
+        const counts=(teams,selected)=>{const result={flyer:0,referral:0,other:0,unknown:0,total:0};for(const id of selected==='all'?ids:[selected])for(const key of Object.keys(result))result[key]+=teams[id][key];return result};
+        const known=c=>c.flyer+c.referral+c.other;
+        const pct=(n,total)=>total?(100*n/total).toFixed(1)+'%':'—';
+        const stack=c=>known(c)?'<div class="acquisition-stack" role="img" aria-label="'+categories.map(([k,label])=>label+' '+pct(c[k],known(c))).join('、')+'">'+categories.map(([key,label,color])=>'<span style="width:'+(c[key]*100/known(c))+'%;background:'+color+'" title="'+label+'：'+c[key]+'人（'+pct(c[key],known(c))+'）"></span>').join('')+'</div>':'<div class="acquisition-empty">回答蓄積待ち</div>';
+        function render(){
+          if(history?.status!=='ok'||history.asOf!==window.PROSPECT_SAVANT_DATA.asOf){content.innerHTML='<p class="acquisition-note">流入経路の集計更新を待っています。取得できていない件数を0人として表示しません。</p>';return}
+          const selected=select.value,c=counts(history.teams,selected),answered=known(c);
+          content.innerHTML='<p class="acquisition-summary">回答 '+answered+'人 ／ 申込 '+c.total+'人</p><p class="acquisition-note">'+history.since.replaceAll('-','/')+'〜'+history.asOf.replaceAll('-','/')+'受付分・子ども単位。割合の分母は3択の回答済み人数です。旧フォームなどの未取得 '+c.unknown+'人は分母に含めません。'+(answered<20?'回答が少ないため、割合は参考としてご覧ください。':'')+'</p><div class="acquisition-grid"><div><h3>'+(selected==='all'?'全体':selected+' TEAM')+'の流入割合</h3>'+stack(c)+'<div class="acquisition-legend">'+categories.map(([,label,color])=>'<span><i style="background:'+color+'"></i>'+label+'</span>').join('')+'</div><table class="acquisition-table"><thead><tr><th>きっかけ</th><th>人数</th><th>割合</th></tr></thead><tbody>'+categories.map(([key,label])=>'<tr><td>'+label+'</td><td>'+c[key]+'人</td><td>'+pct(c[key],answered)+'</td></tr>').join('')+'</tbody></table><p class="acquisition-unknown">未取得：'+c.unknown+'人 ／ 回答率：'+pct(answered,c.total)+'</p></div><div><h3>チーム別の流入割合</h3>'+ids.filter(id=>selected==='all'||selected===id).map(id=>{const t=history.teams[id];return '<div class="acquisition-row"><strong>'+id+' TEAM</strong>'+stack(t)+'<span>回答 '+known(t)+'人</span></div>'}).join('')+'<p class="acquisition-note">紹介者名の有無ではなく、選択したきっかけで集計します。Eは流入分析のみ含み、既存のA〜Dの成績比較とは分けて表示します。</p></div></div><div class="acquisition-months"><h3>月別の流入割合</h3>'+history.months.map(month=>{const t=counts(month.teams,selected);return '<div class="acquisition-row"><strong>'+month.month.replace('-','/')+'</strong>'+stack(t)+'<span>回答 '+known(t)+'人・未取得 '+t.unknown+'人</span></div>'}).join('')+'</div>';
+        }
+        select.addEventListener('change',render);render();
       })();
     </script>
   </body>

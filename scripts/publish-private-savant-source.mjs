@@ -2,6 +2,7 @@ import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
+import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
@@ -341,6 +342,8 @@ async function publishInto(root, snapshot) {
   data.headline.admissionPreviousRate = round(previousRate);
   data.headline.admissionYoYDelta = round(conversionTotals.admissions * 100 / conversionTotals.trials - previousRate);
   data.periodLabel = `${data.admissionConversion.fiscalYear}年度累計`;
+  if (snapshot.acquisitionHistory) data.acquisitionHistory=validateAcquisitionHistory(snapshot.acquisitionHistory,data);
+  else delete data.acquisitionHistory;
   if (snapshot.admissionHistory) data.admissionHistory = validateAdmissionHistory(snapshot.admissionHistory, data);
   else delete data.admissionHistory; // Legacy sources must never carry a stale monthly series forward.
   if (snapshot.trialConversionHistory) data.admissionConversionHistory = validateTrialConversionHistory(snapshot.trialConversionHistory, data);

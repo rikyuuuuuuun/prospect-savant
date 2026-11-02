@@ -2,6 +2,7 @@ import { unavailableDailyTrial, isDailyTrialSourceFailure } from './daily-trial-
 import { captureTrialDispositionSource, aggregateDispositionTrials } from './trial-analytics-disposition.mjs';
 import { fetchWithdrawalHistory } from './withdrawal-history.mjs';
 import { fetchAdmissionHistory } from './admission-history.mjs';
+import { fetchAcquisitionHistory, unavailableAcquisition } from './acquisition-history.mjs';
 import { fetchTrialConversionHistory, trialConversionDiagnostic, trialConversionFailureReason, unavailableTrialConversionHistory } from './trial-conversion-history.mjs';
 import { fetchMemberComposition, unavailableComposition } from './member-composition.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
@@ -359,7 +360,11 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
     memberComposition = unavailableComposition(asOf, reason);
     console.warn(`MEMBER_COMPOSITION_DEFERRED reason=${reason}`);
   }
+  let acquisitionHistory;
+  try { acquisitionHistory=await fetchAcquisitionHistory({spreadsheetId,token,asOf,requestJson:createRetriableGoogleJson({requestJson,...retryOptions})}); }
+  catch { acquisitionHistory=unavailableAcquisition(asOf);console.warn('ACQUISITION_SOURCE_UNAVAILABLE'); }
   const privateSnapshot = {
+    acquisitionHistory,
     memberComposition,
     withdrawalHistory,
     admissionHistory,

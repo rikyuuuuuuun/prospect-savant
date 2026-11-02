@@ -2,6 +2,7 @@ import { validateWithdrawalHistory } from './withdrawal-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { validateRetentionAvailability } from './retention-availability.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
+import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateAnnualConversion } from './annual-conversion-source.mjs';
 import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { percentileScore } from './metric-retention-evidence.mjs';
@@ -110,6 +111,9 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   }
   if (data.withdrawalHistory !== undefined) {
     try { validateWithdrawalHistory(data.withdrawalHistory, data); } catch (error) { add(errors, false, error.message); }
+  }
+  if(data.acquisitionHistory!==undefined){
+    try{validateAcquisitionHistory(data.acquisitionHistory,data)}catch(error){add(errors,false,error.message)}
   }
   if (data.admissionHistory !== undefined) {
     try { validateAdmissionHistory(data.admissionHistory, data); } catch (error) { add(errors, false, error.message); }
