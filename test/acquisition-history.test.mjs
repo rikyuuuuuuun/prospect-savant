@@ -34,6 +34,15 @@ test('counts received dates from launch, excludes future submissions and resets 
   const h=buildAcquisitionHistory({asOf:'2027-04-02',rows:[row('last','A',note('紹介'),'2027-03-31'),row('next','A',note('チラシ'),'2027-04-01')]});
   assert.equal(h.since,'2027-04-01');assert.equal(h.teams.A.total,1);assert.equal(h.teams.A.flyer,1);
 });
+
+test('an operator-marked E-team form test cannot create a referral or affect shares; genuine E applications remain',()=>{
+  const testRow=row('e-check','E',note('紹介')+'／[PROSPECT_ANALYTICS_DISPOSITION_V1:EXCLUDE_TEST:FORM-e-check]');
+  const onlyTest=buildAcquisitionHistory({asOf,rows:[testRow]});
+  assert.deepEqual(onlyTest.teams.E,{flyer:0,referral:0,other:0,unknown:0,total:0});
+  const withReal=buildAcquisitionHistory({asOf,rows:[testRow,row('e-real','E',note('チラシ'))]});
+  assert.deepEqual(withReal.teams.E,{flyer:1,referral:0,other:0,unknown:0,total:1});
+  assert.equal(withReal.months[0].teams.E.total,1);
+});
 test('validation rejects leaked fields, inconsistent totals and stale dates; unavailable is not zero',()=>{
   const h=buildAcquisitionHistory({asOf,rows:[]});
   assert.throws(()=>validateAcquisitionHistory({...h,receipt:'private'},{asOf}),/PRIVATE_FIELD/);
