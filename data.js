@@ -2661,5 +2661,91 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         null
       ]
     }
+  },
+  "acquisitionHistory": {
+    "definition": "club-discovery-source-v1",
+    "status": "ok",
+    "asOf": "2026-11-02",
+    "since": "2026-11-02",
+    "timezone": "Asia/Tokyo",
+    "teams": {
+      "A": {
+        "flyer": 0,
+        "referral": 0,
+        "other": 0,
+        "unknown": 0,
+        "total": 0
+      },
+      "B": {
+        "flyer": 0,
+        "referral": 0,
+        "other": 0,
+        "unknown": 0,
+        "total": 0
+      },
+      "C": {
+        "flyer": 0,
+        "referral": 0,
+        "other": 0,
+        "unknown": 0,
+        "total": 0
+      },
+      "D": {
+        "flyer": 0,
+        "referral": 0,
+        "other": 0,
+        "unknown": 0,
+        "total": 0
+      },
+      "E": {
+        "flyer": 0,
+        "referral": 0,
+        "other": 0,
+        "unknown": 0,
+        "total": 0
+      }
+    },
+    "months": [
+      {
+        "month": "2026-11",
+        "teams": {
+          "A": {
+            "flyer": 0,
+            "referral": 0,
+            "other": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "B": {
+            "flyer": 0,
+            "referral": 0,
+            "other": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "C": {
+            "flyer": 0,
+            "referral": 0,
+            "other": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "D": {
+            "flyer": 0,
+            "referral": 0,
+            "other": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "E": {
+            "flyer": 0,
+            "referral": 0,
+            "other": 0,
+            "unknown": 0,
+            "total": 0
+          }
+        }
+      }
+    ]
   }
 });
