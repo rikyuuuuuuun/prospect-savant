@@ -1,10 +1,10 @@
 window.PROSPECT_SAVANT_DATA = Object.freeze({
-  "snapshotId": "savant-2026-11-05-0730-trial-ytd-v1",
+  "snapshotId": "savant-2026-11-06-0730-trial-ytd-v1",
   "scoreVersion": "v7-operational-member-denominator",
-  "asOf": "2026-11-05",
-  "asOfLabel": "2026年11月5日",
+  "asOf": "2026-11-06",
+  "asOfLabel": "2026年11月6日",
   "admissions": {
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "definition": "member-master-admission-date-annual-v1",
     "fiscalYear": "2026",
     "futureAdmissionCount": 0,
@@ -28,21 +28,21 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "headline": {
     "members": 1086,
     "monthlyDelta": -21,
-    "admissionRate": 73.9,
+    "admissionRate": 73.6,
     "admissionPreviousRate": 69.9,
-    "admissionYoYDelta": 4,
+    "admissionYoYDelta": 3.7,
     "latestEventParticipants": 224
   },
   "comparison": {
     "scoreVersion": "v7-operational-member-denominator",
-    "previousAsOf": "2026-11-04",
-    "previousAsOfLabel": "2026年11月4日",
+    "previousAsOf": "2026-11-05",
+    "previousAsOfLabel": "2026年11月5日",
     "headline": {
       "members": 1086,
       "monthlyDelta": -21,
-      "admissionRate": 74,
+      "admissionRate": 73.9,
       "admissionPreviousRate": 69.9,
-      "admissionYoYDelta": 4.1,
+      "admissionYoYDelta": 4,
       "latestEventParticipants": 224
     },
     "teams": [
@@ -50,9 +50,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "id": "A",
         "rank": 1,
         "members": 347,
-        "overall": 72,
+        "overall": 74,
         "metrics": {
-          "retention": 68,
+          "retention": 75,
           "admission": 88,
           "event": 76,
           "growth": 88,
@@ -60,7 +60,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "metricEvidence": {
           "version": "metric-evidence-v1",
-          "asOf": "2026-11-04",
+          "asOf": "2026-11-05",
           "retention": {
             "periods": [
               {
@@ -108,7 +108,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "retained": 245,
                 "exited": 178,
                 "rate": 57.9,
-                "relativeScore": 37.5,
+                "relativeScore": 62.5,
                 "scored": true
               },
               {
@@ -160,7 +160,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "scored": false
               }
             ],
-            "weightedIndex": 68.3
+            "weightedIndex": 75
           },
           "admission": {
             "trials": 141,
@@ -193,7 +193,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "family": {
             "definition": "referral-volume-rate-v2",
             "fiscalYear": "2026",
-            "asOf": "2026-11-04",
+            "asOf": "2026-11-05",
             "trialPoints": 7,
             "siblingPoints": 9,
             "points": 16,
@@ -215,9 +215,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "id": "B",
         "rank": 2,
         "members": 318,
-        "overall": 64,
+        "overall": 62,
         "metrics": {
-          "retention": 52,
+          "retention": 45,
           "admission": 63,
           "event": 78,
           "growth": 63,
@@ -225,7 +225,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "metricEvidence": {
           "version": "metric-evidence-v1",
-          "asOf": "2026-11-04",
+          "asOf": "2026-11-05",
           "retention": {
             "periods": [
               {
@@ -245,8 +245,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "label": "6か月",
                 "months": 6,
                 "weight": 2,
-                "sample": 478,
-                "retained": 451,
+                "sample": 480,
+                "retained": 453,
                 "exited": 27,
                 "rate": 94.4,
                 "relativeScore": 62.5,
@@ -269,11 +269,11 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "label": "2年",
                 "months": 24,
                 "weight": 4,
-                "sample": 324,
+                "sample": 325,
                 "retained": 188,
-                "exited": 136,
-                "rate": 58,
-                "relativeScore": 62.5,
+                "exited": 137,
+                "rate": 57.8,
+                "relativeScore": 37.5,
                 "scored": true
               },
               {
@@ -325,14 +325,14 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "scored": false
               }
             ],
-            "weightedIndex": 51.7
+            "weightedIndex": 45
           },
           "admission": {
-            "trials": 144,
+            "trials": 145,
             "admissions": 109,
-            "rate": 75.7,
+            "rate": 75.2,
             "previousRate": 82.4,
-            "yoyDelta": -6.7,
+            "yoyDelta": -7.2,
             "relativeScore": 62.5
           },
           "event": {
@@ -358,7 +358,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "family": {
             "definition": "referral-volume-rate-v2",
             "fiscalYear": "2026",
-            "asOf": "2026-11-04",
+            "asOf": "2026-11-05",
             "trialPoints": 8,
             "siblingPoints": 12,
             "points": 20,
@@ -390,7 +390,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "metricEvidence": {
           "version": "metric-evidence-v1",
-          "asOf": "2026-11-04",
+          "asOf": "2026-11-05",
           "retention": {
             "periods": [
               {
@@ -410,10 +410,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "label": "6か月",
                 "months": 6,
                 "weight": 2,
-                "sample": 338,
-                "retained": 304,
+                "sample": 339,
+                "retained": 305,
                 "exited": 34,
-                "rate": 89.9,
+                "rate": 90,
                 "relativeScore": 12.5,
                 "scored": true
               },
@@ -434,10 +434,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "label": "2年",
                 "months": 24,
                 "weight": 4,
-                "sample": 176,
+                "sample": 177,
                 "retained": 82,
-                "exited": 94,
-                "rate": 46.6,
+                "exited": 95,
+                "rate": 46.3,
                 "relativeScore": 12.5,
                 "scored": true
               },
@@ -523,7 +523,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "family": {
             "definition": "referral-volume-rate-v2",
             "fiscalYear": "2026",
-            "asOf": "2026-11-04",
+            "asOf": "2026-11-05",
             "trialPoints": 3,
             "siblingPoints": 5,
             "points": 8,
@@ -555,7 +555,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "metricEvidence": {
           "version": "metric-evidence-v1",
-          "asOf": "2026-11-04",
+          "asOf": "2026-11-05",
           "retention": {
             "periods": [
               {
@@ -587,10 +587,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
                 "label": "12か月",
                 "months": 12,
                 "weight": 3,
-                "sample": 175,
-                "retained": 138,
+                "sample": 176,
+                "retained": 139,
                 "exited": 37,
-                "rate": 78.9,
+                "rate": 79,
                 "relativeScore": 37.5,
                 "scored": true
               },
@@ -688,7 +688,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "family": {
             "definition": "referral-volume-rate-v2",
             "fiscalYear": "2026",
-            "asOf": "2026-11-04",
+            "asOf": "2026-11-05",
             "trialPoints": 8,
             "siblingPoints": 11,
             "points": 19,
@@ -712,7 +712,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "label": "人物単位運用会員"
     },
     "admissions": {
-      "asOf": "2026-11-04",
+      "asOf": "2026-11-05",
       "definition": "member-master-admission-date-annual-v1",
       "fiscalYear": "2026",
       "futureAdmissionCount": 0,
@@ -818,7 +818,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "metricEvidence": {
         "version": "metric-evidence-v1",
-        "asOf": "2026-11-05",
+        "asOf": "2026-11-06",
         "retention": {
           "periods": [
             {
@@ -838,8 +838,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
               "label": "6か月",
               "months": 6,
               "weight": 2,
-              "sample": 572,
-              "retained": 545,
+              "sample": 573,
+              "retained": 546,
               "exited": 27,
               "rate": 95.3,
               "relativeScore": 87.5,
@@ -951,7 +951,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "family": {
           "definition": "referral-volume-rate-v2",
           "fiscalYear": "2026",
-          "asOf": "2026-11-05",
+          "asOf": "2026-11-06",
           "trialPoints": 7,
           "siblingPoints": 9,
           "points": 16,
@@ -968,7 +968,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 628/637人継続・非継続9人（98.6%・相対点62.5）、6か月 545/572人継続・非継続27人（95.3%・相対点87.5）、12か月 420/507人継続・非継続87人（82.8%・相対点87.5）、2年 245/423人継続・非継続178人（57.9%・相対点62.5）、3年 115/283人継続・非継続168人（40.6%・相対点75.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果75点です。 2026年11月4日68点→75点の主因は、2年はA TEAM自身の率は57.9%→57.9%で実質不変。一方でB TEAMが188/324人・58.0%から188/325人・57.8%へ動き、A TEAMの57.9%を下回ったため、相対点が37.5→62.5となり、定着力へ約+6.7点影響です。 【年度入会力】141人体験のうち124人入会、年度の体験→入会率87.9%（前年同期間82.9%）。A〜Dの年度入会率を相対評価して88点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.4%と継続参加率45.6%を、参加70%・継続30%で統合して76点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 69件、10〜20% 48件、20〜30% 46件、上位30%の子ども86人、加重点349点。A〜Dの相対評価で88点です。 【紹介力】2026年度の紹介16ポイント（紹介体験7人・兄弟姉妹入会9人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は16pt÷基準日の会員347人＝4.61％。人数相対点37.5×70％＋紹介率相対点37.5×30％で38点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月4日の16→16ポイント。"
+      "note": "評価根拠｜【定着力】3か月 628/637人継続・非継続9人（98.6%・相対点62.5）、6か月 546/573人継続・非継続27人（95.3%・相対点87.5）、12か月 420/507人継続・非継続87人（82.8%・相対点87.5）、2年 245/423人継続・非継続178人（57.9%・相対点62.5）、3年 115/283人継続・非継続168人（40.6%・相対点75.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果75点です。 【年度入会力】141人体験のうち124人入会、年度の体験→入会率87.9%（前年同期間82.9%）。A〜Dの年度入会率を相対評価して88点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.4%と継続参加率45.6%を、参加70%・継続30%で統合して76点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 69件、10〜20% 48件、20〜30% 46件、上位30%の子ども86人、加重点349点。A〜Dの相対評価で88点です。 【紹介力】2026年度の紹介16ポイント（紹介体験7人・兄弟姉妹入会9人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は16pt÷基準日の会員347人＝4.61％。人数相対点37.5×70％＋紹介率相対点37.5×30％で38点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月5日の16→16ポイント。"
     },
     {
       "id": "B",
@@ -998,7 +998,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "metricEvidence": {
         "version": "metric-evidence-v1",
-        "asOf": "2026-11-05",
+        "asOf": "2026-11-06",
         "retention": {
           "periods": [
             {
@@ -1054,10 +1054,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
               "label": "3年",
               "months": 36,
               "weight": 5,
-              "sample": 191,
+              "sample": 193,
               "retained": 63,
-              "exited": 128,
-              "rate": 33,
+              "exited": 130,
+              "rate": 32.6,
               "relativeScore": 25,
               "scored": true
             },
@@ -1131,7 +1131,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "family": {
           "definition": "referral-volume-rate-v2",
           "fiscalYear": "2026",
-          "asOf": "2026-11-05",
+          "asOf": "2026-11-06",
           "trialPoints": 8,
           "siblingPoints": 12,
           "points": 20,
@@ -1148,7 +1148,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 508/515人継続・非継続7人（98.6%・相対点87.5）、6か月 453/480人継続・非継続27人（94.4%・相対点62.5）、12か月 324/408人継続・非継続84人（79.4%・相対点62.5）、2年 188/325人継続・非継続137人（57.8%・相対点37.5）、3年 63/191人継続・非継続128人（33.0%・相対点25.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果45点です。 2026年11月4日52点→45点の主因は、2年はB TEAM自身は188/324人・58.0%→188/325人・57.8%。一方でA TEAMが245/423人・57.9%から245/423人・57.9%へ動き、B TEAMの57.8%を上回ったため、相対点が62.5→37.5となり、定着力へ約-6.7点影響です。 【年度入会力】145人体験のうち109人入会、年度の体験→入会率75.2%（前年同期間82.4%）。A〜Dの年度入会率を相対評価して63点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.8%と継続参加率46.9%を、参加70%・継続30%で統合して78点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 31件、10〜20% 37件、20〜30% 39件、上位30%の子ども65人、加重点206点。A〜Dの相対評価で63点です。 【紹介力】2026年度の紹介20ポイント（紹介体験8人・兄弟姉妹入会12人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は20pt÷基準日の会員318人＝6.29％。人数相対点87.5×70％＋紹介率相対点62.5×30％で80点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月4日の20→20ポイント。"
+      "note": "評価根拠｜【定着力】3か月 508/515人継続・非継続7人（98.6%・相対点87.5）、6か月 453/480人継続・非継続27人（94.4%・相対点62.5）、12か月 324/408人継続・非継続84人（79.4%・相対点62.5）、2年 188/325人継続・非継続137人（57.8%・相対点37.5）、3年 63/193人継続・非継続130人（32.6%・相対点25.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果45点です。 【年度入会力】145人体験のうち109人入会、年度の体験→入会率75.2%（前年同期間82.4%）。A〜Dの年度入会率を相対評価して63点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.8%と継続参加率46.9%を、参加70%・継続30%で統合して78点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 31件、10〜20% 37件、20〜30% 39件、上位30%の子ども65人、加重点206点。A〜Dの相対評価で63点です。 【紹介力】2026年度の紹介20ポイント（紹介体験8人・兄弟姉妹入会12人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は20pt÷基準日の会員318人＝6.29％。人数相対点87.5×70％＋紹介率相対点62.5×30％で80点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月5日の20→20ポイント。"
     },
     {
       "id": "C",
@@ -1167,18 +1167,18 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "benchmark": {
         "retention12mRate": 72.2,
         "retention12mSample": 302,
-        "admissionRate": 64.2,
+        "admissionRate": 63,
         "admissionPreviousRate": 65.5,
-        "admissionYoYDelta": -1.4,
+        "admissionYoYDelta": -2.6,
         "eventRate": 12.4,
         "repeatRate": 38.4,
-        "referralPoints": 8,
-        "referralRate": 3.6363636363636362,
+        "referralPoints": 10,
+        "referralRate": 4.545454545454546,
         "referralMembers": 220
       },
       "metricEvidence": {
         "version": "metric-evidence-v1",
-        "asOf": "2026-11-05",
+        "asOf": "2026-11-06",
         "retention": {
           "periods": [
             {
@@ -1281,11 +1281,11 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "weightedIndex": 15
         },
         "admission": {
-          "trials": 106,
+          "trials": 108,
           "admissions": 68,
-          "rate": 64.2,
+          "rate": 63,
           "previousRate": 65.5,
-          "yoyDelta": -1.4,
+          "yoyDelta": -2.6,
           "relativeScore": 37.5
         },
         "event": {
@@ -1311,13 +1311,13 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "family": {
           "definition": "referral-volume-rate-v2",
           "fiscalYear": "2026",
-          "asOf": "2026-11-05",
-          "trialPoints": 3,
+          "asOf": "2026-11-06",
+          "trialPoints": 5,
           "siblingPoints": 5,
-          "points": 8,
+          "points": 10,
           "calculatedScore": 12.5,
           "members": 220,
-          "rate": 3.6363636363636362,
+          "rate": 4.545454545454546,
           "pointScore": 12.5,
           "rateScore": 12.5,
           "weights": {
@@ -1328,7 +1328,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 368/379人継続・非継続11人（97.1%・相対点37.5）、6か月 305/339人継続・非継続34人（90.0%・相対点12.5）、12か月 218/302人継続・非継続84人（72.2%・相対点12.5）、2年 82/177人継続・非継続95人（46.3%・相対点12.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果15点です。 【年度入会力】106人体験のうち68人入会、年度の体験→入会率64.2%（前年同期間65.5%）。A〜Dの年度入会率を相対評価して38点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率12.4%と継続参加率38.4%を、参加70%・継続30%で統合して52点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 12件、10〜20% 14件、20〜30% 20件、上位30%の子ども32人、加重点84点。A〜Dの相対評価で38点です。 【紹介力】2026年度の紹介8ポイント（紹介体験3人・兄弟姉妹入会5人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は8pt÷基準日の会員220人＝3.64％。人数相対点12.5×70％＋紹介率相対点12.5×30％で13点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月4日の8→8ポイント。"
+      "note": "評価根拠｜【定着力】3か月 368/379人継続・非継続11人（97.1%・相対点37.5）、6か月 305/339人継続・非継続34人（90.0%・相対点12.5）、12か月 218/302人継続・非継続84人（72.2%・相対点12.5）、2年 82/177人継続・非継続95人（46.3%・相対点12.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果15点です。 【年度入会力】108人体験のうち68人入会、年度の体験→入会率63.0%（前年同期間65.5%）。A〜Dの年度入会率を相対評価して38点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率12.4%と継続参加率38.4%を、参加70%・継続30%で統合して52点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 12件、10〜20% 14件、20〜30% 20件、上位30%の子ども32人、加重点84点。A〜Dの相対評価で38点です。 【紹介力】2026年度の紹介10ポイント（紹介体験5人・兄弟姉妹入会5人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は10pt÷基準日の会員220人＝4.55％。人数相対点12.5×70％＋紹介率相対点12.5×30％で13点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月5日の8→10ポイント。"
     },
     {
       "id": "D",
@@ -1345,8 +1345,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "family": 70
       },
       "benchmark": {
-        "retention12mRate": 79,
-        "retention12mSample": 176,
+        "retention12mRate": 79.2,
+        "retention12mSample": 178,
         "admissionRate": 62.7,
         "admissionPreviousRate": 63,
         "admissionYoYDelta": -0.3,
@@ -1356,10 +1356,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "referralRate": 9.45273631840796,
         "referralMembers": 201
       },
-      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 201/217人継続・非継続16人（92.6%・相対点37.5）、12か月 139/176人継続・非継続37人（79.0%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果55点です。 【年度入会力】102人体験のうち64人入会、年度の体験→入会率62.7%（前年同期間63.0%）。A〜Dの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。A〜Dの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員201人＝9.45％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月4日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
+      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 201/217人継続・非継続16人（92.6%・相対点37.5）、12か月 141/178人継続・非継続37人（79.2%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果55点です。 【年度入会力】102人体験のうち64人入会、年度の体験→入会率62.7%（前年同期間63.0%）。A〜Dの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。A〜Dの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員201人＝9.45％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月5日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
       "metricEvidence": {
         "version": "metric-evidence-v1",
-        "asOf": "2026-11-05",
+        "asOf": "2026-11-06",
         "retention": {
           "periods": [
             {
@@ -1391,10 +1391,10 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
               "label": "12か月",
               "months": 12,
               "weight": 3,
-              "sample": 176,
-              "retained": 139,
+              "sample": 178,
+              "retained": 141,
               "exited": 37,
-              "rate": 79,
+              "rate": 79.2,
               "relativeScore": 37.5,
               "scored": true
             },
@@ -1492,7 +1492,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "family": {
           "definition": "referral-volume-rate-v2",
           "fiscalYear": "2026",
-          "asOf": "2026-11-05",
+          "asOf": "2026-11-06",
           "trialPoints": 8,
           "siblingPoints": 11,
           "points": 19,
@@ -1580,7 +1580,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "admissionHistory": {
     "definition": "member-master-admission-date-monthly-v1",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "fiscalYear": "2026",
     "months": [
       "2026-04",
@@ -1671,7 +1671,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "withdrawalHistory": {
     "definition": "member-retirement-explicit-stop-detected-v1",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "fiscalYear": "2026",
     "months": [
       "2026-04",
@@ -2081,7 +2081,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "admissionConversion": {
     "definition": "trial-attendance-fiscal-ytd-v1",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "fiscalYear": "2026",
     "teams": {
       "A": {
@@ -2097,7 +2097,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "previousAdmissions": 70
       },
       "C": {
-        "trials": 106,
+        "trials": 108,
         "admissions": 68,
         "previousTrials": 119,
         "previousAdmissions": 78
@@ -2112,7 +2112,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   },
   "retentionAvailability": {
     "definition": "historical-retained-forward-confirmed-v2",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "teams": {
       "A": {
         "confirmedWithdrawals": 6,
@@ -2151,7 +2151,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "memberComposition": {
     "definition": "operational-member-composition-v1",
     "memberDefinition": "operational-person-v1",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "status": "ok",
     "overall": {
       "members": 1086,
@@ -2182,9 +2182,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "unknown": 2
       },
       "tenure": {
-        "lt3": 92,
-        "m3to6": 151,
-        "m6to12": 193,
+        "lt3": 89,
+        "m3to6": 153,
+        "m6to12": 194,
         "y1to2": 287,
         "y2to3": 229,
         "y3to5": 129,
@@ -2217,7 +2217,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "summary": {
         "knownTenure": 1085,
-        "tenureMonthsTotal": 19261,
+        "tenureMonthsTotal": 19298,
         "meanTenureMonths": 17.8,
         "medianTenureMonths": 16
       }
@@ -2252,8 +2252,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "unknown": 0
         },
         "tenure": {
-          "lt3": 35,
-          "m3to6": 58,
+          "lt3": 32,
+          "m3to6": 61,
           "m6to12": 61,
           "y1to2": 58,
           "y2to3": 60,
@@ -2286,7 +2286,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "summary": {
           "knownTenure": 347,
-          "tenureMonthsTotal": 7097,
+          "tenureMonthsTotal": 7110,
           "meanTenureMonths": 20.5,
           "medianTenureMonths": 17
         }
@@ -2353,7 +2353,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "summary": {
           "knownTenure": 317,
-          "tenureMonthsTotal": 6040,
+          "tenureMonthsTotal": 6052,
           "meanTenureMonths": 19.1,
           "medianTenureMonths": 17
         }
@@ -2388,8 +2388,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "tenure": {
           "lt3": 11,
-          "m3to6": 33,
-          "m6to12": 32,
+          "m3to6": 32,
+          "m6to12": 33,
           "y1to2": 73,
           "y2to3": 71,
           "y3to5": 0,
@@ -2418,9 +2418,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "summary": {
           "knownTenure": 220,
-          "tenureMonthsTotal": 3558,
+          "tenureMonthsTotal": 3563,
           "meanTenureMonths": 16.2,
-          "medianTenureMonths": 16
+          "medianTenureMonths": 16.5
         }
       },
       "D": {
@@ -2483,7 +2483,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         },
         "summary": {
           "knownTenure": 201,
-          "tenureMonthsTotal": 2566,
+          "tenureMonthsTotal": 2573,
           "meanTenureMonths": 12.8,
           "medianTenureMonths": 13
         }
@@ -2493,7 +2493,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "admissionConversionHistory": {
     "status": "ok",
     "definition": "trial-attendance-fiscal-monthly-v1",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "fiscalYear": "2026",
     "months": [
       "2026-04",
@@ -2579,7 +2579,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           1,
           4,
           10,
-          1,
+          3,
           null,
           null,
           null,
@@ -2640,7 +2640,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         9,
         51,
         56,
-        2,
+        4,
         null,
         null,
         null,
@@ -2665,7 +2665,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "acquisitionHistory": {
     "definition": "club-discovery-source-v1",
     "status": "ok",
-    "asOf": "2026-11-05",
+    "asOf": "2026-11-06",
     "since": "2026-11-02",
     "timezone": "Asia/Tokyo",
     "teams": {
@@ -2692,17 +2692,17 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "D": {
         "flyer": 0,
-        "referral": 0,
+        "referral": 2,
         "other": 0,
         "unknown": 0,
-        "total": 0
+        "total": 2
       },
       "E": {
-        "flyer": 3,
+        "flyer": 4,
         "referral": 0,
         "other": 0,
         "unknown": 0,
-        "total": 3
+        "total": 4
       }
     },
     "months": [
@@ -2732,17 +2732,17 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           },
           "D": {
             "flyer": 0,
-            "referral": 0,
+            "referral": 2,
             "other": 0,
             "unknown": 0,
-            "total": 0
+            "total": 2
           },
           "E": {
-            "flyer": 3,
+            "flyer": 4,
             "referral": 0,
             "other": 0,
             "unknown": 0,
-            "total": 3
+            "total": 4
           }
         }
       }
