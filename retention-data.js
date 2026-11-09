@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-11-09-0730-trial-ytd-v1",
-  "asOf": "2026-11-09",
+  "snapshotId": "savant-2026-11-10-0730-trial-ytd-v1",
+  "asOf": "2026-11-10",
   "minimumSample": 20,
   "months": [
     1,
@@ -18,7 +18,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "rates": [
       99.7,
       98,
-      93.6,
+      93.5,
       86.1,
       79.1,
       68.6,
@@ -27,12 +27,12 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       30.8
     ],
     "samples": [
-      1848,
+      1850,
       1783,
-      1614,
+      1619,
       1457,
-      1398,
-      1163,
+      1399,
+      1165,
       964,
       477,
       169
@@ -52,7 +52,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         30.8
       ],
       "samples": [
-        664,
+        666,
         640,
         574,
         529,
@@ -67,7 +67,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         98.6,
-        94.4,
+        94,
         86.5,
         79.5,
         73.2,
@@ -78,7 +78,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         535,
         515,
-        481,
+        483,
         430,
         410,
         358,
@@ -94,7 +94,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         90,
         80.6,
         72.2,
-        59.3,
+        59.1,
         46.1,
         null,
         null
@@ -105,7 +105,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         340,
         309,
         302,
-        246,
+        247,
         178,
         0,
         0
@@ -115,10 +115,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         96.8,
-        92.7,
+        92.8,
         86.8,
-        79.2,
-        73.3,
+        79.3,
+        73.6,
         63.2,
         null,
         null
@@ -126,10 +126,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         262,
         249,
-        219,
+        222,
         189,
-        178,
-        90,
+        179,
+        91,
         38,
         0,
         0
