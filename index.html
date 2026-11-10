@@ -1438,6 +1438,7 @@
           <div class="scale-title">SCORE SCALE</div>
           <div class="scale-track" id="score-scale"></div>
         </div>
+        <p class="cmp-note" id="team-e-status" hidden><strong>Eチーム</strong>は発足済みです。会員・体験実績の集計連携を準備しています。</p>
         <div class="team-tools" id="team-filters" aria-label="表示チームを選択"></div>
         <div class="team-grid" id="team-grid"></div>
       </section>
@@ -3050,6 +3051,7 @@
           <span class="scale-tick" style="left:${item.value}%">${item.value}<br>${item.label}</span>
         `).join("");
 
+        document.getElementById("team-e-status").hidden = data.teams.some((team) => team.id === "E");
         const filters = [{ id: "ALL", label: "全チーム" }, ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` }))];
         document.getElementById("team-filters").innerHTML = filters.map((filter, index) => `
           <button type="button" class="filter-button" data-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
