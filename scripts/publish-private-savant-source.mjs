@@ -1,6 +1,7 @@
 import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
+import { E_METRIC_RANGE, readETeamMetrics } from './e-team-metrics.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
@@ -334,7 +335,13 @@ async function publishInto(root, snapshot) {
   updateData(data, ranges, asOf);
   const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
   assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
-  if (eTeam) data.eTeam = eTeam;
+  if (eTeam) {
+    const metrics = readETeamMetrics(snapshot.ranges[E_METRIC_RANGE], eTeam);
+    assert(metrics || !data.eTeam?.metrics, 'E_METRIC_SOURCE_MISSING');
+    if (metrics) eTeam.metrics = metrics;
+    if (snapshot.eTeamAnalysis) eTeam.analysis = snapshot.eTeamAnalysis;
+    data.eTeam = eTeam;
+  }
   if (snapshot.memberComposition) data.memberComposition = validateMemberComposition(snapshot.memberComposition, data);
   else delete data.memberComposition;
   data.admissionConversion = assertAnnualConversionSource(snapshot, asOf);

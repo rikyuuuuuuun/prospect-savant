@@ -67,11 +67,11 @@ function aggregate(members, asOf) {
 }
 
 // Input stays private. Only whitelisted aggregate fields leave this function.
-export function buildMemberComposition({ records, settings, asOf, expectedCounts }) {
+export function buildMemberComposition({ records, settings, asOf, expectedCounts }, teamIds = IDS) {
   check(iso(asOf) === asOf, 'ASOF_INVALID');
   const grouped = new Map();
   for (const record of records) {
-    if (!IDS.includes(record.team) || !ACTIVE.includes(record.status)) continue;
+    if (!teamIds.includes(record.team) || !ACTIVE.includes(record.status)) continue;
     check(record.id && record.person, 'KEY_MISSING');
     if (!grouped.has(record.person)) grouped.set(record.person, []);
     grouped.get(record.person).push(record);
@@ -79,10 +79,10 @@ export function buildMemberComposition({ records, settings, asOf, expectedCounts
   const eligible = [...grouped].flatMap(([personKey, rows]) => rows.map(row => ({ personKey, team: row.team, status: row.status })));
   const overrides = settings.filter(row => row.type === 'TEAM_OVERRIDE' && row.approved && row.active && new Set(grouped.get(row.person)?.map(member => member.team)).size > 1)
     .map(row => ({ personKey: row.person, effectiveTeam: row.team, approved: true, active: true }));
-  const exceptions = settings.filter(row => row.type === 'EXCEPTION' && row.approved && row.active)
+  const exceptions = settings.filter(row => row.type === 'EXCEPTION' && row.approved && row.active && teamIds.includes(row.team))
     .map(row => ({ personKey: row.person, team: row.team, approved: true, active: true }));
   let roster;
-  try { roster = buildOperationalRoster({ records: eligible, teamOverrides: overrides, exceptions }).roster; }
+  try { roster = buildOperationalRoster({ records: eligible, teamOverrides: overrides, exceptions, teamIds }).roster; }
   catch { fail('ROSTER_UNRESOLVED'); }
   const people = roster.map(member => {
     const rows = grouped.get(member.personKey) || [];
@@ -93,15 +93,15 @@ export function buildMemberComposition({ records, settings, asOf, expectedCounts
     const state = states.includes('在籍') ? 'active' : states.includes('退会予定') ? 'scheduled' : states.includes('休会') ? 'paused' : 'unknown';
     return { team: member.team, birthday, joinedAt, gender: uniqueValue(rows.map(row => gender(row.gender))), status: state };
   });
-  const composition = { definition: COMPOSITION_DEFINITION, memberDefinition: 'operational-person-v1', asOf, status: 'ok', overall: aggregate(people, asOf), teams: Object.fromEntries(IDS.map(id => [id, aggregate(people.filter(person => person.team === id), asOf)])) };
-  validateMemberComposition(composition, { asOf, memberDefinition: { id: 'operational-person-v1' }, headline: { members: Object.values(expectedCounts).reduce((a, b) => a + b, 0) }, teams: IDS.map(id => ({ id, members: expectedCounts[id] })) });
+  const composition = { definition: COMPOSITION_DEFINITION, memberDefinition: 'operational-person-v1', asOf, status: 'ok', overall: aggregate(people, asOf), teams: Object.fromEntries(teamIds.map(id => [id, aggregate(people.filter(person => person.team === id), asOf)])) };
+  validateMemberComposition(composition, { asOf, memberDefinition: { id: 'operational-person-v1' }, headline: { members: Object.values(expectedCounts).reduce((a, b) => a + b, 0) }, teams: teamIds.map(id => ({ id, members: expectedCounts[id] })) }, teamIds);
   return composition;
 }
 
 export function unavailableComposition(asOf, reason = 'SOURCE_UNAVAILABLE') {
   return { definition: COMPOSITION_DEFINITION, memberDefinition: 'operational-person-v1', asOf, status: 'unavailable', reason, overall: null, teams: null };
 }
-export function validateMemberComposition(value, data) {
+export function validateMemberComposition(value, data, teamIds = IDS) {
   const exact = (object, keys) => check(object && !Array.isArray(object) && Object.keys(object).sort().join() === [...keys].sort().join(), 'FIELDS_INVALID');
   exact(value, ['definition', 'memberDefinition', 'asOf', 'status', 'overall', 'teams', ...(value?.status === 'unavailable' ? ['reason'] : [])]);
   check(value.definition === COMPOSITION_DEFINITION && value.memberDefinition === data.memberDefinition?.id && value.asOf === data.asOf && iso(value.asOf) === value.asOf, 'DEFINITION_OR_DATE_INVALID');
@@ -110,7 +110,7 @@ export function validateMemberComposition(value, data) {
     return value;
   }
   check(value.status === 'ok', 'STATUS_INVALID');
-  exact(value.teams, IDS);
+  exact(value.teams, teamIds);
   for (const [id, row] of [['ALL', value.overall], ...Object.entries(value.teams)]) {
     exact(row, ['members', ...Object.keys(COMPOSITION_BUCKETS), 'entryYear', 'summary']);
     check(Number.isSafeInteger(row.members) && row.members >= 0 && row.members === (id === 'ALL' ? data.headline.members : data.teams.find(team => team.id === id)?.members), 'COUNT_MISMATCH');
@@ -126,10 +126,10 @@ export function validateMemberComposition(value, data) {
     check(summary.knownTenure ? summary.meanTenureMonths === Number((summary.tenureMonthsTotal / summary.knownTenure).toFixed(1)) && Number.isFinite(summary.medianTenureMonths) && summary.medianTenureMonths >= 0 && summary.medianTenureMonths <= summary.tenureMonthsTotal : summary.meanTenureMonths === null && summary.medianTenureMonths === null && summary.tenureMonthsTotal === 0, 'SUMMARY_INVALID');
   }
   for (const key of [...Object.keys(COMPOSITION_BUCKETS), 'entryYear']) {
-    const buckets = new Set([ ...Object.keys(value.overall[key]), ...IDS.flatMap(id => Object.keys(value.teams[id][key])) ]);
-    for (const bucket of buckets) check((value.overall[key][bucket] || 0) === IDS.reduce((sum, id) => sum + (value.teams[id][key][bucket] || 0), 0), 'TEAM_SUM_MISMATCH');
+    const buckets = new Set([ ...Object.keys(value.overall[key]), ...teamIds.flatMap(id => Object.keys(value.teams[id][key])) ]);
+    for (const bucket of buckets) check((value.overall[key][bucket] || 0) === teamIds.reduce((sum, id) => sum + (value.teams[id][key][bucket] || 0), 0), 'TEAM_SUM_MISMATCH');
   }
-  for (const key of ['knownTenure', 'tenureMonthsTotal']) check(value.overall.summary[key] === IDS.reduce((sum, id) => sum + value.teams[id].summary[key], 0), 'SUMMARY_TOTAL_MISMATCH');
+  for (const key of ['knownTenure', 'tenureMonthsTotal']) check(value.overall.summary[key] === teamIds.reduce((sum, id) => sum + value.teams[id].summary[key], 0), 'SUMMARY_TOTAL_MISMATCH');
   return value;
 }
 
@@ -143,7 +143,7 @@ export function compositionInputFromRanges(ranges, asOf, expectedCounts) {
   };
 }
 
-export async function fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts, requestJson }) {
+export async function fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts, requestJson, additionalTeamResults, eTeam }) {
   const batch = (id, ranges, mode = 'UNFORMATTED_VALUE') => {
     const params = new URLSearchParams({ valueRenderOption: mode, dateTimeRenderOption: 'SERIAL_NUMBER' });
     ranges.forEach(range => params.append('ranges', range));
@@ -166,6 +166,9 @@ export async function fetchMemberComposition({ spreadsheetId, token, asOf, expec
   const capture = async () => (await requestJson(url, token)).valueRanges || [];
   const raw = await capture();
   const result = buildMemberComposition(compositionInputFromRanges(raw, asOf, expectedCounts));
+  if (additionalTeamResults && eTeam) {
+    additionalTeamResults.memberComposition = buildMemberComposition(compositionInputFromRanges(raw, asOf, { ...expectedCounts, E: eTeam.members }), [...IDS, 'E']);
+  }
   check(JSON.stringify(raw) === JSON.stringify(await capture()), 'SOURCE_CHANGED');
   check((await requestJson(linkUrl, token)).valueRanges?.[0]?.values?.[0]?.[0] === formula, 'SOURCE_CHANGED');
   return result;

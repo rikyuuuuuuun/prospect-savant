@@ -16,10 +16,15 @@ export async function buildSavantBundle(root) {
   if (!snapshot.ok || !trial.ok) throw Error('Snapshot validation failed before staff bundle generation');
   let html = await readFile(join(root, 'index.html'), 'utf8');
   const readData = async file => parseFrozenJson(await readFile(join(root, file), 'utf8'), file);
-  const [data, events, curve] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js'].map(readData));
-  const projected = projectContinuousScores(data, events, curve.minimumSample || 20);
+  const [data, events, curve, schoolAge, trialData] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readData));
+  const projected = projectContinuousScores(data, events, curve.minimumSample || 20, { curve, schoolAge, trial: trialData });
   if (data.eTeam) projected.data.eTeam.combinedConversion = combinedConversion(data);
   const projections = { 'data.js': ['PROSPECT_SAVANT_DATA', projected.data], 'event-data.js': ['PROSPECT_EVENT_HISTORY', projected.events] };
+  if (data.eTeam?.metrics) Object.assign(projections, {
+    'retention-data.js': ['PROSPECT_RETENTION_CURVE', projected.curve],
+    'school-age-data.js': ['PROSPECT_SCHOOL_AGE_RETENTION', projected.schoolAge],
+    'trial-data.js': ['PROSPECT_TRIAL_DATA', projected.trial],
+  });
   for (const file of scripts) {
     const tag = `<script src="./${file}"></script>`;
     if (html.split(tag).length !== 2) throw Error(`Missing or repeated data script: ${file}`);

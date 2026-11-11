@@ -28,6 +28,7 @@
         --team-b: #d28a35;
         --team-c: #3475a7;
         --team-d: #6f5b9a;
+        --team-e: #8b639b;
         --overall: #68788a;
         --shadow: 0 14px 36px rgba(16, 40, 64, 0.08);
         --radius: 18px;
@@ -1323,7 +1324,7 @@
     <main class="container main" id="dashboard-main">
       <div class="workspace-heading" id="workspace-heading" hidden>
         <div><p class="eyebrow">ANALYSIS</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
-        <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option></select><span>各グラフでも個別に選べます</span></label>
+        <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option><option value="E">E TEAM</option></select><span>各グラフでも個別に選べます</span></label>
       </div>
       <section class="section" id="standings-section" aria-labelledby="standings-title">
         <div class="section-heading">
@@ -1399,7 +1400,7 @@
       <section class="section" id="event-section" aria-labelledby="event-title">
         <div class="section-heading">
           <div><p class="eyebrow" style="color:var(--blue-deep)">EVENT LIVE BOARD</p><h2 id="event-title">イベント・ライブボード</h2></div>
-          <p>開催済みイベント（複数日開催は合算）の参加率をA〜Dで比較。イベント力は参加率70％を主軸、リピート30％を補助として算出します。</p>
+          <p>開催済みイベント（複数日開催は合算）の参加率をA〜Eで比較。イベント力は参加率70％を主軸、リピート30％を補助として算出します。</p>
         </div>
         <div class="event-board">
           <div class="event-upcoming-list" id="event-upcoming-list" aria-label="開催予定のイベント" hidden></div>
@@ -1409,7 +1410,7 @@
               <div class="event-summary-content" id="event-summary"></div>
             </article>
             <div class="event-team-panel">
-              <div class="event-team-head"><strong>A〜D 参加率ランキング</strong><span id="event-scale-label"></span></div>
+              <div class="event-team-head"><strong>A〜E 参加率ランキング</strong><span id="event-scale-label"></span></div>
               <div class="event-team-list" id="event-team-list"></div>
             </div>
           </div>
@@ -1444,7 +1445,7 @@
       </section>
 
       <section class="section" id="composition-section" aria-labelledby="composition-title">
-        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MEMBER COMPOSITION</p><h2 id="composition-title">会員構成</h2></div><p>全体・A〜Dの学年相当、在籍期間、男女比などを人数と割合で確認できます。</p></div>
+        <div class="section-heading"><div><p class="eyebrow" style="color:var(--blue-deep)">MEMBER COMPOSITION</p><h2 id="composition-title">会員構成</h2></div><p>全体・A〜Eの学年相当、在籍期間、男女比などを人数と割合で確認できます。</p></div>
         <div id="composition-content"></div>
       </section>
 
@@ -1580,6 +1581,7 @@
           B: "var(--team-b)",
           C: "var(--team-c)",
           D: "var(--team-d)",
+          E: "var(--team-e)",
         };
 
         const createSvgNode = (tag, attributes = {}) => {
@@ -1802,12 +1804,12 @@
             target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">確認中</div></div><div class="trial-summary-unavailable">当日の人数は確認中のため、人数は表示していません。ほかの指標の更新日は、画面上部のデータ基準日をご確認ください。</div>`;
             return;
           }
-          target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">${formatNumber.format(today.total)}名</div></div><div class="trial-summary-breakdown">${["A", "B", "C", "D"].map((id) => `<div class="trial-team">${id} TEAM<strong>${formatNumber.format(today.teams[id])}名</strong></div>`).join("")}</div>`;
+          target.innerHTML = `<div><div class="trial-summary-label">本日の体験</div><div class="trial-summary-total">${formatNumber.format(today.total)}名</div></div><div class="trial-summary-breakdown">${data.teams.map(team => team.id).map((id) => `<div class="trial-team">${id} TEAM<strong>${formatNumber.format(today.teams[id])}名</strong></div>`).join("")}</div>`;
         };
         const newAdmissionItems = () => {
           const current = data.admissions;
           const previous = data.comparison?.admissions;
-          const ids = ["A", "B", "C", "D"];
+          const ids = data.teams.map(team => team.id);
           if (!current || !previous || current.definition !== "member-master-admission-date-annual-v1" || current.definition !== previous.definition) return [];
           if (current.fiscalYear !== previous.fiscalYear || current.reEnrollmentPolicy !== "including-reenrollment" || previous.reEnrollmentPolicy !== "including-reenrollment") return [];
           if (current.futureAdmissionCount !== 0 || previous.futureAdmissionCount !== 0 || !(current.asOf > previous.asOf)) return [];
@@ -1909,7 +1911,7 @@
               <div class="event-overall-rate"><strong>${selected.total.rate.toFixed(1)}%</strong><span>全体参加率</span></div>
               <div class="event-overall-meta">開催時点 ${formatNumber.format(selected.total.members)}名
                 ${overallDelta === null ? "" : `<span class="event-overall-delta ${deltaTone(overallDelta)}">前回比 ${formatRateDelta(overallDelta)}</span>`}
-                ${selected.total.unassignedParticipants ? `<span class="event-overall-delta">A〜D未帰属 ${selected.total.unassignedParticipants}名</span>` : ""}
+                ${selected.total.unassignedParticipants ? `<span class="event-overall-delta">A〜E未帰属 ${selected.total.unassignedParticipants}名</span>` : ""}
               </div>
             </div>
             <div class="event-overall-track"><div class="event-overall-fill" style="width:${overallWidth}%"></div></div>`;
@@ -1988,7 +1990,7 @@
 
           svg.replaceChildren();
           svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-          svg.setAttribute("aria-label", "過去イベントのA〜Dチーム別参加率推移");
+          svg.setAttribute("aria-label", "過去イベントのA〜Eチーム別参加率推移");
           const title = createSvgNode("title", { id: "event-svg-title" });
           title.textContent = "イベント参加率の推移";
           const description = createSvgNode("desc", { id: "event-svg-desc" });
@@ -2132,7 +2134,7 @@
                   <strong class="event-upcoming-name">${escapeHtml(event.name)}</strong>
                   <span class="event-upcoming-badge">${escapeHtml(event.statusLabel || "開催予定・暫定")}</span>
                 </summary>
-                <p>${escapeHtml(event.note || "開催後に実参加を確定してから正式集計へ反映します。")} 現在のA〜Dランキング、参加率推移、開催回数の集計対象外です。</p>
+                <p>${escapeHtml(event.note || "開催後に実参加を確定してから正式集計へ反映します。")} 現在のA〜Eランキング、参加率推移、開催回数の集計対象外です。</p>
               </details>`).join("");
           } else {
             upcomingList.hidden = true;
@@ -2292,7 +2294,7 @@
 
           svg.replaceChildren();
           svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-          svg.setAttribute("aria-label", "入会後1か月から48か月までのA〜Dチーム別継続率");
+          svg.setAttribute("aria-label", "入会後1か月から48か月までのA〜Eチーム別継続率");
 
           const title = createSvgNode("title", { id: "retention-svg-title" });
           title.textContent = "入会後の定着曲線";
@@ -2428,7 +2430,7 @@
             return;
           }
           let selected = 'ALL', mode = 'ratio', layout = 'compare';
-          const ids = ['ALL', 'A', 'B', 'C', 'D'];
+          const ids = ['ALL', ...data.teams.map(team => team.id)];
           const labels = {
             grade: {preschool:'未就園相当',k1:'年少',k2:'年中',k3:'年長',p1:'小学1年',p2:'小学2年',p3:'小学3年',p4:'小学4年',p5:'小学5年',p6:'小学6年',j1:'中学1年',j2:'中学2年',j3:'中学3年',h1:'高校1年',h2:'高校2年',h3:'高校3年',adult:'高校卒業相当以上',unknown:'不明'},
             gender: {male:'男子',female:'女子',other:'その他',unknown:'不明'},
@@ -2443,7 +2445,7 @@
           const rate = (count, total) => total ? `${(count / total * 100).toFixed(1)}%` : '—';
           const tenureText = months => Number.isFinite(months) ? `${(months / 12).toFixed(1)}年` : '—';
           // Side-by-side comparison: the default layout, so team differences are visible without switching.
-          const teamIds = ['A', 'B', 'C', 'D'];
+          const teamIds = data.teams.map(team => team.id);
           const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
           const share = (count, total) => total ? count / total * 100 : 0;
           const one = value => value.toFixed(1);
@@ -2638,9 +2640,9 @@
           const fmtRate=(r,id)=>{const value=reference(r,id);return value.rate===null?'—':`${value.rate.toFixed(2)}%`;};
           const render=()=>{
             const selectedIndex=h.months.indexOf(month);
-            const ids=selected==='ALL'?['A','B','C','D']:[selected];
+            const ids=selected==='ALL'?data.teams.map(team=>team.id):[selected];
             const max=Math.max(1,...Object.values(h.teams).flatMap(t=>t.months.filter(Boolean).map(r=>r.count)));
-            root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL','A','B','C','D'].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
+            root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL',...data.teams.map(team=>team.id)].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
             <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。割合は判明分だけの参考値です。退会月不明分は計算に含めません。月初人数がない月は基準日の会員数を分母に使い、計算式を各カードに表示します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
             <div class="withdrawal-grid">${ids.map(id=>{
               const t=h.teams[id],r=t.months[selectedIndex],prev=t.months[selectedIndex-1];
@@ -2857,7 +2859,7 @@
 
           svg.replaceChildren();
           svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-          svg.setAttribute("aria-label", "年長から高校進学までの学齢節目別A〜Dチーム継続率");
+          svg.setAttribute("aria-label", "年長から高校進学までの学齢節目別A〜Eチーム継続率");
 
           const title = createSvgNode("title", { id: "school-age-svg-title" });
           title.textContent = "学齢節目別の継続率";
@@ -2927,7 +2929,7 @@
           yTitle.textContent = "継続率";
           svg.append(xTitle, yTitle);
 
-          const labelOffsets = { OVERALL: 15, A: -11, B: 13, C: -10, D: -10 };
+          const labelOffsets = { OVERALL: 15, A: -11, B: 13, C: -10, D: -10, E: -10 };
           getSchoolAgeSeries().forEach((series) => {
             const group = createSvgNode("g", {
               class: `curve-series${series.id === "OVERALL" ? " is-overall" : ""}`,
@@ -3055,7 +3057,7 @@
 
         document.getElementById("team-e-status").hidden = Boolean(eTeam) || data.teams.some((team) => team.id === "E");
         const filters = [{ id: "ALL", label: "全チーム" }, ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` }))];
-        if (eTeam) filters.push({ id: "E", label: "E TEAM" });
+        if (eTeam && !data.teams.some(team => team.id === "E")) filters.push({ id: "E", label: "E TEAM" });
         document.getElementById("team-filters").innerHTML = filters.map((filter, index) => `
           <button type="button" class="filter-button" data-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
         `).join("");
@@ -3081,7 +3083,7 @@
           return `
             <article class="team-card${newAdmissionCount ? " team-card-new" : ""}" data-team="${team.id}" aria-label="${team.id}チーム、${Number.isFinite(team.overall) ? `総合${team.overall}点` : "総合点確認中"}${newAdmissionCount ? `、新規入会${newAdmissionCount}名` : ""}">
               <div class="team-card-head">
-                <div class="score-ring" style="--score:${team.overall ?? 0};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${displayScore(team.overall)}</strong><span>${Number.isFinite(team.overall) ? "OVERALL" : "確認中"}</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
+                <div class="score-ring" style="--score:${team.overall ?? 0};--score-color:${scoreColor(team.overall)}"><div class="score-value"><strong>${displayScore(team.overall)}</strong><span>${Number.isFinite(team.overall) ? "OVERALL" : "対象実績待ち"}</span>${overallChange ? `<small class="score-change ${deltaTone(overallChange)}">${formatDelta(overallChange)}点</small>` : ""}</div></div>
                 <div>
                   <div class="rank-line">${Number.isFinite(team.rank) ? `RANK ${team.rank}` : "順位確認中"} · ${team.status}</div>
                   <div class="team-title"><h3>${team.id} TEAM</h3><span>${formatNumber.format(team.members)}名</span></div>
@@ -3095,8 +3097,8 @@
               ${team.chase ? `<p class="rate-comparison-note">上位 ${escapeHtml(team.chase.targetId)} TEAMとの差 <strong>${team.chase.gap}点</strong>${team.chase.closed > 0 ? `・前回より${team.chase.closed}点接近` : ""}</p>` : ""}
               <div class="benchmark-grid">
                 <div class="benchmark"><strong>${Number.isFinite(team.benchmark.retention12mRate) ? team.benchmark.retention12mRate.toFixed(1) + "%" : "確認中"}</strong><span>12か月継続率</span>${rateChangeMarkup(team, "retention12mRate")}<div class="benchmark-detail">対象 ${formatNumber.format(team.benchmark.retention12mSample)}名</div></div>
-                <div class="benchmark"><strong>${team.benchmark.admissionRate.toFixed(1)}%</strong><span>年度 体験→入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span><span class="benchmark-sample">${annualRealAdmissionSample(team)}</span>前年同期間 ${team.benchmark.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
-                <div class="benchmark"><strong>${team.benchmark.eventRate.toFixed(1)}%</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
+                <div class="benchmark"><strong>${Number.isFinite(team.benchmark.admissionRate) ? team.benchmark.admissionRate.toFixed(1) + "%" : "対象なし"}</strong><span>年度 体験→入会率</span>${rateChangeMarkup(team, "admissionRate")}<div class="benchmark-detail"><span class="benchmark-sample">${annualAdmissionSample(team)}</span><span class="benchmark-sample">${annualRealAdmissionSample(team)}</span>前年同期間 ${Number.isFinite(team.benchmark.admissionPreviousRate) ? team.benchmark.admissionPreviousRate.toFixed(1) + "%" : "対象なし"} ・ ${formatPointDelta(team.benchmark.admissionYoYDelta)}</div></div>
+                <div class="benchmark"><strong>${Number.isFinite(team.benchmark.eventRate) ? team.benchmark.eventRate.toFixed(1) + "%" : "対象イベントなし"}</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
               ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">退会日の根拠が未確認のため、定着力・継続率・総合評価を保留しています。他の指標は基準日まで更新済みです。</p>' : ""}
@@ -3106,7 +3108,7 @@
             </article>`;
         }).join("");
 
-        if (eTeam) {
+        if (eTeam && !data.teams.some(team => team.id === "E")) {
           const { trials, admissions } = eTeam.annual;
           const rate = trials ? `${(admissions / trials * 100).toFixed(1)}%` : "—";
           document.getElementById("team-grid").insertAdjacentHTML("beforeend", `
@@ -3148,7 +3150,7 @@
 
         const quality = data.quality;
         document.getElementById("quality-card").innerHTML = `
-          <div class="quality-stat"><strong>${quality.completeness}%</strong><span>A〜D データ充足</span></div>
+          <div class="quality-stat"><strong>${quality.completeness}%</strong><span>A〜E データ充足</span></div>
           <div class="quality-stat"><strong>${quality.eventCount}</strong><span>集計済みイベント</span></div>
           <div class="quality-stat"><strong>${quality.competitionCount}</strong><span>集計済み大会</span></div>
           <div class="quality-stat"><strong>${formatNumber.format(quality.competitionRows)}</strong><span>大会順位データ</span></div>
@@ -3599,7 +3601,7 @@
         const events = window.PROSPECT_EVENT_HISTORY;
         const curve = window.PROSPECT_RETENTION_CURVE;
         const school = window.PROSPECT_SCHOOL_AGE_RETENTION;
-        const ids = ['A', 'B', 'C', 'D'];
+        const ids = data.teams.map(team => team.id);
         const colorOf = id => id === 'ALL' ? 'var(--navy-800)' : `var(--team-${id.toLowerCase()})`;
         const membersOf = Object.fromEntries((data.teams || []).map(team => [team.id, team.members]));
         const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch]);
@@ -3981,7 +3983,7 @@
         const icon = key => `<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[key] || ''}</svg></span>`;
         // What staff want to know, in their words; the order matches the tab order.
         const views = [
-          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Dの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
+          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Eの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
           { key: 'standings', label: 'チーム順位', question: 'いま何位？ 上位との差は？', description: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。' },
           { key: 'composition', label: '会員構成', question: '学年・在籍期間・男女比は？', description: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。' },
           { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの実入会人数と累計、チラシ・紹介などクラブを知ったきっかけを確認できます。' },
@@ -4180,7 +4182,7 @@
         function render(){
           if(history?.status!=='ok'||history.asOf!==window.PROSPECT_SAVANT_DATA.asOf){content.innerHTML='<p class="acquisition-note">流入経路の集計更新を待っています。取得できていない件数を0人として表示しません。</p>';return}
           const selected=select.value,c=counts(history.teams,selected),answered=known(c);
-          content.innerHTML='<p class="acquisition-summary">回答 '+answered+'人 ／ 申込 '+c.total+'人</p><p class="acquisition-note">'+history.since.replaceAll('-','/')+'〜'+history.asOf.replaceAll('-','/')+'受付分・子ども単位。割合の分母は3択の回答済み人数です。旧フォームなどの未取得 '+c.unknown+'人は分母に含めません。'+(answered<20?'回答が少ないため、割合は参考としてご覧ください。':'')+'</p><div class="acquisition-grid"><div><h3>'+(selected==='all'?'全体':selected+' TEAM')+'の流入割合</h3>'+stack(c)+'<div class="acquisition-legend">'+categories.map(([,label,color])=>'<span><i style="background:'+color+'"></i>'+label+'</span>').join('')+'</div><table class="acquisition-table"><thead><tr><th>きっかけ</th><th>人数</th><th>割合</th></tr></thead><tbody>'+categories.map(([key,label])=>'<tr><td>'+label+'</td><td>'+c[key]+'人</td><td>'+pct(c[key],answered)+'</td></tr>').join('')+'</tbody></table><p class="acquisition-unknown">未取得：'+c.unknown+'人 ／ 回答率：'+pct(answered,c.total)+'</p></div><div><h3>チーム別の流入割合</h3>'+ids.filter(id=>selected==='all'||selected===id).map(id=>{const t=history.teams[id];return '<div class="acquisition-row"><strong>'+id+' TEAM</strong>'+stack(t)+'<span>回答 '+known(t)+'人</span></div>'}).join('')+'<p class="acquisition-note">紹介者名の有無ではなく、選択したきっかけで集計します。Eは流入分析のみ含み、既存のA〜Dの成績比較とは分けて表示します。</p></div></div><div class="acquisition-months"><h3>月別の流入割合</h3>'+history.months.map(month=>{const t=counts(month.teams,selected);return '<div class="acquisition-row"><strong>'+month.month.replace('-','/')+'</strong>'+stack(t)+'<span>回答 '+known(t)+'人・未取得 '+t.unknown+'人</span></div>'}).join('')+'</div>';
+          content.innerHTML='<p class="acquisition-summary">回答 '+answered+'人 ／ 申込 '+c.total+'人</p><p class="acquisition-note">'+history.since.replaceAll('-','/')+'〜'+history.asOf.replaceAll('-','/')+'受付分・子ども単位。割合の分母は3択の回答済み人数です。旧フォームなどの未取得 '+c.unknown+'人は分母に含めません。'+(answered<20?'回答が少ないため、割合は参考としてご覧ください。':'')+'</p><div class="acquisition-grid"><div><h3>'+(selected==='all'?'全体':selected+' TEAM')+'の流入割合</h3>'+stack(c)+'<div class="acquisition-legend">'+categories.map(([,label,color])=>'<span><i style="background:'+color+'"></i>'+label+'</span>').join('')+'</div><table class="acquisition-table"><thead><tr><th>きっかけ</th><th>人数</th><th>割合</th></tr></thead><tbody>'+categories.map(([key,label])=>'<tr><td>'+label+'</td><td>'+c[key]+'人</td><td>'+pct(c[key],answered)+'</td></tr>').join('')+'</tbody></table><p class="acquisition-unknown">未取得：'+c.unknown+'人 ／ 回答率：'+pct(answered,c.total)+'</p></div><div><h3>チーム別の流入割合</h3>'+ids.filter(id=>selected==='all'||selected===id).map(id=>{const t=history.teams[id];return '<div class="acquisition-row"><strong>'+id+' TEAM</strong>'+stack(t)+'<span>回答 '+known(t)+'人</span></div>'}).join('')+'<p class="acquisition-note">紹介者名の有無ではなく、選択したきっかけで集計します。Eは流入分析のみ含み、既存のA〜Eの成績比較とは分けて表示します。</p></div></div><div class="acquisition-months"><h3>月別の流入割合</h3>'+history.months.map(month=>{const t=counts(month.teams,selected);return '<div class="acquisition-row"><strong>'+month.month.replace('-','/')+'</strong>'+stack(t)+'<span>回答 '+known(t)+'人・未取得 '+t.unknown+'人</span></div>'}).join('')+'</div>';
         }
         select.addEventListener('change',render);render();
       })();

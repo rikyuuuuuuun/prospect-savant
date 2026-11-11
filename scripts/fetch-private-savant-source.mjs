@@ -7,6 +7,7 @@ import { fetchTrialConversionHistory, trialConversionDiagnostic, trialConversion
 import { fetchMemberComposition, unavailableComposition } from './member-composition.mjs';
 import { ANNUAL_CONVERSION_RANGE, assertAnnualConversionSource } from './annual-conversion-source.mjs';
 import { E_TEAM_RANGE, readETeamSource } from './e-team-source.mjs';
+import { E_METRIC_RANGE } from './e-team-metrics.mjs';
 import { REFERRAL_RANGE } from './referral-evidence.mjs';
 import { MEMBER_READBACK_RANGE, MEMBER_GATE_RANGE, readMemberReceipt, assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
 import { createSign } from 'node:crypto';
@@ -34,6 +35,7 @@ const RANGES = [
   REFERRAL_RANGE,
   ANNUAL_CONVERSION_RANGE,
   E_TEAM_RANGE,
+  E_METRIC_RANGE,
 ];
 
 const GOOGLE_SHEETS_MAX_ATTEMPTS = 4;
@@ -276,27 +278,34 @@ async function fetchTeamTrialSheets(team, spreadsheetId, token, requestJson) {
   } };
 }
 
-export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions, allowUnavailable = false, logger = console.warn }) {
+export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate = tokyoDate(), getToken = getAccessToken, requestJson = googleJson, retryOptions, allowUnavailable = false, logger = console.warn, eTrialSpreadsheetId, additionalTeamResults }) {
   const serviceAccount = parseServiceAccount(serviceAccountJson);
   const ids = parseSheetIds(trialSheetIdsJson);
+  const teamIds = eTrialSpreadsheetId ? [...TEAM_IDS, 'E'] : TEAM_IDS;
+  if (eTrialSpreadsheetId) ids.E = eTrialSpreadsheetId;
   const fiscalYear = fiscalYearFor(targetDate);
   const token = await getToken(serviceAccount);
   const retriableRequestJson = createRetriableGoogleJson({ requestJson, ...retryOptions });
   const disposition = await captureTrialDispositionSource({
-    spreadsheetId, token, requestJson: retriableRequestJson, targetDate, allowPending: allowUnavailable,
+    spreadsheetId, token, requestJson: retriableRequestJson, targetDate, allowPending: allowUnavailable, teamIds,
   });
   if (disposition.pending && !disposition.futurePendingOnly) {
     await disposition.readback();
+    if (additionalTeamResults) additionalTeamResults.today = { asOf: targetDate, status: 'unavailable', count: null };
     return unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_SYNC_PENDING' });
   }
   let result;
   try {
-    const settled = await Promise.allSettled(TEAM_IDS.map(team => fetchTeamTrialSheets(team, ids[team], token, retriableRequestJson)));
-    const failures = settled.flatMap((entry, index) => entry.status === 'rejected' ? [`${TEAM_IDS[index]}_${safeTrialFailureCode(entry.reason)}`] : []);
+    const settled = await Promise.allSettled(teamIds.map(team => fetchTeamTrialSheets(team, ids[team], token, retriableRequestJson)));
+    const failures = settled.flatMap((entry, index) => entry.status === 'rejected' ? [`${teamIds[index]}_${safeTrialFailureCode(entry.reason)}`] : []);
     if (failures.length) throw new Error(`TRIAL_SOURCE_UNAVAILABLE_${failures.join('_')}`);
     const sources = settled.map(entry => entry.value);
-    const aggregate = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate });
+    const aggregate = aggregateDispositionTrials({ sheets: sources.flatMap(source => source.sheets), intakeRows: disposition.intakeRows, targetDate, teamIds });
     await Promise.all(sources.map(source => source.readback()));
+    if (additionalTeamResults && eTrialSpreadsheetId) {
+      additionalTeamResults.today = { asOf: targetDate, status: 'ok', count: aggregate.aggregates.E.today };
+      delete aggregate.aggregates.E;
+    }
     result = { targetDate, fiscalYear, ...aggregate, quality: disposition.quality };
     if (disposition.futurePendingOnly) {
       result.reservationReadiness = { definition: 'future-reconciliation-pending-v1',
@@ -307,6 +316,7 @@ export async function fetchPrivateTrialAggregate({ spreadsheetId, serviceAccount
     // isDailyTrialSourceFailure accepts only fixed anonymous error codes.
     logger(`TRIAL_DAILY_SOURCE_FAILURE code=${String(error.message).trim()}`);
     result = unavailableDailyTrial({ targetDate, fiscalYear, reason: 'TRIAL_DAILY_SOURCE_UNAVAILABLE' });
+    if (additionalTeamResults) additionalTeamResults.today = { asOf: targetDate, status: 'unavailable', count: null };
   }
   // Even a partial publication must prove the canonical cohort stayed unchanged.
   await disposition.readback();
@@ -342,12 +352,15 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   if (asOf !== memberReceipt.asOf) throw new Error('MEMBER_SOURCE_DATE_MISMATCH');
   const conversion = assertAnnualConversionSource({ ranges }, asOf);
   const eTeam = readETeamSource(ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
-  const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions, allowUnavailable: true });
-  const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
-  const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+  const eTeamAnalysis = eTeam && ranges[E_METRIC_RANGE]?.length ? {} : undefined;
+  const eTrialSpreadsheetId = eTeamAnalysis ? ranges[E_METRIC_RANGE]?.[5]?.[18] : undefined;
+  if (eTeamAnalysis && (typeof eTrialSpreadsheetId !== 'string' || !/^[A-Za-z0-9_-]{20,}$/.test(eTrialSpreadsheetId))) throw new Error('E_TRIAL_SOURCE_CONFIG_INVALID');
+  const trialAggregate = await fetchPrivateTrialAggregate({ spreadsheetId, serviceAccountJson, trialSheetIdsJson, targetDate: asOf, getToken, requestJson, retryOptions, allowUnavailable: true, eTrialSpreadsheetId, additionalTeamResults: eTeamAnalysis });
+  const admissionHistory = await fetchAdmissionHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }), additionalTeamResults: eTeamAnalysis });
+  const withdrawalHistory = await fetchWithdrawalHistory({ spreadsheetId, token, asOf, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }), additionalTeamResults: eTeamAnalysis });
   let trialConversionHistory;
   try {
-    trialConversionHistory = await fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, eTeam, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+    trialConversionHistory = await fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, eTeam, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }), additionalTeamResults: eTeamAnalysis });
   } catch (error) {
     if (eTeam) throw error;
     // The monthly breakdown is optional; the verified annual counts still publish.
@@ -356,18 +369,20 @@ async function capturePrivateSavantSource({ spreadsheetId, serviceAccountJson, t
   }
   let memberComposition;
   try {
-    memberComposition = await fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts: memberReceipt.counts, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }) });
+    memberComposition = await fetchMemberComposition({ spreadsheetId, token, asOf, expectedCounts: memberReceipt.counts, requestJson: createRetriableGoogleJson({ requestJson, ...retryOptions }), additionalTeamResults: eTeamAnalysis, eTeam });
   } catch (error) {
     // Optional analysis is unavailable rather than zero; verified core data can still publish.
     const code = String(error?.message || '').replace(/^MEMBER_COMPOSITION_/, '');
     const reason = ['SOURCE_CHANGED', 'ROSTER_UNRESOLVED', 'COUNT_MISMATCH', 'SCHEMA_INVALID'].includes(code) ? code : 'SOURCE_UNAVAILABLE';
     memberComposition = unavailableComposition(asOf, reason);
+    if (eTeamAnalysis) eTeamAnalysis.memberComposition = memberComposition;
     console.warn(`MEMBER_COMPOSITION_DEFERRED reason=${reason}`);
   }
   let acquisitionHistory;
   try { acquisitionHistory=await fetchAcquisitionHistory({spreadsheetId,token,asOf,requestJson:createRetriableGoogleJson({requestJson,...retryOptions})}); }
   catch { acquisitionHistory=unavailableAcquisition(asOf);console.warn('ACQUISITION_SOURCE_UNAVAILABLE'); }
   const privateSnapshot = {
+    eTeamAnalysis,
     acquisitionHistory,
     memberComposition,
     withdrawalHistory,

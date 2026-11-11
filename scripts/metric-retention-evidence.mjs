@@ -36,11 +36,11 @@ export function pctFromFraction(value) {
 export function findHeaderRow(rows, expected) {
   return rows.findIndex((row) => expected.every((label) => row?.includes(label)));
 }
-export function rowsByTeam(rows, headerIndex, teamColumn = 0) {
+export function rowsByTeam(rows, headerIndex, teamColumn = 0, teamIds = TEAM_IDS) {
   const map = new Map();
   for (const row of rows.slice(headerIndex + 1)) {
     const id = row?.[teamColumn];
-    if (TEAM_IDS.includes(id)) map.set(id, row);
+    if (teamIds.includes(id)) map.set(id, row);
   }
   return map;
 }
@@ -57,8 +57,8 @@ export function retainedFromRate(sample, rate) {
   return Number.isSafeInteger(sample) && Number.isFinite(rate) ? Math.round(sample * rate / 100) : null;
 }
 
-function finalise(periodsByTeam) {
-  return Object.fromEntries(TEAM_IDS.map((id) => {
+function finalise(periodsByTeam, teamIds = TEAM_IDS) {
+  return Object.fromEntries(teamIds.map((id) => {
     const periods = periodsByTeam[id];
     const scored = periods.filter((period) => period.scored && Number.isFinite(period.relativeScore));
     const denominator = scored.reduce((sum, period) => sum + period.weight, 0);
@@ -69,14 +69,14 @@ function finalise(periodsByTeam) {
   }));
 }
 
-export function buildRetentionEvidenceFromSource(rows, minimumSample = 20) {
+export function buildRetentionEvidenceFromSource(rows, minimumSample = 20, teamIds = TEAM_IDS) {
   const header = findHeaderRow(rows, ['チーム', '3か月\n継続率']);
   assertEvidence(header >= 0, 'RETENTION_EVIDENCE_HEADER_MISSING');
-  const teamRows = rowsByTeam(rows, header);
-  assertEvidence(TEAM_IDS.every((id) => teamRows.has(id)), 'RETENTION_EVIDENCE_TEAMS_MISSING');
-  const periodsByTeam = Object.fromEntries(TEAM_IDS.map((id) => [id, []]));
+  const teamRows = rowsByTeam(rows, header, 0, teamIds);
+  assertEvidence(teamIds.every((id) => teamRows.has(id)), 'RETENTION_EVIDENCE_TEAMS_MISSING');
+  const periodsByTeam = Object.fromEntries(teamIds.map((id) => [id, []]));
   for (const period of RETENTION_PERIODS) {
-    const candidates = TEAM_IDS.map((id) => {
+    const candidates = teamIds.map((id) => {
       const row = teamRows.get(id);
       const rawRate = rawPctFromFraction(row?.[period.rateIndex]);
       const rate = rawRate === null ? null : round1(rawRate);
@@ -96,7 +96,7 @@ export function buildRetentionEvidenceFromSource(rows, minimumSample = 20) {
       });
     }
   }
-  return finalise(periodsByTeam);
+  return finalise(periodsByTeam, teamIds);
 }
 
 export function buildRetentionEvidenceFromCurve(curve) {
