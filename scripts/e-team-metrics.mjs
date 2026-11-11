@@ -5,6 +5,7 @@ import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { applyWithdrawalBaseline, validateWithdrawalHistory } from './withdrawal-history.mjs';
+import { previousMonthEnd } from './member-monthly-change.mjs';
 
 export const E_METRIC_RANGE = "'98_会員マスター連携'!A35:AE96";
 export const E_EVALUATION_START = '2026-11-09';
@@ -14,6 +15,14 @@ const empty = value => value == null || value === '';
 const rate = value => empty(value) ? null : value * 100;
 const TEAM_IDS = ['A', 'B', 'C', 'D', 'E'];
 const exact = (value, keys) => check(value && Object.keys(value).sort().join() === [...keys].sort().join(), 'FIELDS_INVALID');
+
+export function selectETeamMemberMonthlyComparison(previous, asOf) {
+  const baseline = previousMonthEnd(asOf);
+  if (baseline < E_EVALUATION_START) return { asOf: baseline, members: 0 };
+  if (previous?.asOf === baseline && count(previous.members)) return { asOf: baseline, members: previous.members };
+  const saved = previous?.memberMonthlyComparison;
+  return saved?.asOf === baseline && count(saved.members) ? structuredClone(saved) : undefined;
+}
 
 export function readETeamMetrics(rows, team) {
   if (!rows?.length) return undefined;
@@ -122,6 +131,15 @@ export function includeETeam(data, events, auxiliary = {}) {
   events.teams.E = structuredClone(evidence.event);
   data.teams.push(eTeamForScoring(e));
   data.headline.members = e.allMembers;
+  const baseline = selectETeamMemberMonthlyComparison(e, data.asOf);
+  const comparison = data.memberMonthlyComparison;
+  if (baseline && comparison?.previousAsOf === baseline.asOf
+      && comparison.memberDefinition?.id === data.memberDefinition?.id) {
+    comparison.teams.push({ id: 'E', members: baseline.members });
+    comparison.headline.members += baseline.members;
+    data.headline.monthlyDelta = data.headline.members - comparison.headline.members;
+    data.teams.find(team => team.id === 'E').monthlyDelta = e.members - baseline.members;
+  } else data.headline.monthlyDelta = null;
   data.admissions.teams.E = { cumulative: evidence.admissions };
   data.admissionConversion.teams.E = structuredClone(e.annual);
   data.headline.admissionRate = conversionRate(Object.values(data.admissionConversion.teams).reduce((n, value) => n + value.admissions, 0), Object.values(data.admissionConversion.teams).reduce((n, value) => n + value.trials, 0));
@@ -159,6 +177,12 @@ export function includeETeam(data, events, auxiliary = {}) {
 export function validateETeamDetails(data) {
   const e = data.eTeam;
   if (!e?.metrics) return;
+  if (e.memberMonthlyComparison) {
+    exact(e.memberMonthlyComparison, ['asOf', 'members']);
+    check(e.memberMonthlyComparison.asOf === previousMonthEnd(data.asOf)
+      && count(e.memberMonthlyComparison.members)
+      && (e.memberMonthlyComparison.asOf >= E_EVALUATION_START || e.memberMonthlyComparison.members === 0), 'MONTHLY_COMPARISON_INVALID');
+  }
   const m = e.metrics;
   exact(m, ['definition', 'asOf', 'admissions', 'retention', 'unknownWithdrawals', 'growth', 'family', 'event', 'events', 'curve', 'schoolAge']);
   check(m.definition === 'common-team-metrics-v1' && m.asOf === data.asOf && count(m.admissions) && count(m.unknownWithdrawals), 'METADATA_INVALID');

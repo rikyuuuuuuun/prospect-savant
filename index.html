@@ -3028,7 +3028,7 @@
 
         const latestEvent = eventHistory?.events?.find((event) => event.id === eventHistory.latestEventId)
           || eventHistory?.events?.[0];
-        const headlineMemberDeltaComparable = !eTeam && memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
+        const headlineMemberDeltaComparable = memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
         const combinedRate = eTeam?.combinedConversion;
         const kpis = [
           ["運用会員数", formatNumber.format(eTeam?.allMembers ?? data.headline.members), "名", eTeam ? "A〜E合計" : ""],

@@ -1,7 +1,7 @@
 import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
-import { E_METRIC_RANGE, readETeamMetrics, includeETeam } from './e-team-metrics.mjs';
+import { E_METRIC_RANGE, readETeamMetrics, includeETeam, selectETeamMemberMonthlyComparison } from './e-team-metrics.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
@@ -343,6 +343,8 @@ async function publishInto(root, snapshot) {
   const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
   assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
   if (eTeam) {
+    const monthlyComparison = selectETeamMemberMonthlyComparison(previousExtension, asOf);
+    if (monthlyComparison) eTeam.memberMonthlyComparison = monthlyComparison;
     const metrics = readETeamMetrics(snapshot.ranges[E_METRIC_RANGE], eTeam);
     assert(metrics || !data.eTeam?.metrics, 'E_METRIC_SOURCE_MISSING');
     if (metrics) eTeam.metrics = metrics;

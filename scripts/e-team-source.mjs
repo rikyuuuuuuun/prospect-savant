@@ -23,7 +23,7 @@ export function readETeamSource(rows, asOf, aToDMembers) {
 export function validatePublishedETeam(data) {
   const team = data.eTeam;
   if (team === undefined) return;
-  check(team && Object.keys(team).sort().join() === ['allMembers', 'annual', 'asOf', 'definition', 'members', ...(team.metrics ? ['metrics'] : []), ...(team.analysis ? ['analysis'] : []), ...(team.previous ? ['previous'] : [])].sort().join(), 'FIELDS_INVALID');
+  check(team && Object.keys(team).sort().join() === ['allMembers', 'annual', 'asOf', 'definition', 'members', ...(team.metrics ? ['metrics'] : []), ...(team.analysis ? ['analysis'] : []), ...(team.previous ? ['previous'] : []), ...(team.memberMonthlyComparison ? ['memberMonthlyComparison'] : [])].sort().join(), 'FIELDS_INVALID');
   check(team.asOf === data.asOf && team.definition === data.admissionConversion?.definition, 'DATE_OR_DEFINITION_MISMATCH');
   check(count(team.members) && count(team.allMembers) && team.allMembers === data.headline.members + team.members, 'MEMBER_TOTAL_MISMATCH');
   validateConversionCounts(team.annual, TEAM_ID);
