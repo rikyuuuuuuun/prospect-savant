@@ -2755,9 +2755,13 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "definition": "trial-attendance-fiscal-ytd-v1",
     "annual": {
       "trials": 5,
-      "admissions": 0,
+      "admissions": 4,
       "previousTrials": 0,
       "previousAdmissions": 0
+    },
+    "memberMonthlyComparison": {
+      "asOf": "2026-10-31",
+      "members": 0
     },
     "metrics": {
       "definition": "common-team-metrics-v1",
@@ -3798,7 +3802,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
               0,
               0,
               0,
-              0,
+              4,
               null,
               null,
               null,
@@ -3829,7 +3833,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
             7,
             45,
             35,
-            8,
+            12,
             null,
             null,
             null,
