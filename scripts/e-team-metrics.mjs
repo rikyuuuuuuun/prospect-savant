@@ -146,7 +146,14 @@ export function includeETeam(data, events, auxiliary = {}) {
       auxiliary.trial.today.total += daily.count;
     } else auxiliary.trial.today = { status: 'unavailable', date: data.asOf, teams: null, total: null };
   }
-  if (data.comparison) data.comparison.scoreVersion = `incomparable-team-cohort:${data.comparison.scoreVersion}`;
+  if (data.comparison) {
+    const previous = e.previous;
+    if (previous?.asOf === data.comparison.previousAsOf && !data.comparison.teams.some(team => team.id === 'E')) {
+      data.comparison.teams.push(structuredClone(previous.team));
+      data.comparison.headline.members += previous.team.members;
+      if (data.comparison.admissions) data.comparison.admissions.teams.E = { cumulative: previous.admissions };
+    } else data.comparison.scoreVersion = `incomparable-team-cohort:${data.comparison.scoreVersion}`;
+  }
 }
 
 export function validateETeamDetails(data) {
@@ -189,4 +196,11 @@ export function validateETeamDetails(data) {
   }
   exact(analysis.today, ['asOf', 'status', 'count']);
   check(analysis.today.asOf === data.asOf && (analysis.today.status === 'ok' ? count(analysis.today.count) : analysis.today.status === 'unavailable' && analysis.today.count === null), 'TODAY_INVALID');
+  if (e.previous) {
+    exact(e.previous, ['asOf', 'team', 'admissions']);
+    const previous = e.previous.team;
+    exact(previous, ['id', 'members', 'monthlyDelta', 'rank', 'overall', 'status', 'metrics', 'benchmark', 'metricEvidence', 'note']);
+    check(e.previous.asOf === data.comparison?.previousAsOf && e.previous.asOf < data.asOf && previous.id === 'E'
+      && count(previous.members) && count(e.previous.admissions) && previous.metricEvidence.asOf === e.previous.asOf, 'PREVIOUS_INVALID');
+  }
 }

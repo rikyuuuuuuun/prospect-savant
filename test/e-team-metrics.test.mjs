@@ -84,6 +84,36 @@ test('E source errors, anonymous field additions and five-team reconciliation di
   assert.throws(() => validateETeamDetails(data), /TOTAL_MISMATCH|ANNUAL/);
 });
 
+test('E automatically scores eligible retention and events with an unavailable prior-year conversion', async () => {
+  const { data, events } = await fixture();
+  const m = data.eTeam.metrics;
+  Object.assign(m.retention.periods[0], { sample: 20, rate: 100, retained: 20, exited: 0, scored: true });
+  Object.assign(events.events[0], { startDate: '2026-11-10', endDate: '2026-11-10' });
+  m.events[0] = { startDate: '2026-11-10', endDate: '2026-11-10', participants: 1, members: 4, rate: 25 };
+  Object.assign(m.event, { eventCount: 1, averageRate: 25, participants: 1 });
+  const result = projectContinuousScores(data, events);
+  const e = result.data.teams.find(team => team.id === 'E');
+  assert.ok(Object.values(e.metrics).every(Number.isInteger));
+  assert.ok(Number.isInteger(e.overall));
+  assert.ok(!/undefined|NaN|A〜D/.test(e.note));
+  assert.match(e.note, /前年同期間対象不足/);
+});
+
+test('a saved five-team prior publication enables like-for-like comparisons after launch', async () => {
+  const { data, events } = await fixture();
+  const prior = structuredClone(projectContinuousScores(data, events).data.teams.find(team => team.id === 'E'));
+  const asOf = data.comparison.previousAsOf;
+  prior.metricEvidence.asOf = asOf;
+  data.eTeam.previous = { asOf, team: prior, admissions: 4 };
+  data.comparison.teams = structuredClone(data.teams);
+  data.comparison.teams.forEach(team => { team.metricEvidence.asOf = asOf; });
+  validateETeamDetails(data);
+  const result = projectContinuousScores(data, events).data;
+  assert.equal(result.comparison.teams.length, 5);
+  assert.equal(result.comparison.scoreVersion, result.scoreVersion);
+  assert.equal(result.comparison.admissions.teams.E.cumulative, 4);
+});
+
 test('formally launched E receipts use the common exclusion and daily reconciliation rules', () => {
   const row = [];
   row[0] = 'FORM-test'; row[4] = 'E'; row[6] = 'private-fixture'; row[7] = 'fixture'; row[11] = '体験申込'; row[12] = 'フォーム'; row[14] = '2026-11-11'; row[23] = '反映済';

@@ -1295,7 +1295,7 @@
 
     <section class="hero">
       <div class="container hero-inner">
-        <p class="eyebrow">A–D TEAM ANALYTICS</p>
+        <p class="eyebrow">A–E TEAM ANALYTICS</p>
         <h1>チームの現在地。</h1>
         <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・紹介の5指標で比較します。</p>
         <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
@@ -1561,7 +1561,7 @@
         const memberDeltaEstimated = Boolean(data.memberMonthlyComparison?.estimate);
         const memberDeltaLabel = `前月末比 純増減${memberDeltaEstimated ? "（推定）" : ""}`;
         const memberDeltaComparable = data.memberDeltaDefinition === "previous-month-end-v1";
-        const formatPointDelta = (value) => `${value > 0 ? "+" : ""}${Number(value).toFixed(1)}pt`;
+        const formatPointDelta = (value) => Number.isFinite(value) ? `${value > 0 ? "+" : ""}${value.toFixed(1)}pt` : '比較対象外';
         const scoreColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 65 ? "var(--red)" : score < 55 ? "var(--blue)" : "#7f8b96";
         const heatColor = (score) => !Number.isFinite(score) ? "#7f8b96" : score >= 77 ? "#a82f2b" : score >= 66 ? "#c85a53" : score >= 55 ? "#7f8b96" : score >= 45 ? "#4f86ad" : "#245b86";
         const displayScore = (score) => Number.isFinite(score) ? score : "—";
@@ -1681,6 +1681,7 @@
             }
 
             metricKeys.forEach((key) => {
+              if (!scoreComparable) return;
               if (key === "retention" && !retentionComparable()) return;
               if (!Number.isFinite(team.metrics[key]) || !Number.isFinite(previous.metrics[key])) return;
               if ((key === "event" && !scoreComparable) || (key === "family" && !referralComparable())) return;
@@ -3072,7 +3073,7 @@
           const deltaClass = memberDeltaComparable && Number.isFinite(team.monthlyDelta) ? (team.monthlyDelta >= 0 ? "delta-positive" : "delta-negative") : "";
           const metrics = metricKeys.map((key) => {
             const score = team.metrics[key];
-            const change = previousTeam && Number.isFinite(score) && Number.isFinite(previousTeam.metrics[key]) && (key !== "retention" || retentionComparable()) && (key !== "family" || referralComparable()) && (key !== "event" || data.scoreVersion === data.comparison?.scoreVersion)
+            const change = data.scoreVersion === data.comparison?.scoreVersion && previousTeam && Number.isFinite(score) && Number.isFinite(previousTeam.metrics[key]) && (key !== "retention" || retentionComparable()) && (key !== "family" || referralComparable())
               ? score - previousTeam.metrics[key]
               : 0;
             const changeMarkup = change

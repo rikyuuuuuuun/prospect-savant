@@ -1,7 +1,7 @@
 import { assertDailyTrialAvailability } from './daily-trial-availability.mjs';
 import { readRetentionAvailability, retentionRate, emptySourceValue } from './retention-availability.mjs';
 import { applyWithdrawalBaseline } from './withdrawal-history.mjs';
-import { E_METRIC_RANGE, readETeamMetrics } from './e-team-metrics.mjs';
+import { E_METRIC_RANGE, readETeamMetrics, includeETeam } from './e-team-metrics.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
@@ -330,6 +330,13 @@ async function publishInto(root, snapshot) {
   const retention = parsePublicSource(await readFile(join(root, 'retention-data.js'), 'utf8'), 'retention-data.js');
   const schoolAge = parsePublicSource(await readFile(join(root, 'school-age-data.js'), 'utf8'), 'school-age-data.js');
   const asOf = sourceAsOf(ranges.monthly);
+  const previousExtension = structuredClone(data.eTeam);
+  let previousE;
+  if (data.eTeam?.metrics && data.asOf < asOf) {
+    const previousModel = structuredClone(data);
+    includeETeam(previousModel, structuredClone(events));
+    previousE = { asOf: data.asOf, team: previousModel.teams.find(team => team.id === 'E'), admissions: data.eTeam.metrics.admissions };
+  }
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
@@ -340,6 +347,8 @@ async function publishInto(root, snapshot) {
     assert(metrics || !data.eTeam?.metrics, 'E_METRIC_SOURCE_MISSING');
     if (metrics) eTeam.metrics = metrics;
     if (snapshot.eTeamAnalysis) eTeam.analysis = snapshot.eTeamAnalysis;
+    if (previousE) eTeam.previous = previousE;
+    else if (previousExtension?.previous?.asOf === data.comparison?.previousAsOf) eTeam.previous = previousExtension.previous;
     data.eTeam = eTeam;
   }
   if (snapshot.memberComposition) data.memberComposition = validateMemberComposition(snapshot.memberComposition, data);
