@@ -968,7 +968,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 631/640人継続・非継続9人（98.6%・相対点62.5）、6か月 547/574人継続・非継続27人（95.3%・相対点87.5）、12か月 422/511人継続・非継続89人（82.6%・相対点87.5）、2年 245/423人継続・非継続178人（57.9%・相対点62.5）、3年 116/284人継続・非継続168人（40.8%・相対点75.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果75点です。 【年度入会力】141人体験のうち124人入会、年度の体験→入会率87.9%（前年同期間83.6%）。A〜Dの年度入会率を相対評価して88点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.4%と継続参加率45.6%を、参加70%・継続30%で統合して76点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 69件、10〜20% 48件、20〜30% 46件、上位30%の子ども86人、加重点349点。A〜Dの相対評価で88点です。 【紹介力】2026年度の紹介16ポイント（紹介体験7人・兄弟姉妹入会9人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は16pt÷基準日の会員347人＝4.61％。人数相対点37.5×70％＋紹介率相対点12.5×30％で30点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の16→16ポイント。"
+      "note": "評価根拠｜【定着力】3か月 631/640人継続・非継続9人（98.6%・相対点62.5）、6か月 547/574人継続・非継続27人（95.3%・相対点87.5）、12か月 422/511人継続・非継続89人（82.6%・相対点87.5）、2年 245/423人継続・非継続178人（57.9%・相対点62.5）、3年 116/284人継続・非継続168人（40.8%・相対点75.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重く全チームの相対順位を加重した結果75点です。 【年度入会力】141人体験のうち124人入会、年度の体験→入会率87.9%（前年同期間83.6%）。全チームの年度入会率を相対評価して88点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.4%と継続参加率45.6%を、参加70%・継続30%で統合して76点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 69件、10〜20% 48件、20〜30% 46件、上位30%の子ども86人、加重点349点。全チームの相対評価で88点です。 【紹介力】2026年度の紹介16ポイント（紹介体験7人・兄弟姉妹入会9人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は16pt÷基準日の会員347人＝4.61％。人数相対点37.5×70％＋紹介率相対点12.5×30％で30点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の16→16ポイント。"
     },
     {
       "id": "B",
@@ -1148,7 +1148,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 508/515人継続・非継続7人（98.6%・相対点87.5）、6か月 455/484人継続・非継続29人（94.0%・相対点62.5）、12か月 326/410人継続・非継続84人（79.5%・相対点62.5）、2年 188/325人継続・非継続137人（57.8%・相対点37.5）、3年 63/193人継続・非継続130人（32.6%・相対点25.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果45点です。 【年度入会力】145人体験のうち110人入会、年度の体験→入会率75.9%（前年同期間83.1%）。A〜Dの年度入会率を相対評価して63点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.8%と継続参加率46.9%を、参加70%・継続30%で統合して78点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 31件、10〜20% 37件、20〜30% 39件、上位30%の子ども65人、加重点206点。A〜Dの相対評価で63点です。 【紹介力】2026年度の紹介20ポイント（紹介体験8人・兄弟姉妹入会12人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は20pt÷基準日の会員318人＝6.29％。人数相対点87.5×70％＋紹介率相対点62.5×30％で80点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の20→20ポイント。"
+      "note": "評価根拠｜【定着力】3か月 508/515人継続・非継続7人（98.6%・相対点87.5）、6か月 455/484人継続・非継続29人（94.0%・相対点62.5）、12か月 326/410人継続・非継続84人（79.5%・相対点62.5）、2年 188/325人継続・非継続137人（57.8%・相対点37.5）、3年 63/193人継続・非継続130人（32.6%・相対点25.0）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重く全チームの相対順位を加重した結果45点です。 【年度入会力】145人体験のうち110人入会、年度の体験→入会率75.9%（前年同期間83.1%）。全チームの年度入会率を相対評価して63点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率21.8%と継続参加率46.9%を、参加70%・継続30%で統合して78点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 31件、10〜20% 37件、20〜30% 39件、上位30%の子ども65人、加重点206点。全チームの相対評価で63点です。 【紹介力】2026年度の紹介20ポイント（紹介体験8人・兄弟姉妹入会12人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は20pt÷基準日の会員318人＝6.29％。人数相対点87.5×70％＋紹介率相対点62.5×30％で80点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の20→20ポイント。"
     },
     {
       "id": "C",
@@ -1328,7 +1328,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "denominatorBasis": "operational-members-at-asof"
         }
       },
-      "note": "評価根拠｜【定着力】3か月 368/379人継続・非継続11人（97.1%・相対点37.5）、6か月 306/340人継続・非継続34人（90.0%・相対点12.5）、12か月 218/302人継続・非継続84人（72.2%・相対点12.5）、2年 83/179人継続・非継続96人（46.4%・相対点12.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果15点です。 【年度入会力】111人体験のうち74人入会、年度の体験→入会率66.7%（前年同期間65.8%）。A〜Dの年度入会率を相対評価して38点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率12.4%と継続参加率38.4%を、参加70%・継続30%で統合して52点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 12件、10〜20% 14件、20〜30% 20件、上位30%の子ども32人、加重点84点。A〜Dの相対評価で38点です。 【紹介力】2026年度の紹介11ポイント（紹介体験5人・兄弟姉妹入会6人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は11pt÷基準日の会員226人＝4.87％。人数相対点12.5×70％＋紹介率相対点37.5×30％で20点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の11→11ポイント。"
+      "note": "評価根拠｜【定着力】3か月 368/379人継続・非継続11人（97.1%・相対点37.5）、6か月 306/340人継続・非継続34人（90.0%・相対点12.5）、12か月 218/302人継続・非継続84人（72.2%・相対点12.5）、2年 83/179人継続・非継続96人（46.4%・相対点12.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重く全チームの相対順位を加重した結果15点です。 【年度入会力】111人体験のうち74人入会、年度の体験→入会率66.7%（前年同期間65.8%）。全チームの年度入会率を相対評価して38点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率12.4%と継続参加率38.4%を、参加70%・継続30%で統合して52点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 12件、10〜20% 14件、20〜30% 20件、上位30%の子ども32人、加重点84点。全チームの相対評価で38点です。 【紹介力】2026年度の紹介11ポイント（紹介体験5人・兄弟姉妹入会6人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は11pt÷基準日の会員226人＝4.87％。人数相対点12.5×70％＋紹介率相対点37.5×30％で20点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の11→11ポイント。"
     },
     {
       "id": "D",
@@ -1356,7 +1356,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "referralRate": 9.313725490196079,
         "referralMembers": 204
       },
-      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 207/223人継続・非継続16人（92.8%・相対点37.5）、12か月 142/179人継続・非継続37人（79.3%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果55点です。 【年度入会力】104人体験のうち67人入会、年度の体験→入会率64.4%（前年同期間63.0%）。A〜Dの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。A〜Dの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員204人＝9.31％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
+      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 207/223人継続・非継続16人（92.8%・相対点37.5）、12か月 142/179人継続・非継続37人（79.3%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重く全チームの相対順位を加重した結果55点です。 【年度入会力】104人体験のうち67人入会、年度の体験→入会率64.4%（前年同期間63.0%）。全チームの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。全チームの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員204人＝9.31％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
       "metricEvidence": {
         "version": "metric-evidence-v1",
         "asOf": "2026-11-11",
@@ -2758,6 +2758,1490 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "admissions": 0,
       "previousTrials": 0,
       "previousAdmissions": 0
+    },
+    "metrics": {
+      "definition": "common-team-metrics-v1",
+      "asOf": "2026-11-11",
+      "admissions": 4,
+      "retention": {
+        "periods": [
+          {
+            "key": "m3",
+            "label": "3か月",
+            "months": 3,
+            "weight": 1,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "m6",
+            "label": "6か月",
+            "months": 6,
+            "weight": 2,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "m12",
+            "label": "12か月",
+            "months": 12,
+            "weight": 3,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "y2",
+            "label": "2年",
+            "months": 24,
+            "weight": 4,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "y3",
+            "label": "3年",
+            "months": 36,
+            "weight": 5,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "y4",
+            "label": "4年",
+            "months": 48,
+            "weight": 6,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "y5",
+            "label": "5年",
+            "months": 60,
+            "weight": 7,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          },
+          {
+            "key": "y6",
+            "label": "6年",
+            "months": 72,
+            "weight": 8,
+            "sample": 0,
+            "retained": null,
+            "exited": null,
+            "rate": null,
+            "relativeScore": null,
+            "scored": false
+          }
+        ],
+        "weightedIndex": null
+      },
+      "unknownWithdrawals": 0,
+      "growth": {
+        "top10": 0,
+        "top10to20": 0,
+        "top20to30": 0,
+        "top30Children": 0,
+        "weightedPoints": 0,
+        "status": "履歴待ち"
+      },
+      "family": {
+        "definition": "referral-volume-rate-v2",
+        "trialPoints": 0,
+        "siblingPoints": 0,
+        "points": 0,
+        "members": 4,
+        "rate": 0,
+        "weights": {
+          "points": 70,
+          "rate": 30
+        },
+        "denominatorBasis": "operational-members-at-asof"
+      },
+      "event": {
+        "eventCount": 0,
+        "averageRate": null,
+        "participants": 0,
+        "repeated": 0,
+        "repeatRate": null,
+        "participationWeight": 70,
+        "repeatWeight": 30
+      },
+      "events": [
+        {
+          "startDate": "2026-08-09",
+          "endDate": "2026-08-23",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        },
+        {
+          "startDate": "2026-06-28",
+          "endDate": "2026-07-26",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        },
+        {
+          "startDate": "2026-02-22",
+          "endDate": "2026-02-22",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        },
+        {
+          "startDate": "2025-11-24",
+          "endDate": "2025-12-14",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        },
+        {
+          "startDate": "2025-08-03",
+          "endDate": "2025-08-03",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        },
+        {
+          "startDate": "2024-08-03",
+          "endDate": "2024-08-25",
+          "participants": null,
+          "members": null,
+          "rate": null,
+          "eligible": false
+        }
+      ],
+      "curve": [
+        {
+          "months": 1,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 3,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 6,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 9,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 12,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 18,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 24,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 36,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 48,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 60,
+          "rate": null,
+          "sample": 0
+        },
+        {
+          "months": 72,
+          "rate": null,
+          "sample": 0
+        }
+      ],
+      "schoolAge": {
+        "samples": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "rates": [
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "analysis": {
+      "today": {
+        "asOf": "2026-11-11",
+        "status": "ok",
+        "count": 0
+      },
+      "admissionHistory": {
+        "definition": "member-master-admission-date-monthly-v1",
+        "asOf": "2026-11-11",
+        "fiscalYear": "2026",
+        "months": [
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09",
+          "2026-10",
+          "2026-11",
+          "2026-12",
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ],
+        "teams": {
+          "A": [
+            30,
+            31,
+            13,
+            21,
+            7,
+            17,
+            14,
+            0,
+            null,
+            null,
+            null,
+            null
+          ],
+          "B": [
+            44,
+            22,
+            6,
+            11,
+            2,
+            13,
+            11,
+            3,
+            null,
+            null,
+            null,
+            null
+          ],
+          "C": [
+            22,
+            25,
+            13,
+            6,
+            2,
+            3,
+            8,
+            6,
+            null,
+            null,
+            null,
+            null
+          ],
+          "D": [
+            21,
+            18,
+            8,
+            6,
+            1,
+            10,
+            8,
+            3,
+            null,
+            null,
+            null,
+            null
+          ],
+          "E": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4,
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "total": [
+          117,
+          96,
+          40,
+          44,
+          12,
+          43,
+          41,
+          16,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "withdrawalHistory": {
+        "definition": "member-retirement-explicit-stop-detected-v1",
+        "asOf": "2026-11-11",
+        "fiscalYear": "2026",
+        "months": [
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09",
+          "2026-10",
+          "2026-11",
+          "2026-12",
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ],
+        "teams": {
+          "A": {
+            "unknownMonth": 305,
+            "months": [
+              {
+                "month": "2026-04",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-05",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-06",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-07",
+                "explicit": 3,
+                "stopped": 0,
+                "detected": 0,
+                "count": 3,
+                "cohortCount": 3,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-08",
+                "explicit": 4,
+                "stopped": 0,
+                "detected": 0,
+                "count": 4,
+                "cohortCount": 4,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-09",
+                "explicit": 7,
+                "stopped": 0,
+                "detected": 0,
+                "count": 7,
+                "cohortCount": 7,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-10",
+                "explicit": 6,
+                "stopped": 0,
+                "detected": 0,
+                "count": 6,
+                "cohortCount": 6,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-11",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "B": {
+            "unknownMonth": 203,
+            "months": [
+              {
+                "month": "2026-04",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-05",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-06",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-07",
+                "explicit": 2,
+                "stopped": 0,
+                "detected": 0,
+                "count": 2,
+                "cohortCount": 2,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-08",
+                "explicit": 4,
+                "stopped": 0,
+                "detected": 0,
+                "count": 4,
+                "cohortCount": 4,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-09",
+                "explicit": 9,
+                "stopped": 0,
+                "detected": 0,
+                "count": 9,
+                "cohortCount": 9,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-10",
+                "explicit": 6,
+                "stopped": 0,
+                "detected": 0,
+                "count": 6,
+                "cohortCount": 6,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-11",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "C": {
+            "unknownMonth": 146,
+            "months": [
+              {
+                "month": "2026-04",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-05",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-06",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-07",
+                "explicit": 2,
+                "stopped": 0,
+                "detected": 0,
+                "count": 2,
+                "cohortCount": 2,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-08",
+                "explicit": 1,
+                "stopped": 0,
+                "detected": 1,
+                "count": 2,
+                "cohortCount": 2,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-09",
+                "explicit": 5,
+                "stopped": 0,
+                "detected": 0,
+                "count": 5,
+                "cohortCount": 5,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-10",
+                "explicit": 9,
+                "stopped": 0,
+                "detected": 0,
+                "count": 9,
+                "cohortCount": 9,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-11",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "D": {
+            "unknownMonth": 50,
+            "months": [
+              {
+                "month": "2026-04",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-05",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-06",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-07",
+                "explicit": 3,
+                "stopped": 0,
+                "detected": 0,
+                "count": 3,
+                "cohortCount": 3,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-08",
+                "explicit": 4,
+                "stopped": 0,
+                "detected": 1,
+                "count": 5,
+                "cohortCount": 5,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-09",
+                "explicit": 2,
+                "stopped": 0,
+                "detected": 0,
+                "count": 2,
+                "cohortCount": 2,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-10",
+                "explicit": 4,
+                "stopped": 0,
+                "detected": 0,
+                "count": 4,
+                "cohortCount": 4,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-11",
+                "explicit": 1,
+                "stopped": 0,
+                "detected": 0,
+                "count": 1,
+                "cohortCount": 1,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "E": {
+            "unknownMonth": 0,
+            "months": [
+              {
+                "month": "2026-04",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-05",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-06",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-07",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-08",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-09",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-10",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              {
+                "month": "2026-11",
+                "explicit": 0,
+                "stopped": 0,
+                "detected": 0,
+                "count": 0,
+                "cohortCount": 0,
+                "missingEntry": 0,
+                "denominator": null,
+                "rate": null
+              },
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        },
+        "unassigned": 1
+      },
+      "admissionConversionHistory": {
+        "status": "ok",
+        "definition": "trial-attendance-fiscal-monthly-v1",
+        "asOf": "2026-11-11",
+        "fiscalYear": "2026",
+        "months": [
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09",
+          "2026-10",
+          "2026-11",
+          "2026-12",
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ],
+        "teams": {
+          "A": {
+            "trials": [
+              35,
+              33,
+              17,
+              18,
+              6,
+              19,
+              13,
+              0,
+              null,
+              null,
+              null,
+              null
+            ],
+            "admissions": [
+              33,
+              26,
+              13,
+              18,
+              5,
+              17,
+              12,
+              0,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "B": {
+            "trials": [
+              61,
+              21,
+              15,
+              10,
+              0,
+              17,
+              20,
+              1,
+              null,
+              null,
+              null,
+              null
+            ],
+            "admissions": [
+              49,
+              18,
+              8,
+              10,
+              0,
+              14,
+              10,
+              1,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "C": {
+            "trials": [
+              28,
+              38,
+              15,
+              9,
+              1,
+              4,
+              11,
+              5,
+              null,
+              null,
+              null,
+              null
+            ],
+            "admissions": [
+              22,
+              23,
+              8,
+              5,
+              0,
+              3,
+              8,
+              5,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "D": {
+            "trials": [
+              42,
+              21,
+              7,
+              6,
+              2,
+              11,
+              13,
+              2,
+              null,
+              null,
+              null,
+              null
+            ],
+            "admissions": [
+              23,
+              15,
+              5,
+              4,
+              2,
+              11,
+              5,
+              2,
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "E": {
+            "trials": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              5,
+              null,
+              null,
+              null,
+              null
+            ],
+            "admissions": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        },
+        "total": {
+          "trials": [
+            166,
+            113,
+            54,
+            43,
+            9,
+            51,
+            57,
+            13,
+            null,
+            null,
+            null,
+            null
+          ],
+          "admissions": [
+            127,
+            82,
+            34,
+            37,
+            7,
+            45,
+            35,
+            8,
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      },
+      "memberComposition": {
+        "definition": "operational-member-composition-v1",
+        "memberDefinition": "operational-person-v1",
+        "asOf": "2026-11-11",
+        "status": "ok",
+        "overall": {
+          "members": 1099,
+          "grade": {
+            "preschool": 0,
+            "k1": 6,
+            "k2": 48,
+            "k3": 53,
+            "p1": 148,
+            "p2": 181,
+            "p3": 170,
+            "p4": 174,
+            "p5": 166,
+            "p6": 95,
+            "j1": 35,
+            "j2": 15,
+            "j3": 6,
+            "h1": 1,
+            "h2": 0,
+            "h3": 0,
+            "adult": 0,
+            "unknown": 1
+          },
+          "gender": {
+            "male": 477,
+            "female": 620,
+            "other": 0,
+            "unknown": 2
+          },
+          "tenure": {
+            "lt3": 102,
+            "m3to6": 137,
+            "m6to12": 203,
+            "y1to2": 293,
+            "y2to3": 229,
+            "y3to5": 130,
+            "y5plus": 4,
+            "unknown": 1
+          },
+          "age": {
+            "lt5": 21,
+            "a5to6": 138,
+            "a7to9": 517,
+            "a10to12": 378,
+            "a13to15": 43,
+            "a16plus": 1,
+            "unknown": 1
+          },
+          "status": {
+            "active": 1063,
+            "paused": 21,
+            "scheduled": 14,
+            "unknown": 1
+          },
+          "entryYear": {
+            "2021": 13,
+            "2022": 31,
+            "2023": 117,
+            "2024": 251,
+            "2025": 313,
+            "2026": 373,
+            "unknown": 1
+          },
+          "summary": {
+            "knownTenure": 1098,
+            "tenureMonthsTotal": 19453,
+            "meanTenureMonths": 17.7,
+            "medianTenureMonths": 16
+          }
+        },
+        "teams": {
+          "A": {
+            "members": 347,
+            "grade": {
+              "preschool": 0,
+              "k1": 3,
+              "k2": 16,
+              "k3": 10,
+              "p1": 53,
+              "p2": 48,
+              "p3": 58,
+              "p4": 47,
+              "p5": 59,
+              "p6": 26,
+              "j1": 14,
+              "j2": 8,
+              "j3": 4,
+              "h1": 1,
+              "h2": 0,
+              "h3": 0,
+              "adult": 0,
+              "unknown": 0
+            },
+            "gender": {
+              "male": 160,
+              "female": 187,
+              "other": 0,
+              "unknown": 0
+            },
+            "tenure": {
+              "lt3": 32,
+              "m3to6": 56,
+              "m6to12": 64,
+              "y1to2": 60,
+              "y2to3": 59,
+              "y3to5": 72,
+              "y5plus": 4,
+              "unknown": 0
+            },
+            "age": {
+              "lt5": 9,
+              "a5to6": 37,
+              "a7to9": 159,
+              "a10to12": 120,
+              "a13to15": 21,
+              "a16plus": 1,
+              "unknown": 0
+            },
+            "status": {
+              "active": 345,
+              "paused": 2,
+              "scheduled": 0,
+              "unknown": 0
+            },
+            "entryYear": {
+              "2021": 13,
+              "2022": 31,
+              "2023": 44,
+              "2024": 64,
+              "2025": 71,
+              "2026": 124
+            },
+            "summary": {
+              "knownTenure": 347,
+              "tenureMonthsTotal": 7157,
+              "meanTenureMonths": 20.6,
+              "medianTenureMonths": 17
+            }
+          },
+          "B": {
+            "members": 318,
+            "grade": {
+              "preschool": 0,
+              "k1": 0,
+              "k2": 13,
+              "k3": 25,
+              "p1": 37,
+              "p2": 39,
+              "p3": 49,
+              "p4": 52,
+              "p5": 54,
+              "p6": 36,
+              "j1": 7,
+              "j2": 3,
+              "j3": 2,
+              "h1": 0,
+              "h2": 0,
+              "h3": 0,
+              "adult": 0,
+              "unknown": 1
+            },
+            "gender": {
+              "male": 137,
+              "female": 180,
+              "other": 0,
+              "unknown": 1
+            },
+            "tenure": {
+              "lt3": 28,
+              "m3to6": 28,
+              "m6to12": 65,
+              "y1to2": 63,
+              "y2to3": 75,
+              "y3to5": 58,
+              "y5plus": 0,
+              "unknown": 1
+            },
+            "age": {
+              "lt5": 7,
+              "a5to6": 50,
+              "a7to9": 130,
+              "a10to12": 120,
+              "a13to15": 10,
+              "a16plus": 0,
+              "unknown": 1
+            },
+            "status": {
+              "active": 311,
+              "paused": 0,
+              "scheduled": 6,
+              "unknown": 1
+            },
+            "entryYear": {
+              "2023": 73,
+              "2024": 71,
+              "2025": 68,
+              "2026": 105,
+              "unknown": 1
+            },
+            "summary": {
+              "knownTenure": 317,
+              "tenureMonthsTotal": 6103,
+              "meanTenureMonths": 19.3,
+              "medianTenureMonths": 17
+            }
+          },
+          "C": {
+            "members": 226,
+            "grade": {
+              "preschool": 0,
+              "k1": 0,
+              "k2": 4,
+              "k3": 9,
+              "p1": 36,
+              "p2": 47,
+              "p3": 30,
+              "p4": 39,
+              "p5": 27,
+              "p6": 20,
+              "j1": 11,
+              "j2": 3,
+              "j3": 0,
+              "h1": 0,
+              "h2": 0,
+              "h3": 0,
+              "adult": 0,
+              "unknown": 0
+            },
+            "gender": {
+              "male": 109,
+              "female": 117,
+              "other": 0,
+              "unknown": 0
+            },
+            "tenure": {
+              "lt3": 17,
+              "m3to6": 30,
+              "m6to12": 35,
+              "y1to2": 72,
+              "y2to3": 72,
+              "y3to5": 0,
+              "y5plus": 0,
+              "unknown": 0
+            },
+            "age": {
+              "lt5": 1,
+              "a5to6": 19,
+              "a7to9": 119,
+              "a10to12": 79,
+              "a13to15": 8,
+              "a16plus": 0,
+              "unknown": 0
+            },
+            "status": {
+              "active": 208,
+              "paused": 12,
+              "scheduled": 6,
+              "unknown": 0
+            },
+            "entryYear": {
+              "2024": 88,
+              "2025": 65,
+              "2026": 73
+            },
+            "summary": {
+              "knownTenure": 226,
+              "tenureMonthsTotal": 3590,
+              "meanTenureMonths": 15.9,
+              "medianTenureMonths": 16
+            }
+          },
+          "D": {
+            "members": 204,
+            "grade": {
+              "preschool": 0,
+              "k1": 2,
+              "k2": 15,
+              "k3": 9,
+              "p1": 21,
+              "p2": 47,
+              "p3": 32,
+              "p4": 35,
+              "p5": 26,
+              "p6": 13,
+              "j1": 3,
+              "j2": 1,
+              "j3": 0,
+              "h1": 0,
+              "h2": 0,
+              "h3": 0,
+              "adult": 0,
+              "unknown": 0
+            },
+            "gender": {
+              "male": 70,
+              "female": 133,
+              "other": 0,
+              "unknown": 1
+            },
+            "tenure": {
+              "lt3": 21,
+              "m3to6": 23,
+              "m6to12": 39,
+              "y1to2": 98,
+              "y2to3": 23,
+              "y3to5": 0,
+              "y5plus": 0,
+              "unknown": 0
+            },
+            "age": {
+              "lt5": 3,
+              "a5to6": 32,
+              "a7to9": 106,
+              "a10to12": 59,
+              "a13to15": 4,
+              "a16plus": 0,
+              "unknown": 0
+            },
+            "status": {
+              "active": 195,
+              "paused": 7,
+              "scheduled": 2,
+              "unknown": 0
+            },
+            "entryYear": {
+              "2024": 28,
+              "2025": 109,
+              "2026": 67
+            },
+            "summary": {
+              "knownTenure": 204,
+              "tenureMonthsTotal": 2603,
+              "meanTenureMonths": 12.8,
+              "medianTenureMonths": 14
+            }
+          },
+          "E": {
+            "members": 4,
+            "grade": {
+              "preschool": 0,
+              "k1": 1,
+              "k2": 0,
+              "k3": 0,
+              "p1": 1,
+              "p2": 0,
+              "p3": 1,
+              "p4": 1,
+              "p5": 0,
+              "p6": 0,
+              "j1": 0,
+              "j2": 0,
+              "j3": 0,
+              "h1": 0,
+              "h2": 0,
+              "h3": 0,
+              "adult": 0,
+              "unknown": 0
+            },
+            "gender": {
+              "male": 1,
+              "female": 3,
+              "other": 0,
+              "unknown": 0
+            },
+            "tenure": {
+              "lt3": 4,
+              "m3to6": 0,
+              "m6to12": 0,
+              "y1to2": 0,
+              "y2to3": 0,
+              "y3to5": 0,
+              "y5plus": 0,
+              "unknown": 0
+            },
+            "age": {
+              "lt5": 1,
+              "a5to6": 0,
+              "a7to9": 3,
+              "a10to12": 0,
+              "a13to15": 0,
+              "a16plus": 0,
+              "unknown": 0
+            },
+            "status": {
+              "active": 4,
+              "paused": 0,
+              "scheduled": 0,
+              "unknown": 0
+            },
+            "entryYear": {
+              "2026": 4
+            },
+            "summary": {
+              "knownTenure": 4,
+              "tenureMonthsTotal": 0,
+              "meanTenureMonths": 0,
+              "medianTenureMonths": 0
+            }
+          }
+        }
+      }
     }
   }
 });
