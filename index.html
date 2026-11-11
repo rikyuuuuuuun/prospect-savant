@@ -1715,7 +1715,9 @@
           });
 
           const headlineDelta = data.headline.members - comparison.headline.members;
-          if (memberComparable && headlineDelta) {
+          const sameMemberCohort = data.teams.length === comparison.teams.length
+            && data.teams.every(team => previousTeams.has(team.id));
+          if (memberComparable && sameMemberCohort && headlineDelta) {
             items.push({
               teamId: "ALL",
               kicker: "ALL TEAM · MEMBERS",
@@ -3166,6 +3168,16 @@
         const section = document.getElementById("standings-section");
         if (!data || !section || !Array.isArray(data.teams)) return;
 
+        const incomplete = data.teams.filter(team => !Number.isFinite(team.overall));
+        if (incomplete.length) {
+          for (const child of section.children) if (!child.classList.contains('section-heading')) child.hidden = true;
+          const note = document.createElement('p');
+          note.className = 'team-note';
+          note.textContent = `${incomplete.map(team => team.id + ' TEAM').join('・')}は総合点の対象実績待ちです。全チームの5指標が揃うと総合順位を表示します。現在算出できる指標はチーム概要で確認できます。`;
+          section.append(note);
+          return;
+        }
+
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
         const labels = data.metricLabels || {};
         const weights = Object.fromEntries((data.weights || []).map(item => [item.key, Number(item.value) || 0]));
@@ -4005,7 +4017,8 @@
             const leader = [...teams].sort((a, b) => b.overall - a.overall)[0];
             if (leader) out.overview = `総合1位 ${leader.id} TEAM ${n(leader.overall)}点`;
             const second = [...teams].sort((a, b) => b.overall - a.overall)[1];
-            if (leader && second) out.standings = `1位と2位の差 ${n(leader.overall - second.overall)}点`;
+            if (data.teams.some(team => !Number.isFinite(team.overall))) out.standings = '対象実績待ち';
+            else if (leader && second) out.standings = `1位と2位の差 ${n(leader.overall - second.overall)}点`;
             if (Number.isFinite(data.headline?.members)) out.composition = `運用会員 ${n(data.headline.members)}名`;
             const admitted = Object.values(data.admissions?.teams || {}).reduce((sum, team) => sum + (Number(team.cumulative) || 0), 0);
             if (admitted) out.admissions = `${data.admissions.fiscalYear || ''}年度 累計${n(admitted)}人`;
