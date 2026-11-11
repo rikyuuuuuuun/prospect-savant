@@ -114,17 +114,21 @@ test('teams with the same displayed total share the same rank', async () => {
   assert.equal(data.teams[0].rank, data.teams[1].rank);
 });
 
-test('withheld retention and missing evidence never become zero or a fabricated overall rank', async () => {
+test('withheld metrics stay unavailable while verified contributions produce a rank', async () => {
   const { source, events } = await fixture();
   source.teams[0].metrics.retention = source.teams[0].overall = null;
   const result = projectContinuousScores(source, events);
   assert.equal(result.data.teams[0].metrics.retention, null);
-  assert.equal(result.data.teams[0].overall, null);
-  assert.ok(result.data.teams.every(team => team.rank === null));
+  assert.ok(Number.isInteger(result.data.teams[0].overall));
+  assert.ok(result.data.teams.every(team => Number.isInteger(team.rank)));
+  assert.match(result.data.teams[0].status, /4\/5/);
   delete source.teams[1].metricEvidence;
   const missing = projectContinuousScores(source, events);
   assert.equal(missing.data.teams[1].overall, null);
+  assert.equal(missing.data.teams[1].rank, null);
   assert.ok(Object.values(missing.data.teams[1].metrics).every(value => value === null));
+  assert.ok(missing.data.teams.filter(team => team.id !== source.teams[1].id).every(team => Number.isInteger(team.rank)));
+  assert.notEqual(missing.data.overtakeTargets[source.teams[0].id].status, 'unavailable');
 });
 
 test('different score definitions stay incomparable and the deployed bundle uses projected integer scores', async () => {

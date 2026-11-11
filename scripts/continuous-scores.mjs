@@ -2,7 +2,7 @@ import { baseNote, buildTeamMetricExplanation, EXPLANATION_PREFIX, OPERATION_NOT
 import { buildOvertakeTargets } from './overtake-targets.mjs';
 import { includeETeam } from './e-team-metrics.mjs';
 
-export const CONTINUOUS_SCORE_VERSION = 'reference-index-v3';
+export const CONTINUOUS_SCORE_VERSION = 'reference-index-v4';
 const RANGE_SHARE = 0.3;
 const LEVEL_SHARE = 0.01;
 const REFERENCE = 60;
@@ -78,18 +78,22 @@ function scoreTeams(teams, weights, minimumSample) {
     if (!result) continue;
     const ev = evidence(team), { scores } = result;
     team.metrics = Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, value === null ? null : Math.round(value)]));
-    team.overall = Number.isFinite(team.overall) && weights.every(item => Number.isFinite(scores[item.key]))
-      ? Math.round(weighted(weights.map(item => ({ score: scores[item.key], weight: item.value })))) : null;
+    const available = weights.filter(item => item.value > 0 && Number.isFinite(scores[item.key]));
+    const totalWeight = weights.reduce((sum, item) => sum + item.value, 0);
+    team.overall = available.length && totalWeight > 0
+      ? Math.round(available.reduce((sum, item) => sum + scores[item.key] * item.value, 0) / totalWeight) : null;
     ev.retention = { ...ev.retention, periods: result.periods.map(period => ({ ...period, relativeScore: period.relativeScore === null ? null : Math.round(period.relativeScore) })), weightedIndex: team.metrics.retention };
     ev.admission.relativeScore = team.metrics.admission;
     ev.growth.relativeScore = team.metrics.growth;
     ev.event.score = team.metrics.event;
     Object.assign(ev.family, { pointScore: result.pointScore === null ? null : Math.round(result.pointScore), rateScore: result.rateScore === null ? null : Math.round(result.rateScore), calculatedScore: team.metrics.family });
   }
-  const complete = teams.every(team => Number.isFinite(team.overall));
   for (const team of teams) {
-    team.rank = complete ? 1 + teams.filter(other => other.overall > team.overall).length : null;
-    if ('status' in team) team.status = complete ? '算出済' : '総合順位確認中';
+    team.rank = Number.isFinite(team.overall)
+      ? 1 + teams.filter(other => Number.isFinite(other.overall) && other.overall > team.overall).length : null;
+    const count = weights.filter(item => Number.isFinite(team.metrics[item.key])).length;
+    if ('status' in team) team.status = count === weights.length ? '算出済'
+      : count ? `${count}/${weights.length}指標で集計` : '対象実績待ち';
   }
 }
 
@@ -124,7 +128,12 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
         .replace(/(→)(\d+)\.0(?=、|となり|×|）)/g, '$1$2')
         .replace(/([+-]?\d+\.\d+)点/g, (_, value) => `${Math.round(Number(value))}点`);
       team.note = `${EXPLANATION_PREFIX}${explanation}${context ? `${OPERATION_NOTE_PREFIX}${context}` : ''}`;
-    } else team.note = `比較できる実績が不足している指標は確認中です。総合点・順位を保留しています。${context}`;
+    } else {
+      const count = Object.values(team.metrics).filter(Number.isFinite).length;
+      team.note = Number.isFinite(team.overall)
+        ? `${data.weights.length}指標中${count}指標で集計しています。総合点は算出済みの各指標の指数×配点を合計し、全指標の総配点で割って算出します。対象実績が増えるとその指標の寄与が総合点へ加わります。${context}`
+        : `総合点の対象となる実績を集計中です。${context}`;
+    }
     if (events?.teams?.[team.id]) events.teams[team.id].score = team.metrics.event;
     const higher = data.teams.filter(other => other.overall > team.overall).sort((a, b) => a.overall - b.overall)[0];
     if (team.rank !== null && higher) {
@@ -137,7 +146,7 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
     }
   }
   const methodology = data.methodology.find(item => item.title === '指標ごとに正規化');
-  if (methodology) methodology.body = '点数は達成率ではなく、60を基準とする比較指数です。定着・年度入会・成長・紹介は、比較可能な全チームの実績平均からの差を、共通の比較幅でなめらかに換算します。通常の比較範囲は35〜85で、低い指数は「何もしていない」、高い指数は「完璧」という意味ではありません。全チーム同じ実績なら60です。定着の期間重み、紹介の人数70％＋率30％、イベントの参加70％＋継続30％と歴代MAXの集計基準は維持します。イベントは歴代MAX到達度を35〜85の指数へ換算。総合は丸め前の指数と既存配点から計算し、整数で表示・順位判定します。前回も同じ方式で再計算します。';
+  if (methodology) methodology.body = '各指標は60を基準とする比較指数です。定着・年度入会・成長・紹介は、比較可能な全チームの実績平均からの差を、共通の比較幅でなめらかに換算します。各指標の比較範囲は35〜85です。全チーム同じ実績なら60です。定着の期間重み、紹介の人数70％＋率30％、イベントの参加70％＋継続30％と歴代MAXの集計基準を使用します。イベントは歴代MAX到達度を35〜85の指数へ換算。総合は、算出済みの各指標の丸め前の指数×既存配点を合計し、全指標の総配点で割って整数に丸めます。一部指標が対象実績待ちでも総合点と順位を算出し、使用した指標数を表示します。対象となる指標が増えるとその寄与が総合点へ加わります。前回も同じ方式で再計算します。';
   data.scoreGuide = [{value:35,label:'比較下側'},{value:60,label:'比較基準'},{value:85,label:'比較上側'}];
   data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'group-mean', center: REFERENCE, range: [35,85], transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: REFERENCE };
   data.quality.completeness = Math.round(data.teams.reduce((sum, team) => sum + Object.values(team.metrics).filter(Number.isFinite).length, 0) / (data.teams.length * data.weights.length) * 100);

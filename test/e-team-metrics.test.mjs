@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parseFrozenJson } from '../scripts/trial-publication.mjs';
 import { RETENTION_PERIODS } from '../scripts/metric-retention-evidence.mjs';
-import { readETeamMetrics, validateETeamDetails, E_EVALUATION_START, selectETeamMemberMonthlyComparison } from '../scripts/e-team-metrics.mjs';
+import { readETeamMetrics, validateETeamDetails, E_EVALUATION_START, selectETeamMemberMonthlyComparison, includeETeam } from '../scripts/e-team-metrics.mjs';
 import { projectContinuousScores, continuousScore } from '../scripts/continuous-scores.mjs';
 import { aggregateDispositionTrials, buildTrialAnalyticsQuality } from '../scripts/trial-analytics-disposition.mjs';
 import { eMetricSourceRows } from './support/e-team.mjs';
@@ -61,7 +61,9 @@ test('E enters the same five-team formulas, monthly histories, composition and d
   assert.equal(e.metrics.admission, Math.round(continuousScore(0, data.teams.map(team => team.metricEvidence.admission.admissions / team.metricEvidence.admission.trials * 100))));
   assert.equal(e.metrics.growth, Math.round(continuousScore(0, data.teams.map(team => team.metricEvidence.growth.weightedPoints))));
   assert.equal(e.metrics.retention, null);
-  assert.equal(e.overall, null);
+  assert.ok(Number.isInteger(e.overall));
+  assert.equal(e.rank, 5);
+  assert.equal(e.status, '3/5指標で集計');
   assert.equal(result.data.admissions.teams.E.cumulative, 4);
   assert.equal(result.data.memberComposition.overall.members, result.data.headline.members);
   assert.ok(result.curve.teams.E.rates.every(value => value === null));
@@ -70,6 +72,24 @@ test('E enters the same five-team formulas, monthly histories, composition and d
   assert.equal(result.trial.annual.teams.E.trials, 5);
   assert.equal(data.teams.length, 4);
   assert.equal(events.teams.E, undefined);
+});
+
+test('three neutral scored metrics contribute 33 points under the fixed 100-point weights', async () => {
+  const { data, events } = await fixture();
+  for (const team of data.teams) {
+    Object.assign(team.metricEvidence.admission, { admissions: 0, trials: 5, rate: 0 });
+    team.metricEvidence.growth.weightedPoints = 0;
+    Object.assign(team.metricEvidence.family, { points: 0, rate: 0 });
+  }
+  const before = structuredClone(data);
+  const result = projectContinuousScores(data, events).data;
+  const e = result.teams.find(team => team.id === 'E');
+  assert.deepEqual(e.metrics, { retention: null, admission: 60, growth: 60, event: null, family: 60 });
+  assert.equal(e.overall, 33);
+  assert.equal(e.rank, 5);
+  assert.ok(result.teams.every(team => Number.isInteger(team.rank)));
+  assert.doesNotMatch(e.note, /総合点・順位を保留/);
+  assert.deepEqual(data, before);
 });
 
 test('E source errors, anonymous field additions and five-team reconciliation differences block publication', async () => {
@@ -129,7 +149,9 @@ test('E automatically scores eligible retention and events with an unavailable p
 
 test('a saved five-team prior publication enables like-for-like comparisons after launch', async () => {
   const { data, events } = await fixture();
-  const prior = structuredClone(projectContinuousScores(data, events).data.teams.find(team => team.id === 'E'));
+  const priorModel = structuredClone(data);
+  includeETeam(priorModel, structuredClone(events));
+  const prior = priorModel.teams.find(team => team.id === 'E');
   const asOf = data.comparison.previousAsOf;
   prior.metricEvidence.asOf = asOf;
   data.eTeam.previous = { asOf, team: prior, admissions: 4 };

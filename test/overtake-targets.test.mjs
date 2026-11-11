@@ -82,7 +82,7 @@ test('admissions beyond the existing trial pool include new trials and reject in
   assert.throws(()=>applyFutureGains(original,team.id,1.5,0),/INVALID/);
 });
 
-test('comparison index and missing-data safeguards remain unchanged',async()=>{
+test('partial metrics use the same future-score evaluator and keep overtake targets available',async()=>{
   const {source,events}=await fixture();
   const {data}=projectContinuousScores(source,events);
   assert.equal(data.scoring.center,60);
@@ -90,7 +90,9 @@ test('comparison index and missing-data safeguards remain unchanged',async()=>{
   assert.ok(data.teams.find(t=>t.id==='A').metrics.growth<=85);
   source.teams[0].overall=source.teams[0].metrics.retention=null;
   const missing=projectContinuousScores(source,events).data;
-  assert.ok(Object.values(missing.overtakeTargets).every(goal=>goal.status==='unavailable'&&goal.scenarios.length===0));
+  assert.equal(missing.teams[0].metrics.retention,null);
+  assert.ok(Number.isInteger(missing.teams[0].rank));
+  assert.ok(Object.values(missing.overtakeTargets).every(goal=>goal.status!=='unavailable'));
 });
 
 test('team cards contain one short future headcount target and keep assumptions outside the cards',async()=>{

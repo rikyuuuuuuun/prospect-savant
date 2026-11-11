@@ -3169,12 +3169,12 @@
         const section = document.getElementById("standings-section");
         if (!data || !section || !Array.isArray(data.teams)) return;
 
-        const incomplete = data.teams.filter(team => !Number.isFinite(team.overall));
-        if (incomplete.length) {
+        const teams = data.teams.filter(team => Number.isFinite(team.overall));
+        if (!teams.length) {
           for (const child of section.children) if (!child.classList.contains('section-heading')) child.hidden = true;
           const note = document.createElement('p');
           note.className = 'team-note';
-          note.textContent = `${incomplete.map(team => team.id + ' TEAM').join('・')}は総合点の対象実績待ちです。全チームの5指標が揃うと総合順位を表示します。現在算出できる指標はチーム概要で確認できます。`;
+          note.textContent = '総合順位の対象となる実績を集計中です。';
           section.append(note);
           return;
         }
@@ -3182,7 +3182,13 @@
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
         const labels = data.metricLabels || {};
         const weights = Object.fromEntries((data.weights || []).map(item => [item.key, Number(item.value) || 0]));
-        const teams = data.teams.filter(team => Number.isFinite(team.overall));
+        const incomplete = data.teams.filter(team => !Number.isFinite(team.overall));
+        if (incomplete.length) {
+          const note = document.createElement('p');
+          note.className = 'team-note';
+          note.textContent = `${incomplete.map(team => team.id + ' TEAM').join('・')}は総合点の対象実績待ちです。実績のある${teams.length}チームの順位を表示しています。`;
+          section.querySelector('.section-heading').after(note);
+        }
         const teamIds = teams.map(team => team.id);
         const byId = Object.fromEntries(teams.map(team => [team.id, team]));
         const teamName = id => `${id} TEAM`;
@@ -3233,7 +3239,7 @@
           if (key === "event" && Number.isFinite(bench.eventRate)) return `平均参加率 ${num(bench.eventRate, 1)}%`;
           if (key === "growth" && Number.isFinite(ev.growth?.top30Children)) return `大会上位30% ${num(ev.growth.top30Children, 0)}人`;
           if (key === "family" && Number.isFinite(bench.referralPoints)) return `紹介 ${num(bench.referralPoints, 0)}pt・${num(bench.referralRate, 2)}%`;
-          if (key === "overall") return `会員 ${num(team.members, 0)}名`;
+          if (key === "overall") return `会員 ${num(team.members, 0)}名${team.status && team.status !== '算出済' ? `・${team.status}` : ''}`;
           return "";
         };
 
@@ -3290,14 +3296,14 @@
             return `<div class="bt-lane${mine ? " is-mine" : ""}" data-rank="${rank}" style="--bt-c:${teamColor(team.id)};--bt-s:${savantColor(team.overall)}">
               <div class="bt-rank">${rank}<small>${rank === 1 ? "1ST" : rank === 2 ? "2ND" : rank === 3 ? "3RD" : `${rank}TH`}</small></div>
               <div class="bt-lane-body">
-                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">所属</span>` : ""}${move}</div>
+                <div class="bt-lane-name"><span class="bt-dot"></span>${esc(teamName(team.id))}${mine ? `<span class="bt-mine-tag">所属</span>` : ""}${move}${team.status && team.status !== '算出済' ? `<span class="bt-move">${esc(team.status)}</span>` : ''}</div>
                 <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
                 <div class="bt-gap">${gapText}${team.chase?.closed > 0 ? `　／　前回より <b>${team.chase.closed}点接近</b>` : ""}</div>
               </div>
               <div class="bt-score"><strong data-count="${team.overall}">0</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
             </div>`;
           }).join("");
-          document.getElementById("bt-race-note").textContent = `順位を抜く前も、実績差に応じて点数が動きます。点数と点差は整数表示。小さな改善は表示できる点数に達すると1点ずつ変わります。総合点は5指標×配点（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}を同じ採点方式で再計算した結果との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
+          document.getElementById("bt-race-note").textContent = `順位を抜く前も、実績差に応じて点数が動きます。点数と点差は整数表示。小さな改善は表示できる点数に達すると1点ずつ変わります。総合点は算出済み指標×配点の合計を総配点で割って算出（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。一部指標が対象実績待ちでも順位を表示し、集計した指標数を併記します。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}を同じ採点方式で再計算した結果との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
         };
         const playRace = () => {
           const bars = [...raceEl.querySelectorAll(".bt-bar")];
@@ -3400,10 +3406,12 @@
           rightSel.style.setProperty("--bt-c", teamColor(R.id));
           let lw = 0;
           let rw = 0;
+          let compared = 0;
           const rows = metricKeys.map(key => {
             const a = L.metrics?.[key];
             const b = R.metrics?.[key];
             if (!Number.isFinite(a) || !Number.isFinite(b)) return "";
+            compared += 1;
             if (a > b) lw += 1; else if (b > a) rw += 1;
             const total = a + b || 1;
             return `<div><div class="bt-vs-row-head"><span class="${a > b ? "win" : ""}">${num(a)}${a > b ? " ◀" : ""}</span><b>${esc(labels[key])}<small style="color:var(--muted);font-weight:700"> ・配点${weights[key]}％</small></b><span class="${b > a ? "win" : ""}">${b > a ? "▶ " : ""}${num(b)}</span></div>
@@ -3411,7 +3419,7 @@
           }).join("");
           const verdict = lw > rw ? `${teamName(L.id)} が優位` : rw > lw ? `${teamName(R.id)} が優位` : "同数";
           document.getElementById("bt-vs-score").innerHTML = `<div><strong style="color:${teamColor(L.id)}">${lw}</strong><span>${esc(teamName(L.id))}・総合${num(L.overall)}</span></div>
-            <div class="verdict">${esc(verdict)}<br><span>${num(metricKeys.length - lw - rw)}指標で同点</span></div>
+            <div class="verdict">${esc(verdict)}<br><span>${num(compared - lw - rw)}指標で同点${compared < metricKeys.length ? `・${metricKeys.length - compared}指標は対象実績待ち` : ''}</span></div>
             <div><strong style="color:${teamColor(R.id)}">${rw}</strong><span>${esc(teamName(R.id))}・総合${num(R.overall)}</span></div>`;
           document.getElementById("bt-vs-rows").innerHTML = rows;
         };
@@ -4018,8 +4026,8 @@
             const leader = [...teams].sort((a, b) => b.overall - a.overall)[0];
             if (leader) out.overview = `総合1位 ${leader.id} TEAM ${n(leader.overall)}点`;
             const second = [...teams].sort((a, b) => b.overall - a.overall)[1];
-            if (data.teams.some(team => !Number.isFinite(team.overall))) out.standings = '対象実績待ち';
-            else if (leader && second) out.standings = `1位と2位の差 ${n(leader.overall - second.overall)}点`;
+            if (leader && second) out.standings = `1位と2位の差 ${n(leader.overall - second.overall)}点`;
+            else if (!leader) out.standings = '対象実績待ち';
             if (Number.isFinite(data.headline?.members)) out.composition = `運用会員 ${n(data.headline.members)}名`;
             const admitted = Object.values(data.admissions?.teams || {}).reduce((sum, team) => sum + (Number(team.cumulative) || 0), 0);
             if (admitted) out.admissions = `${data.admissions.fiscalYear || ''}年度 累計${n(admitted)}人`;
