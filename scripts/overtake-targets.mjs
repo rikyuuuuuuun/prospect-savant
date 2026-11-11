@@ -23,14 +23,14 @@ export function applyFutureGains(teams, teamId, admissions, referralTrials) {
 }
 
 export function buildOvertakeTargets({source,currentTeams,evaluate}) {
-  const complete = currentTeams.every(t => Number.isFinite(t.overall) && Number.isFinite(t.rank));
+  const rankedTeams = currentTeams.filter(t => Number.isFinite(t.overall) && Number.isFinite(t.rank));
   return Object.fromEntries(currentTeams.map(team => {
-    if (!complete) return [team.id,{status:'unavailable',scenarios:[]}];
-    const above = currentTeams.filter(t => t.overall > team.overall).sort((a,b) => a.overall-b.overall || a.id.localeCompare(b.id))[0];
-    const tied = currentTeams.find(t => t.id !== team.id && t.overall === team.overall);
+    if (!Number.isFinite(team.rank)) return [team.id,{status:'unavailable',scenarios:[]}];
+    const above = rankedTeams.filter(t => t.overall > team.overall).sort((a,b) => a.overall-b.overall || a.id.localeCompare(b.id))[0];
+    const tied = rankedTeams.find(t => t.id !== team.id && t.overall === team.overall);
     const rival = above || tied;
     if (!rival) {
-      const next = currentTeams.filter(t => t.id !== team.id).sort((a,b) => b.overall-a.overall)[0];
+      const next = rankedTeams.filter(t => t.id !== team.id).sort((a,b) => b.overall-a.overall)[0];
       return [team.id,{status:'leader',lead:next ? team.overall-next.overall : null,scenarios:[]}];
     }
     const original = source.teams.find(t=>t.id===team.id);
