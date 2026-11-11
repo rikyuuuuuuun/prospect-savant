@@ -119,7 +119,7 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
       const explanation = buildTeamMetricExplanation({ team, previousTeam, currentEvidence: team.metricEvidence,
         previousEvidence: previousTeam?.metricEvidence, allCurrentEvidence: currentEvidence,
         allPreviousEvidence: previousEvidence, previousLabel: data.comparison?.previousAsOfLabel,
-      }).replace('A〜Dの相対順位を加重', '実績差による連続相対点を加重')
+      }).replace('全チームの相対順位を加重', '実績差による連続相対点を加重')
         .replace(/(相対点(?:が)?|人数相対点|紹介率相対点)(\d+)\.0/g, '$1$2')
         .replace(/(→)(\d+)\.0(?=、|となり|×|）)/g, '$1$2')
         .replace(/([+-]?\d+\.\d+)点/g, (_, value) => `${Math.round(Number(value))}点`);

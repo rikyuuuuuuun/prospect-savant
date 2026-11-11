@@ -1,5 +1,3 @@
-import { TEAM_IDS } from './metric-retention-evidence.mjs';
-
 export const EXPLANATION_PREFIX = '評価根拠｜';
 export const OPERATION_NOTE_PREFIX = '\n運用注記｜';
 
@@ -12,6 +10,7 @@ function metricScore(team, key) {
   const value = team?.metrics?.[key];
   return Number.isFinite(value) ? value : null;
 }
+const percent = value => Number.isFinite(value) ? `${value.toFixed(1)}%` : '対象不足';
 function retentionPeriodText(period) {
   return `${period.label} ${period.retained}/${period.sample}人継続・非継続${period.exited}人（${period.rate.toFixed(1)}%・相対点${period.relativeScore.toFixed(1)}）`;
 }
@@ -22,7 +21,7 @@ function peerCrossingText(teamId, period, previousPeriod, currentEvidence, previ
   if (!Number.isFinite(currentTeamRate) || !Number.isFinite(previousTeamRate)) return '';
   const direction = Number(period.relativeScore) - Number(previousPeriod.relativeScore);
   const candidates = [];
-  for (const peerId of TEAM_IDS) {
+  for (const peerId of Object.keys(currentEvidence)) {
     if (peerId === teamId) continue;
     const currentPeer = currentEvidence[peerId]?.retention?.periods?.find((item) => item.key === period.key);
     const previousPeer = previousEvidence[peerId]?.retention?.periods?.find((item) => item.key === period.key);
@@ -40,7 +39,7 @@ function explainRetention(id, current, previous, currentAll, previousAll, curren
   if (!Number.isFinite(currentScore)) return '【定着力】継続率を確定できる比較データが不足しているため確認中です。空欄を0点や前回値で補わず、総合点・順位と前回比も保留します。';
   const scored = current?.periods?.filter((period) => period.scored && Number.isFinite(period.relativeScore)) || [];
   const basis = scored.length ? scored.map(retentionPeriodText).join('、') : '比較可能な期間がありません';
-  let text = `【定着力】${basis}。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果${currentScore}点です。`;
+  let text = `【定着力】${basis}。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重く全チームの相対順位を加重した結果${currentScore}点です。`;
   if (!Number.isFinite(previousScore) || currentScore === previousScore) return text;
   if (!previous?.periods?.length) return `${text} ${previousLabel || '前回'}の匿名内訳が旧snapshotに保存されていないため、点数変化の理由は完全比較できません。`;
   const previousByKey = new Map(previous.periods.map((period) => [period.key, period]));
@@ -64,23 +63,23 @@ function explainRetention(id, current, previous, currentAll, previousAll, curren
 
 function explainAdmission(current, previous, currentScore, previousScore, previousLabel) {
   const basis = current?.trials && current?.admissions !== null
-    ? `${current.trials}人体験のうち${current.admissions}人入会、年度の体験→入会率${current.rate.toFixed(1)}%（前年同期間${current.previousRate.toFixed(1)}%）`
+    ? `${current.trials}人体験のうち${current.admissions}人入会、年度の体験→入会率${percent(current.rate)}（前年同期間${percent(current.previousRate)}）`
     : '年度入会の匿名内訳不足';
-  let text = `【年度入会力】${basis}。A〜Dの年度入会率を相対評価して${currentScore}点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。`;
+  let text = `【年度入会力】${basis}。全チームの年度入会率を相対評価して${currentScore}点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。`;
   if (!Number.isFinite(previousScore) || currentScore === previousScore) return text;
   if (!previous?.trials || previous.admissions === null || previous.rate === null) return `${text} ${previousLabel || '前回'}の人数内訳がないため、変化理由は完全比較できません。`;
   return `${text} ${previousLabel || '前回'}${previousScore}点→${currentScore}点。実績は${previous.admissions}/${previous.trials}人・${previous.rate.toFixed(1)}%→${current.admissions}/${current.trials}人・${current.rate.toFixed(1)}%です。`;
 }
 
 function explainEvent(current, previous, currentScore, previousScore, previousLabel) {
-  let text = `【イベント力】一般会員対象イベントの平均参加率${current.averageRate.toFixed(1)}%と継続参加率${current.repeatRate.toFixed(1)}%を、参加${current.participationWeight}%・継続${current.repeatWeight}%で統合して${currentScore}点です。大会参加者限定練習は除外しています。`;
+  let text = `【イベント力】一般会員対象イベントの平均参加率${percent(current.averageRate)}と継続参加率${percent(current.repeatRate)}を、参加${current.participationWeight}%・継続${current.repeatWeight}%で統合して${currentScore}点です。大会参加者限定練習は除外しています。`;
   if (!Number.isFinite(previousScore) || currentScore === previousScore) return text;
   if (!previous) return `${text} ${previousLabel || '前回'}の内訳がないため、変化理由は完全比較できません。`;
-  return `${text} ${previousLabel || '前回'}${previousScore}点→${currentScore}点。平均参加率は${previous.averageRate.toFixed(1)}%→${current.averageRate.toFixed(1)}%、継続参加率は${previous.repeatRate.toFixed(1)}%→${current.repeatRate.toFixed(1)}%です。`;
+  return `${text} ${previousLabel || '前回'}${previousScore}点→${currentScore}点。平均参加率は${percent(previous.averageRate)}→${percent(current.averageRate)}、継続参加率は${percent(previous.repeatRate)}→${percent(current.repeatRate)}です。`;
 }
 
 function explainGrowth(current, previous, currentScore, previousScore, previousLabel) {
-  let text = `【成長力】${current.competitionCount}大会・順位${current.competitionRows.toLocaleString('ja-JP')}件を対象に、上位10% ${current.top10}件、10〜20% ${current.top10to20}件、20〜30% ${current.top20to30}件、上位30%の子ども${current.top30Children}人、加重点${current.weightedPoints}点。A〜Dの相対評価で${currentScore}点です。`;
+  let text = `【成長力】${current.competitionCount}大会・順位${current.competitionRows.toLocaleString('ja-JP')}件を対象に、上位10% ${current.top10}件、10〜20% ${current.top10to20}件、20〜30% ${current.top20to30}件、上位30%の子ども${current.top30Children}人、加重点${current.weightedPoints}点。全チームの相対評価で${currentScore}点です。`;
   if (!Number.isFinite(previousScore) || currentScore === previousScore) return text;
   if (!previous) return `${text} ${previousLabel || '前回'}の大会内訳は旧snapshotに保存されていないため、点数変化の理由は完全比較できません。`;
   return `${text} ${previousLabel || '前回'}${previousScore}点→${currentScore}点。上位30%加重点は${previous.weightedPoints}→${current.weightedPoints}、対象児童は${previous.top30Children}→${current.top30Children}人です。`;

@@ -90,6 +90,8 @@ export function includeETeam(data, events, auxiliary = {}) {
   check(e.metrics.asOf === data.asOf && e.metrics.definition === 'common-team-metrics-v1', 'DATE_OR_DEFINITION_INVALID');
   check(!data.teams.some(team => team.id === 'E'), 'DUPLICATE_TEAM');
   const evidence = e.metrics;
+  Object.assign(evidence.growth, { competitionCount: data.quality.competitionCount, competitionRows: data.quality.competitionRows });
+  Object.assign(evidence.family, { fiscalYear: data.admissionConversion.fiscalYear, asOf: data.asOf });
   const details = new Map(evidence.events.map(item => [item.startDate + '|' + item.endDate, item]));
   check(details.size === events.events.length, 'EVENT_MAPPING_INVALID');
   for (const event of events.events) {
