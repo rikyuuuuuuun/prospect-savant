@@ -5,6 +5,7 @@ import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
+import { E_TEAM_RANGE, readETeamSource } from './e-team-source.mjs';
 import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -328,6 +329,9 @@ async function publishInto(root, snapshot) {
   const retention = parsePublicSource(await readFile(join(root, 'retention-data.js'), 'utf8'), 'retention-data.js');
   const schoolAge = parsePublicSource(await readFile(join(root, 'school-age-data.js'), 'utf8'), 'school-age-data.js');
   const asOf = sourceAsOf(ranges.monthly);
+  const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
+  assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
+  if (eTeam) data.eTeam = eTeam;
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);

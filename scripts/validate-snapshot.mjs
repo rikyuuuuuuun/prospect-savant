@@ -1,5 +1,6 @@
 import { validateWithdrawalHistory } from './withdrawal-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
+import { validatePublishedETeam } from './e-team-source.mjs';
 import { validateRetentionAvailability } from './retention-availability.mjs';
 import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
@@ -109,6 +110,7 @@ export async function validateSnapshot(rootDir = process.cwd()) {
   if (data.admissionConversion !== undefined) {
     try { validateAnnualConversion(data); } catch (error) { add(errors, false, error.message); }
   }
+  try { validatePublishedETeam(data); } catch (error) { add(errors, false, error.message); }
   if (data.withdrawalHistory !== undefined) {
     try { validateWithdrawalHistory(data.withdrawalHistory, data); } catch (error) { add(errors, false, error.message); }
   }

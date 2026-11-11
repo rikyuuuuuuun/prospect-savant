@@ -2,6 +2,7 @@ import { syntheticTrialQuality } from './support/trial-disposition.mjs';
 import { syntheticMemberReadback, syntheticMemberGate } from './support/member-readback.mjs';
 import { conversionRows } from './support/annual-conversion.mjs';
 import { ANNUAL_CONVERSION_RANGE } from '../scripts/annual-conversion-source.mjs';
+import { E_TEAM_RANGE } from '../scripts/e-team-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -276,6 +277,34 @@ test('uses the central annual source even when a direct daily aggregate carries 
     const published = parsePublicSource(await readFile(join(dir, 'trial-data.js'), 'utf8'), 'trial-data.js');
     assert.equal(published.today.teams.C, 3);
     assert.deepEqual(published.annual.teams.C, trial.annual.teams.C);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('publishes E only when its dated conversion and the five-team member total agree', async () => {
+  const [data, events, curve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
+  const dir = await mkdtemp(join(tmpdir(), 'savant-e-team-'));
+  try {
+    for (const file of PUBLIC_FILES) await copyFile(join(root, file), join(dir, file));
+    const ranges = sourceRows(data, events, curve, schoolAge, trial);
+    const total = data.headline.members + 4;
+    ranges[E_TEAM_RANGE] = [
+      ['E', 4, 4, 0, 0, '', 'E', trial.annual.fiscalYear, 5, 0, 0, 0, data.asOf, data.admissionConversion.definition],
+      ['合計（A〜E）', total, total, 0, 0],
+    ];
+    const sourcePath = join(dir, 'source.json');
+    const trialAggregate = { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear,
+      aggregates: Object.fromEntries(data.teams.map(team => [team.id, { today: 0 }])) };
+    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate }));
+    await publishPrivateSavantSource({ rootDir: dir, sourcePath });
+    const publishedSource = await readFile(join(dir, 'data.js'), 'utf8');
+    const published = parsePublicSource(publishedSource, 'data.js');
+    assert.deepEqual(published.eTeam.annual, { trials: 5, admissions: 0, previousTrials: 0, previousAdmissions: 0 });
+    assert.equal(published.eTeam.members, 4);
+    assert.equal(published.eTeam.allMembers, total);
+    ranges[E_TEAM_RANGE][1][1]++;
+    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate }));
+    await assert.rejects(() => publishPrivateSavantSource({ rootDir: dir, sourcePath }), /E_TEAM_MEMBER_TOTAL_MISMATCH/);
+    assert.equal(await readFile(join(dir, 'data.js'), 'utf8'), publishedSource);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { validateSnapshot } from './validate-snapshot.mjs';
 import { validatePublishedTrialData, parseFrozenJson } from './trial-publication.mjs';
 import { projectContinuousScores } from './continuous-scores.mjs';
+import { combinedConversion } from './e-team-source.mjs';
 
 export const STAFF_SAVANT_URL = 'https://prospect-portal.rikuhirata713.chatgpt.site/savant/';
 const scripts = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'];
@@ -17,6 +18,7 @@ export async function buildSavantBundle(root) {
   const readData = async file => parseFrozenJson(await readFile(join(root, file), 'utf8'), file);
   const [data, events, curve] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js'].map(readData));
   const projected = projectContinuousScores(data, events, curve.minimumSample || 20);
+  if (data.eTeam) projected.data.eTeam.combinedConversion = combinedConversion(data);
   const projections = { 'data.js': ['PROSPECT_SAVANT_DATA', projected.data], 'event-data.js': ['PROSPECT_EVENT_HISTORY', projected.events] };
   for (const file of scripts) {
     const tag = `<script src="./${file}"></script>`;
