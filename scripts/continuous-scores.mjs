@@ -1,5 +1,6 @@
 import { baseNote, buildTeamMetricExplanation, EXPLANATION_PREFIX, OPERATION_NOTE_PREFIX } from './metric-explanation-text.mjs';
 import { buildOvertakeTargets } from './overtake-targets.mjs';
+import { includeETeam } from './e-team-metrics.mjs';
 
 export const CONTINUOUS_SCORE_VERSION = 'reference-index-v3';
 const RANGE_SHARE = 0.3;
@@ -94,9 +95,12 @@ function scoreTeams(teams, weights, minimumSample) {
 
 // Project the verified anonymous snapshot into staff-facing scores at bundle build
 // time. Keep source files, Sheets reconciliation and historical records intact.
-export function projectContinuousScores(source, sourceEvents, minimumSample = 20) {
+export function projectContinuousScores(source, sourceEvents, minimumSample = 20, sourceAuxiliary = {}) {
   const data = structuredClone(source), events = structuredClone(sourceEvents);
+  const auxiliary = structuredClone(sourceAuxiliary);
   const originalVersion = data.scoreVersion;
+  includeETeam(data, events, auxiliary);
+  const scoringSource = structuredClone(data);
   scoreTeams(data.teams, data.weights, minimumSample);
   data.sourceScoreVersion = originalVersion;
   data.scoreVersion = `${originalVersion}:${CONTINUOUS_SCORE_VERSION}`;
@@ -115,12 +119,12 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
       const explanation = buildTeamMetricExplanation({ team, previousTeam, currentEvidence: team.metricEvidence,
         previousEvidence: previousTeam?.metricEvidence, allCurrentEvidence: currentEvidence,
         allPreviousEvidence: previousEvidence, previousLabel: data.comparison?.previousAsOfLabel,
-      }).replace('A〜Dの相対順位を加重', '実績差による連続相対点を加重')
+      }).replace('全チームの相対順位を加重', '実績差による連続相対点を加重')
         .replace(/(相対点(?:が)?|人数相対点|紹介率相対点)(\d+)\.0/g, '$1$2')
         .replace(/(→)(\d+)\.0(?=、|となり|×|）)/g, '$1$2')
         .replace(/([+-]?\d+\.\d+)点/g, (_, value) => `${Math.round(Number(value))}点`);
       team.note = `${EXPLANATION_PREFIX}${explanation}${context ? `${OPERATION_NOTE_PREFIX}${context}` : ''}`;
-    } else team.note = '比較できる実績が不足している指標は確認中です。総合点・順位を保留しています。';
+    } else team.note = `比較できる実績が不足している指標は確認中です。総合点・順位を保留しています。${context}`;
     if (events?.teams?.[team.id]) events.teams[team.id].score = team.metrics.event;
     const higher = data.teams.filter(other => other.overall > team.overall).sort((a, b) => a.overall - b.overall)[0];
     if (team.rank !== null && higher) {
@@ -136,8 +140,9 @@ export function projectContinuousScores(source, sourceEvents, minimumSample = 20
   if (methodology) methodology.body = '点数は達成率ではなく、60を基準とする比較指数です。定着・年度入会・成長・紹介は、比較可能な全チームの実績平均からの差を、共通の比較幅でなめらかに換算します。通常の比較範囲は35〜85で、低い指数は「何もしていない」、高い指数は「完璧」という意味ではありません。全チーム同じ実績なら60です。定着の期間重み、紹介の人数70％＋率30％、イベントの参加70％＋継続30％と歴代MAXの集計基準は維持します。イベントは歴代MAX到達度を35〜85の指数へ換算。総合は丸め前の指数と既存配点から計算し、整数で表示・順位判定します。前回も同じ方式で再計算します。';
   data.scoreGuide = [{value:35,label:'比較下側'},{value:60,label:'比較基準'},{value:85,label:'比較上側'}];
   data.scoring = { version: CONTINUOUS_SCORE_VERSION, precision: 0, reference: 'group-mean', center: REFERENCE, range: [35,85], transition: { rangeShare: RANGE_SHARE, levelShare: LEVEL_SHARE }, allZeroScore: REFERENCE };
-  data.overtakeTargets = buildOvertakeTargets({ source, currentTeams: data.teams,
+  data.quality.completeness = Math.round(data.teams.reduce((sum, team) => sum + Object.values(team.metrics).filter(Number.isFinite).length, 0) / (data.teams.length * data.weights.length) * 100);
+  data.overtakeTargets = buildOvertakeTargets({ source: scoringSource, currentTeams: data.teams,
     evaluate: teams => { scoreTeams(teams, source.weights, minimumSample); return teams; },
   });
-  return { data, events };
+  return { data, events, ...auxiliary };
 }

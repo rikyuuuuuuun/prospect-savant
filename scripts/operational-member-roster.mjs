@@ -20,18 +20,18 @@ function requirePersonKey(value, label) {
   return personKey;
 }
 
-function requireTeam(value, label) {
+function requireTeam(value, label, teamIds = TEAM_IDS) {
   const team = String(value || '').trim();
-  if (!TEAM_IDS.has(team)) fail(`${label} has invalid team ${JSON.stringify(team)}`);
+  if (!teamIds.has(team)) fail(`${label} has invalid team ${JSON.stringify(team)}`);
   return team;
 }
 
-function indexOverrides(overrides) {
+function indexOverrides(overrides, teamIds) {
   const indexed = new Map();
   for (const override of overrides) {
     requireExactKeys(override, new Set(['personKey', 'effectiveTeam', 'approved', 'active']), 'team override');
     const personKey = requirePersonKey(override.personKey, 'team override');
-    const team = requireTeam(override.effectiveTeam, `team override ${personKey}`);
+    const team = requireTeam(override.effectiveTeam, `team override ${personKey}`, teamIds);
     if (override.approved !== true || override.active !== true) {
       fail(`team override ${personKey} must be approved and active`);
     }
@@ -46,18 +46,19 @@ function indexOverrides(overrides) {
  * normalized membership feed. The caller must never commit that feed to this
  * public repository.
  */
-export function buildOperationalRoster({ records, teamOverrides = [], exceptions = [] }) {
+export function buildOperationalRoster({ records, teamOverrides = [], exceptions = [], teamIds = [...TEAM_IDS] }) {
   if (!Array.isArray(records)) fail('records must be an array');
   if (!Array.isArray(teamOverrides)) fail('teamOverrides must be an array');
   if (!Array.isArray(exceptions)) fail('exceptions must be an array');
 
-  const overrides = indexOverrides(teamOverrides);
+  const allowedTeams = new Set(teamIds);
+  const overrides = indexOverrides(teamOverrides, allowedTeams);
   const grouped = new Map();
 
   for (const record of records) {
     requireExactKeys(record, new Set(['personKey', 'team', 'status']), 'eligible source record');
     const personKey = requirePersonKey(record.personKey, 'source record');
-    const team = requireTeam(record.team, `source record ${personKey}`);
+    const team = requireTeam(record.team, `source record ${personKey}`, allowedTeams);
     const status = String(record.status || '').trim();
     if (EXCLUDED_STATUSES.has(status)) continue;
     if (!ELIGIBLE_STATUSES.has(status)) {
@@ -89,7 +90,7 @@ export function buildOperationalRoster({ records, teamOverrides = [], exceptions
   for (const exception of exceptions) {
     requireExactKeys(exception, new Set(['personKey', 'team', 'approved', 'active']), 'operational exception');
     const personKey = requirePersonKey(exception.personKey, 'operational exception');
-    const team = requireTeam(exception.team, `operational exception ${personKey}`);
+    const team = requireTeam(exception.team, `operational exception ${personKey}`, allowedTeams);
     if (exception.approved !== true || exception.active !== true) {
       fail(`operational exception ${personKey} must be approved and active`);
     }
@@ -102,7 +103,7 @@ export function buildOperationalRoster({ records, teamOverrides = [], exceptions
   }
 
   roster.sort((left, right) => left.personKey.localeCompare(right.personKey));
-  const counts = Object.fromEntries([...TEAM_IDS].map((team) => [team, 0]));
+  const counts = Object.fromEntries(teamIds.map((team) => [team, 0]));
   for (const member of roster) counts[member.team] += 1;
 
   return {

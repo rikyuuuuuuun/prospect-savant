@@ -9,7 +9,7 @@ test('renders the trial summary and annual admission samples without a new secti
   assert.match(source, /id="trial-summary"/);
   assert.match(source, /本日の体験/);
   assert.match(source, /trial-summary-breakdown/);
-  assert.match(source, /\["A", "B", "C", "D"\]/);
+  assert.match(source, /data\.teams\.map\(team => team\.id\)/);
   assert.match(source, /benchmark-sample/);
   assert.match(source, /体験\$\{formatNumber.format\(entry.trials\)\}人 → 入会\$\{formatNumber.format\(entry.admissions\)\}人/);
 });

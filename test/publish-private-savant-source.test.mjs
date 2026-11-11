@@ -3,9 +3,11 @@ import { syntheticMemberReadback, syntheticMemberGate } from './support/member-r
 import { conversionRows } from './support/annual-conversion.mjs';
 import { ANNUAL_CONVERSION_RANGE } from '../scripts/annual-conversion-source.mjs';
 import { E_TEAM_RANGE } from '../scripts/e-team-source.mjs';
+import { E_METRIC_RANGE } from '../scripts/e-team-metrics.mjs';
+import { eMetricSourceRows } from './support/e-team.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile as copySourceFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -16,7 +18,18 @@ import { publishPrivateSavantWithExplanations } from '../scripts/publish-private
 import { PUBLIC_FILES } from '../scripts/stage-public-snapshot.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-const readPublic = async (file) => parsePublicSource(await readFile(join(root, file), 'utf8'), file);
+// These cases exercise legacy four-team source layouts. Five-team metrics and
+// reconciliation have their own fixtures in e-team-metrics.test.mjs.
+const readPublic = async (file) => {
+  const value = parsePublicSource(await readFile(join(root, file), 'utf8'), file);
+  if (file === 'data.js') delete value.eTeam;
+  return value;
+};
+const copyFile = async (source, destination) => {
+  if (source === join(root, 'data.js')) {
+    await writeFile(destination, `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(await readPublic('data.js'), null, 2)});\n`);
+  } else await copySourceFile(source, destination);
+};
 const serial = (iso) => Math.floor((Date.parse(`${iso}T00:00:00Z`) - Date.UTC(1899, 11, 30)) / 86_400_000);
 const RANGES = {
   dashboard: "'00_ダッシュボード'!A1:H23", teams: "'01_チーム比較'!A1:P12", monthly: "'03_月次集計'!A1:V12",
@@ -42,7 +55,7 @@ test('confirmed unknown withdrawal dates withhold retention without stopping oth
     const ranges = explanationSourceRows(data, events, curve, schoolAge, trial);
     withUnknownRetention(ranges);
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
+    await writeFile(sourcePath, JSON.stringify({ ranges, eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
     await publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath });
     const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
     const retained = parsePublicSource(await readFile(join(dir, 'retention-data.js'), 'utf8'), 'retention-data.js');
@@ -62,7 +75,7 @@ test('confirmed unknown withdrawal dates withhold retention without stopping oth
     // Corrupted/unexplained values remain a hard failure; original public files stay intact.
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8')));
     ranges[RANGES.retention][4][5] = '#REF!';
-    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
+    await writeFile(sourcePath, JSON.stringify({ ranges, eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, { today: 0 }])) } }));
     await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /RETENTION_UNKNOWN_RATE_PRESENT_A/);
     assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file), 'utf8'))), before);
   } finally { await rm(dir, { recursive: true, force: true }); }
@@ -77,7 +90,7 @@ test('late explanation failure leaves all original public files byte-identical',
     const ranges = explanationSourceRows(data, events, retentionCurve, schoolAge, trial);
     ranges["'07_成長力'!P4:W9"] = [['invalid metric input']];
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today: 0}])) } }));
+    await writeFile(sourcePath, JSON.stringify({ ranges, eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today: 0}])) } }));
     // The core snapshot is valid; only the later explanation phase rejects it.
     await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
     await assert.rejects(() => publishPrivateSavantWithExplanations({ rootDir: dir, sourcePath }), /GROWTH_EVIDENCE_HEADER_MISSING/);
@@ -145,6 +158,7 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
   if (data.eTeam) {
     const e = data.eTeam;
+    if (e.metrics) source[E_METRIC_RANGE] = eMetricSourceRows(e);
     source[E_TEAM_RANGE] = [
       ['E', e.members, e.members, 0, 0, '', 'E', trial.annual.fiscalYear,
         e.annual.trials, e.annual.admissions, e.annual.previousTrials, e.annual.previousAdmissions,
@@ -208,7 +222,7 @@ for (const confirmed of [false, true]) {
         row[3] = data.memberMonthlyComparison.teams.find((team) => team.id === row[1]).members;
       }
       const sourcePath = join(dir, 'source.json');
-      await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(),
+      await writeFile(sourcePath, JSON.stringify({ ranges, eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(),
         targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear,
         aggregates: Object.fromEntries(data.teams.map((team) => [team.id, { today: 0 }])),
       } }));
@@ -244,7 +258,7 @@ for (const confirmed of [false, true]) {
         row[3] = baseline.teams.find((team) => team.id === row[1]).members;
       }
       const sourcePath = join(dir, 'source.json');
-      await writeFile(sourcePath, JSON.stringify({ ranges, trialAggregate: { quality: syntheticTrialQuality(),
+      await writeFile(sourcePath, JSON.stringify({ ranges, eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(),
         targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear,
         aggregates: Object.fromEntries(data.teams.map((team) => [team.id, { today: 0 }])),
       } }));
@@ -265,9 +279,10 @@ test('dry-run transforms only a complete reconciled anonymous source snapshot', 
   const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
+    await Promise.all(PUBLIC_FILES.map(file => copyFile(join(root, file), join(dir, file))));
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
-    const result = await publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true });
+    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
+    const result = await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
     assert.deepEqual(result, { ok: true, changedFiles: ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'], dryRun: true });
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
@@ -279,7 +294,7 @@ test('uses the central annual source even when a direct daily aggregate carries 
     const sourcePath = join(dir, 'source.json');
     const files = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
     await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.trialAggregate.aggregates.C = { today: 3, trials: 999, admissions: 999 };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
@@ -324,7 +339,7 @@ test('stores only anonymous member-master admission counters with the approved r
     const sourcePath = join(dir, 'source.json');
     const files = ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'];
     await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const published = parsePublicSource(await readFile(join(dir, 'data.js'), 'utf8'), 'data.js');
@@ -341,7 +356,7 @@ test('rejects an invalid central annual count before touching public files', asy
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.admission][6][1] = -1;
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /ANNUAL_TRIALS_C_INVALID/);
@@ -353,7 +368,7 @@ test('refuses a dashboard relative-score input that disagrees with the annual so
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.teams][6][5] = 0.5;
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /ANNUAL_RATE_RECONCILIATION_REQUIRED_C/);
@@ -365,7 +380,7 @@ test('refuses an explicitly unhealthy source quality state', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.quality][4][5] = '異常';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_QUALITY_BLOCKED/);
@@ -377,7 +392,7 @@ test('refuses a source snapshot older than the current public snapshot', async (
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate('2026-08-21');
     for (const row of snapshot.ranges[RANGES.monthly].slice(4)) row[21] = serial('2026-08-21');
     snapshot.ranges["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback('2026-08-21', Object.fromEntries(data.teams.map(t => [t.id, t.members])));
@@ -392,7 +407,7 @@ test('refuses a trial date that does not match the central source as-of date', a
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: '2026-08-23', fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: '2026-08-23', fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /MEMBER_SOURCE_DATE_MISMATCH/);
   } finally { await rm(dir, { recursive: true, force: true }); }
@@ -403,7 +418,7 @@ test('refuses a trial fiscal year that does not match the central source as-of d
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: '2025', aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: '2025', aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH/);
   } finally { await rm(dir, { recursive: true, force: true }); }
@@ -414,7 +429,7 @@ test('refuses a quality table with an unspecified status', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
     const sourcePath = join(dir, 'source.json');
-    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
+    const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } };
     snapshot.ranges[RANGES.quality][4][5] = '';
     await writeFile(sourcePath, JSON.stringify(snapshot), 'utf8');
     await assert.rejects(() => publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true }), /SOURCE_QUALITY_STATUS_MISSING/);
@@ -428,7 +443,7 @@ test('same source creates byte-identical output on a second run', async () => {
   try {
     await Promise.all(files.map((file) => copyFile(join(root, file), join(dir, file))));
     const sourcePath = join(dir, 'source.json');
-    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
+    await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
     await publishPrivateSavantSource({ rootDir: dir, sourcePath });
     const first = await Promise.all(files.map((file) => readFile(join(dir, file), 'utf8')));
     const manifest = JSON.parse(await readFile(join(dir, 'snapshot-manifest.json'), 'utf8'));
@@ -448,7 +463,7 @@ test('publication requires a fresh eligible-cohort receipt and cannot force-norm
     const before = await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file))));
     const sourcePath = join(dir, 'source.json');
     for (const quality of [undefined, { ...syntheticTrialQuality(), status: 'READY', total: 1, eligible: 1, unresolvedEligible: 1 }]) {
-      const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), trialAggregate: { quality, targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today:0}])) } };
+      const snapshot = { ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality, targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A','B','C','D'].map(id => [id, {today:0}])) } };
       await writeFile(sourcePath, JSON.stringify(snapshot));
       await assert.rejects(() => publishPrivateSavantSource({ rootDir: dir, sourcePath }), /TRIAL_DISPOSITION_QUALITY_(FIELDS_INVALID|BLOCKED)/);
       assert.deepEqual(await Promise.all(PUBLIC_FILES.map(file => readFile(join(dir, file)))), before);

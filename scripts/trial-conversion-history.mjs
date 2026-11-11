@@ -95,7 +95,7 @@ export function validateTrialConversionHistory(history, data, teamIds = IDS) {
 const columnLetter = index => { let s = ''; for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + (n - 1) % 26) + s; return s; };
 
 // Resolve the member master through the existing private link; never embed a Workspace ID in public code or output.
-export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, eTeam, requestJson }) {
+export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, eTeam, requestJson, additionalTeamResults }) {
   const batchUrl = (id, ranges, mode = 'UNFORMATTED_VALUE', dimension = 'COLUMNS') => {
     const params = new URLSearchParams({ valueRenderOption: mode, majorDimension: dimension, dateTimeRenderOption: 'SERIAL_NUMBER' });
     ranges.forEach(range => params.append('ranges', range));
@@ -131,22 +131,25 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
     const [dates, teams, attended, admitted] = raw.valueRanges.map(range => range?.values?.[0] || []);
     try {
       const input = { dates, teams, attended, admitted, asOf };
+      let eHistory;
       if (eTeam) {
         const history = buildTrialConversionHistory(input, ['E']);
+        eHistory = buildTrialConversionHistory(input, [...IDS, 'E']);
         validateTrialConversionHistory(history, {
           asOf,
           admissionConversion: { ...conversion, teams: { E: eTeam.annual } },
         }, ['E']);
       }
-      return buildTrialConversionHistory(input);
+      return { history: buildTrialConversionHistory(input), ...(additionalTeamResults ? { eHistory } : {}) };
     }
     catch (error) { error.profile = profileTrialColumns({ dates, teams, attended, admitted }); throw error; }
   };
   const history = await capture();
-  validateTrialConversionHistory(history, { asOf, admissionConversion: conversion });
+  validateTrialConversionHistory(history.history, { asOf, admissionConversion: conversion });
   check(JSON.stringify(history) === JSON.stringify(await capture())
     && JSON.stringify((await requestJson(headerUrl, token)).valueRanges?.[0]?.values?.[0] || []) === JSON.stringify(header), 'SOURCE_CHANGED_DURING_READ');
-  return history;
+  if (additionalTeamResults) additionalTeamResults.admissionConversionHistory = history.eHistory;
+  return history.history;
 }
 
 const kind = value => value === true ? 'true' : value === false ? 'false' : value === '' || value == null ? 'empty'

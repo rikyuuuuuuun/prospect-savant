@@ -13,11 +13,11 @@ const date = value => {
 const emptyMonth = month => ({ month, explicit: 0, stopped: 0, detected: 0, count: 0, cohortCount: 0, missingEntry: 0, denominator: null, rate: null });
 
 // Only anonymous aggregates leave this function. IDs are used solely for deduplication in memory.
-export function buildWithdrawalHistory({ members, courses, changes, asOf }, data = { asOf }) {
+export function buildWithdrawalHistory({ members, courses, changes, asOf }, data = { asOf }, teamIds = IDS) {
   assert(date(asOf) === asOf && data.asOf === asOf, 'ASOF_INVALID');
   const fiscalYear = fiscalYearFor(asOf);
   const months = Array.from({length:12}, (_,i) => new Date(Date.UTC(Number(fiscalYear), i+3, 1)).toISOString().slice(0,7));
-  const teams = Object.fromEntries(IDS.map(id => [id, { unknownMonth: 0, months: months.map(m => m > asOf.slice(0,7) ? null : emptyMonth(m)) }]));
+  const teams = Object.fromEntries(teamIds.map(id => [id, { unknownMonth: 0, months: months.map(m => m > asOf.slice(0,7) ? null : emptyMonth(m)) }]));
   const seen = new Set();
   for (const m of members) {
     assert(m.id && m.person && !seen.has(m.id), 'MEMBER_KEY_INVALID'); seen.add(m.id);
@@ -27,7 +27,7 @@ export function buildWithdrawalHistory({ members, courses, changes, asOf }, data
   members.forEach(m => { if(!byPerson.has(m.person)) byPerson.set(m.person,[]); byPerson.get(m.person).push(m); });
   const events = [];
   for (const m of members) {
-    if (!IDS.includes(m.team) || m.status === '削除') continue;
+    if (!teamIds.includes(m.team) || m.status === '削除') continue;
     const history = changes.filter(c => c.id === m.id && c.field === '在籍状態' && c.before && date(c.at) <= asOf).sort((a,b) => String(date(a.at)).localeCompare(String(date(b.at))));
     const retirements = history.filter(c => c.after === '退会' && c.before !== '退会');
     // A current retired row may predate change-log coverage. Never invent its retirement month.
@@ -57,7 +57,7 @@ export function buildWithdrawalHistory({ members, courses, changes, asOf }, data
         const stillContracted = last && related.some(c => (!c.startedAt || date(c.startedAt) <= last) && ((!c.endedAt && c.active) || (c.endedAt && date(c.endedAt) > last)));
         if (last && !stillContracted) { when=last; source='detected'; }
       }
-      const team = IDS.includes(event.team) ? event.team : m.team;
+      const team = teamIds.includes(event.team) ? event.team : m.team;
       // A second account still in the club is a transfer/duplicate, not a club withdrawal.
       const otherActive = byPerson.get(m.person).some(other => other.id !== m.id && ACTIVE.has(other.status) && (!when || (date(other.joinedAt) && date(other.joinedAt) <= when)));
       if (otherActive) continue;
@@ -83,7 +83,7 @@ export function buildWithdrawalHistory({ members, courses, changes, asOf }, data
   }
   const baseline=data.memberMonthlyComparison;
   if (!baseline?.estimate && baseline?.previousAsOf === previousMonthEnd(asOf) && baseline.memberDefinition?.id === data.memberDefinition?.id) {
-    for (const id of IDS) {
+    for (const id of teamIds) {
       const row=teams[id].months[months.indexOf(asOf.slice(0,7))];
       const count=baseline.teams.find(t=>t.id===id)?.members;
       if (Number.isSafeInteger(count) && count>=0) row.denominator=count;
@@ -93,17 +93,17 @@ export function buildWithdrawalHistory({ members, courses, changes, asOf }, data
     if (row && unassigned === 0 && team.unknownMonth === 0 && row.missingEntry === 0 && row.denominator > 0 && row.cohortCount <= row.denominator) row.rate=Number((100*row.cohortCount/row.denominator).toFixed(2));
   }
   const output={definition:WITHDRAWAL_DEFINITION,asOf,fiscalYear,months,teams,unassigned};
-  validateWithdrawalHistory(output,data); return output;
+  validateWithdrawalHistory(output,data,teamIds); return output;
 }
 
-export function validateWithdrawalHistory(h,data) {
+export function validateWithdrawalHistory(h,data,teamIds = IDS) {
   const exact=(o,keys)=>assert(o && Object.keys(o).sort().join()===keys.sort().join(),'FIELDS_INVALID');
   exact(h,['definition','asOf','fiscalYear','months','teams','unassigned']);
   assert(h.definition===WITHDRAWAL_DEFINITION && h.asOf===data.asOf && date(h.asOf)===h.asOf && h.fiscalYear===fiscalYearFor(h.asOf),'DEFINITION_OR_DATE_INVALID');
   assert(Number.isSafeInteger(h.unassigned)&&h.unassigned>=0,'UNASSIGNED_INVALID');
   const months=Array.from({length:12},(_,i)=>new Date(Date.UTC(Number(h.fiscalYear),i+3,1)).toISOString().slice(0,7));
-  assert(JSON.stringify(months)===JSON.stringify(h.months),'MONTHS_INVALID');exact(h.teams,IDS);
-  for(const id of IDS){const t=h.teams[id];exact(t,['unknownMonth','months']);assert(Number.isSafeInteger(t.unknownMonth)&&t.unknownMonth>=0 && t.months.length===12,'COUNTS_INVALID');
+  assert(JSON.stringify(months)===JSON.stringify(h.months),'MONTHS_INVALID');exact(h.teams,teamIds);
+  for(const id of teamIds){const t=h.teams[id];exact(t,['unknownMonth','months']);assert(Number.isSafeInteger(t.unknownMonth)&&t.unknownMonth>=0 && t.months.length===12,'COUNTS_INVALID');
     t.months.forEach((r,i)=>{
       if(months[i]>h.asOf.slice(0,7)){assert(r===null,'FUTURE_INVALID');return;}
       exact(r,['month','explicit','stopped','detected','count','cohortCount','missingEntry','denominator','rate']);
@@ -127,7 +127,7 @@ export function withdrawalInputFromRanges(ranges,asOf) {
   return {members,courses,changes,asOf};
 }
 
-export async function fetchWithdrawalHistory({spreadsheetId,token,asOf,requestJson}) {
+export async function fetchWithdrawalHistory({spreadsheetId,token,asOf,requestJson,additionalTeamResults}) {
   const batch=(id,ranges,mode='UNFORMATTED_VALUE')=>{const p=new URLSearchParams({valueRenderOption:mode,dateTimeRenderOption:'SERIAL_NUMBER'});ranges.forEach(r=>p.append('ranges',r));return `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(id)}/values:batchGet?${p}`;};
   const link=await requestJson(batch(spreadsheetId,["'98_会員マスター連携'!A4"],'FORMULA'),token);
   const match=link.valueRanges?.[0]?.values?.[0]?.[0]?.match(/^=IMPORTRANGE\("https:\/\/docs\.google\.com\/spreadsheets\/d\/([A-Za-z0-9_-]+)\/edit"\s*,\s*"'12_Savant連携'!A4:AE9"\)$/i);
@@ -136,17 +136,23 @@ export async function fetchWithdrawalHistory({spreadsheetId,token,asOf,requestJs
   const size=name=>{const p=meta.sheets?.find(s=>s.properties?.title===name)?.properties;assert(p?.gridProperties.rowCount>=5 && p.gridProperties.rowCount<=50000,'GRID_INVALID');return p.gridProperties.rowCount;};
   const m=size('01_会員マスター'),c=size('02_所属コース履歴'),h=size('08_会員変更履歴');
   const url=batch(id,[`'01_会員マスター'!A4:A${m}`,`'01_会員マスター'!F4:F${m}`,`'01_会員マスター'!P4:T${m}`,`'01_会員マスター'!AG4:AG${m}`,`'02_所属コース履歴'!B4:B${c}`,`'02_所属コース履歴'!K4:Q${c}`,`'08_会員変更履歴'!B4:K${h}`]);
-  const capture=async()=>buildWithdrawalHistory(withdrawalInputFromRanges((await requestJson(url,token)).valueRanges||[],asOf));
-  const result=await capture();assert(JSON.stringify(result)===JSON.stringify(await capture()),'SOURCE_CHANGED_DURING_READ');return result;
+  const capture = async () => {
+    const input = withdrawalInputFromRanges((await requestJson(url, token)).valueRanges || [], asOf);
+    return { history: buildWithdrawalHistory(input), ...(additionalTeamResults ? { extended: buildWithdrawalHistory(input, { asOf }, [...IDS, 'E']) } : {}) };
+  };
+  const result = await capture();
+  assert(JSON.stringify(result) === JSON.stringify(await capture()), 'SOURCE_CHANGED_DURING_READ');
+  if (additionalTeamResults) additionalTeamResults.withdrawalHistory = result.extended;
+  return result.history;
 }
 
-export function applyWithdrawalBaseline(h,data) {
+export function applyWithdrawalBaseline(h,data,teamIds = IDS) {
   const result=structuredClone(h);
   // Rates are rebuilt from the same public snapshot's monthly baseline, never from a different cutoff.
-  for(const id of IDS)for(const row of result.teams[id].months){if(!row)continue;row.denominator=null;row.rate=null;
+  for(const id of teamIds)for(const row of result.teams[id].months){if(!row)continue;row.denominator=null;row.rate=null;
     if(!data.memberMonthlyComparison?.estimate && row.month===data.asOf.slice(0,7) && data.memberMonthlyComparison?.previousAsOf===previousMonthEnd(data.asOf) && data.memberMonthlyComparison.memberDefinition?.id===data.memberDefinition?.id){
       row.denominator=data.memberMonthlyComparison.teams.find(t=>t.id===id)?.members??null;
       if(result.unassigned===0&&result.teams[id].unknownMonth===0&&row.missingEntry===0&&row.denominator>0&&row.cohortCount<=row.denominator)row.rate=Number((100*row.cohortCount/row.denominator).toFixed(2));
     }
-  }return validateWithdrawalHistory(result,data);
+  }return validateWithdrawalHistory(result,data,teamIds);
 }

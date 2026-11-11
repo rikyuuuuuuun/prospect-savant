@@ -1,4 +1,5 @@
 import { ANNUAL_CONVERSION_DEFINITION, conversionRate, readAnnualConversionTeam, validateConversionCounts } from './annual-conversion-source.mjs';
+import { validateETeamDetails } from './e-team-metrics.mjs';
 
 export const E_TEAM_RANGE = "'98_会員マスター連携'!A31:N32";
 const TEAM_ID = 'E';
@@ -22,10 +23,11 @@ export function readETeamSource(rows, asOf, aToDMembers) {
 export function validatePublishedETeam(data) {
   const team = data.eTeam;
   if (team === undefined) return;
-  check(team && Object.keys(team).sort().join() === 'allMembers,annual,asOf,definition,members', 'FIELDS_INVALID');
+  check(team && Object.keys(team).sort().join() === ['allMembers', 'annual', 'asOf', 'definition', 'members', ...(team.metrics ? ['metrics'] : []), ...(team.analysis ? ['analysis'] : []), ...(team.previous ? ['previous'] : [])].sort().join(), 'FIELDS_INVALID');
   check(team.asOf === data.asOf && team.definition === data.admissionConversion?.definition, 'DATE_OR_DEFINITION_MISMATCH');
   check(count(team.members) && count(team.allMembers) && team.allMembers === data.headline.members + team.members, 'MEMBER_TOTAL_MISMATCH');
   validateConversionCounts(team.annual, TEAM_ID);
+  validateETeamDetails(data);
 }
 
 export function combinedConversion(data) {

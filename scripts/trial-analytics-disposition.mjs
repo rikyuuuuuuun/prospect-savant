@@ -37,7 +37,7 @@ export function trialReceiptFromNote(value) {
   return matches[0][1];
 }
 
-export function buildTrialIntakeIndex(rows) {
+export function buildTrialIntakeIndex(rows, teamIds = TEAM_IDS) {
   const index = new Map();
   for (const row of rows) {
     const disposition = trialAnalyticsDisposition(row);
@@ -53,15 +53,15 @@ export function buildTrialIntakeIndex(rows) {
       check(TEAM_IDS.includes(text(row[4])) || PREPARING_TEAM_IDS.includes(text(row[4])), 'TEAM_INVALID');
       check(normaliseTrialRoute(row[6]) && normaliseTrialRoute(row[7]), 'ROUTE_INVALID');
     }
-    const preparing = PREPARING_TEAM_IDS.includes(text(row[4]));
+    const preparing = PREPARING_TEAM_IDS.includes(text(row[4])) && !teamIds.includes(text(row[4]));
     index.set(receipt, { row, disposition, form, preparing });
   }
   return index;
 }
 
 /** Fresh reconciliation of 14 intake versus canonical 09 S; never rewrite history to pass. */
-export function buildTrialAnalyticsQuality(intakeRows, experienceRows) {
-  const intake = buildTrialIntakeIndex(intakeRows);
+export function buildTrialAnalyticsQuality(intakeRows, experienceRows, teamIds = TEAM_IDS) {
+  const intake = buildTrialIntakeIndex(intakeRows, teamIds);
   const summary = { definition: TRIAL_ANALYTICS_DEFINITION, total: 0, pendingWorkflow: 0,
     excludedTest: 0, excludedOwner: 0, pendingDate: 0, eligible: 0,
     receiptColumnUniqueMatched: 0, receiptNoteConflicts: 0, legacyEvidenceRows: 0, exactUniqueMatched: 0, unresolvedEligible: 0, invalidEligibleDate: 0,
@@ -113,14 +113,14 @@ export function assertTrialAnalyticsQuality(summary) {
 }
 
 /** Preserve unmarked manual rows. Receipt rows require exact physical route and current intake date. */
-export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
+export function aggregateDispositionTrials({ sheets, intakeRows, targetDate, teamIds = TEAM_IDS }) {
   check(trialDate(targetDate) === targetDate, 'TARGET_DATE_INVALID');
-  const intake = buildTrialIntakeIndex(intakeRows);
+  const intake = buildTrialIntakeIndex(intakeRows, teamIds);
   const receiptGroups = new Map();
-  const aggregates = Object.fromEntries(TEAM_IDS.map(team => [team, { today: 0 }]));
+  const aggregates = Object.fromEntries(teamIds.map(team => [team, { today: 0 }]));
   const dailyReceipt = { receiptRows: 0, eligibleRows: 0, excludedRows: 0, pendingRows: 0, manualRows: 0, crossOwnerRows: 0, supersededRows: 0 };
   for (const sheet of sheets) {
-    check(TEAM_IDS.includes(sheet.owner) && Number.isSafeInteger(sheet.headerRow) && sheet.headerRow > 0 && Array.isArray(sheet.dateColumn) && Array.isArray(sheet.noteColumn), 'SOURCE_SCHEMA_INVALID');
+    check(teamIds.includes(sheet.owner) && Number.isSafeInteger(sheet.headerRow) && sheet.headerRow > 0 && Array.isArray(sheet.dateColumn) && Array.isArray(sheet.noteColumn), 'SOURCE_SCHEMA_INVALID');
     for (let i = sheet.headerRow; i < Math.max(sheet.dateColumn.length, sheet.noteColumn.length); i++) {
       const value = sheet.dateColumn[i];
       const receipt = trialReceiptFromNote(sheet.noteColumn[i]);
@@ -140,7 +140,7 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
     const { row, disposition, preparing } = record;
     if (preparing) { dailyReceipt.excludedRows++; continue; }
     const team = text(row[4]);
-    check(TEAM_IDS.includes(team), 'TEAM_INVALID');
+    check(teamIds.includes(team), 'TEAM_INVALID');
     for (const { sheet } of matches) {
       check(normaliseTrialRoute(row[6]) === sheet.spreadsheetId && normaliseTrialRoute(row[7]) === normaliseTrialRoute(sheet.title), 'ROUTE_MISMATCH');
       if (team !== sheet.owner) dailyReceipt.crossOwnerRows++;
@@ -175,9 +175,9 @@ export function aggregateDispositionTrials({ sheets, intakeRows, targetDate }) {
 }
 
 /** A missing current/future reservation cannot change a confirmed attendance cohort. */
-export function canDeferTrialReconciliation(intakeRows, experienceRows, targetDate) {
+export function canDeferTrialReconciliation(intakeRows, experienceRows, targetDate, teamIds = TEAM_IDS) {
   if (trialDate(targetDate) !== targetDate) return false;
-  const index = buildTrialIntakeIndex(intakeRows);
+  const index = buildTrialIntakeIndex(intakeRows, teamIds);
   const deferred = new Set();
   for (const [receipt, { row, disposition, form, preparing }] of index) {
     if (!form || preparing || disposition || text(row[23]) !== '反映済') continue;
@@ -192,7 +192,7 @@ export function canDeferTrialReconciliation(intakeRows, experienceRows, targetDa
   // Re-run the complete quality check on everything that can affect confirmed history.
   try {
     assertTrialAnalyticsQuality(buildTrialAnalyticsQuality(
-      intakeRows.filter(row => !deferred.has(text(row[0]).trim())), experienceRows));
+      intakeRows.filter(row => !deferred.has(text(row[0]).trim())), experienceRows, teamIds));
     return true;
   } catch { return false; }
 }
@@ -221,7 +221,7 @@ function sparseRows(valueRanges, columns) {
 }
 
 /** Resolve the canonical master through the existing private link, never a public hardcoded ID. */
-export async function captureTrialDispositionSource({ spreadsheetId, token, requestJson, targetDate, allowPending = false }) {
+export async function captureTrialDispositionSource({ spreadsheetId, token, requestJson, targetDate, allowPending = false, teamIds = TEAM_IDS }) {
   check(spreadsheetId, 'SOURCE_LINK_MISSING');
   const linkUrl = batchUrl(spreadsheetId, ["'98_会員マスター連携'!A4"], 'FORMULA', 'ROWS');
   const link = await requestJson(linkUrl, token);
@@ -246,20 +246,20 @@ export async function captureTrialDispositionSource({ spreadsheetId, token, requ
       experienceRows: sparseRows(raw.valueRanges.slice(INTAKE_COLUMNS.length), EXPERIENCE_COLUMNS) };
   };
   const initial = await capture();
-  const quality = buildTrialAnalyticsQuality(initial.intakeRows, initial.experienceRows);
+  const quality = buildTrialAnalyticsQuality(initial.intakeRows, initial.experienceRows, teamIds);
   let pending = false;
   try { assertTrialAnalyticsQuality(quality); }
   catch (error) {
     // Only a new, dated receipt with no canonical or legacy match can wait.
     // Historical mismatches, exclusions, duplicate matches and bad dates still block.
     if (!allowPending || error.message !== 'TRIAL_DISPOSITION_QUALITY_BLOCKED' ||
-        !canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, targetDate)) throw error;
+        !canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, targetDate, teamIds)) throw error;
     pending = true;
   }
   // Future-only reconciliation cannot change today's reservations or confirmed
   // attendance. Keep the original REVIEW receipt; only its daily dependency changes.
   const nextDate = targetDate && new Date(Date.parse(targetDate) + 86400000).toISOString().slice(0, 10);
-  const futurePendingOnly = pending && canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, nextDate);
+  const futurePendingOnly = pending && canDeferTrialReconciliation(initial.intakeRows, initial.experienceRows, nextDate, teamIds);
   return { ...initial, quality, pending, futurePendingOnly, readback: async () => {
     check(JSON.stringify(await capture()) === JSON.stringify(initial), 'SOURCE_CHANGED_DURING_READ');
     check(JSON.stringify(await requestJson(metadataUrl, token)) === JSON.stringify(metadata), 'SOURCE_CHANGED_DURING_READ');

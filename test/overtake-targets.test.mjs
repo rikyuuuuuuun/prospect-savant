@@ -7,7 +7,9 @@ import { applyFutureGains } from '../scripts/overtake-targets.mjs';
 
 const fixture = async () => {
   const read = async file => parseFrozenJson(await readFile(new URL(`../${file}`,import.meta.url),'utf8'),file);
-  return {source:await read('data.js'),events:await read('event-data.js')};
+  const source = await read('data.js');
+  delete source.eTeam;
+  return {source,events:await read('event-data.js')};
 };
 
 test('each displayed future goal replays to a strict integer overtake without changing historical performance',async()=>{
