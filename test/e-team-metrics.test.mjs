@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parseFrozenJson } from '../scripts/trial-publication.mjs';
 import { RETENTION_PERIODS } from '../scripts/metric-retention-evidence.mjs';
-import { readETeamMetrics, validateETeamDetails, E_EVALUATION_START } from '../scripts/e-team-metrics.mjs';
+import { readETeamMetrics, validateETeamDetails, E_EVALUATION_START, selectETeamMemberMonthlyComparison } from '../scripts/e-team-metrics.mjs';
 import { projectContinuousScores, continuousScore } from '../scripts/continuous-scores.mjs';
 import { aggregateDispositionTrials, buildTrialAnalyticsQuality } from '../scripts/trial-analytics-disposition.mjs';
 import { eMetricSourceRows } from './support/e-team.mjs';
@@ -82,6 +82,34 @@ test('E source errors, anonymous field additions and five-team reconciliation di
   delete data.eTeam.metrics.growth.privateField;
   data.eTeam.analysis.admissionConversionHistory.teams.E.trials[0]++;
   assert.throws(() => validateETeamDetails(data), /TOTAL_MISMATCH|ANNUAL/);
+});
+
+test('whole membership compares A–E with the saved month-end total across E launch', async () => {
+  const { data, events } = await fixture();
+  const before = structuredClone(data);
+  const result = projectContinuousScores(data, events).data;
+  const baseline = data.memberMonthlyComparison.headline.members;
+  assert.equal(result.headline.monthlyDelta, data.headline.members + 4 - baseline);
+  assert.equal(result.memberMonthlyComparison.headline.members, baseline);
+  assert.equal(result.memberMonthlyComparison.teams.find(team => team.id === 'E').members, 0);
+  assert.equal(result.teams.find(team => team.id === 'E').monthlyDelta, 4);
+  assert.equal(result.teams.reduce((sum, team) => sum + team.monthlyDelta, 0), result.headline.monthlyDelta);
+  assert.deepEqual(data, before);
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const expression = html.match(/const headlineMemberDeltaComparable = ([\s\S]*?);/)[1];
+  const renderable = new Function('data', 'memberDeltaComparable', 'eTeam', `return ${expression}`);
+  assert.equal(renderable(result, true, result.eTeam), true);
+  assert.equal(renderable(data, true, data.eTeam), false);
+});
+
+test('E month-end membership rolls over, survives same-day retries and never assumes post-launch zero', () => {
+  const monthEnd = { asOf: '2026-11-30', members: 7 };
+  const saved = selectETeamMemberMonthlyComparison(monthEnd, '2026-12-01');
+  assert.deepEqual(saved, { asOf: '2026-11-30', members: 7 });
+  assert.deepEqual(selectETeamMemberMonthlyComparison({ asOf: '2026-12-01', members: 8, memberMonthlyComparison: saved }, '2026-12-01'), saved);
+  assert.deepEqual(selectETeamMemberMonthlyComparison({ asOf: '2026-12-15', members: 9, memberMonthlyComparison: saved }, '2026-12-16'), saved);
+  assert.equal(selectETeamMemberMonthlyComparison({ asOf: '2026-11-29', members: 7 }, '2026-12-01'), undefined);
+  assert.deepEqual(selectETeamMemberMonthlyComparison(undefined, '2026-11-11'), { asOf: '2026-10-31', members: 0 });
 });
 
 test('E automatically scores eligible retention and events with an unavailable prior-year conversion', async () => {
