@@ -110,7 +110,8 @@ export function includeETeam(data, events, auxiliary = {}) {
   const components = [[evidence.event.participationScore, 70], [evidence.event.repeatScore, 30]].filter(([score]) => Number.isFinite(score));
   evidence.event.score = components.length ? components.reduce((n, [score, weight]) => n + score * weight, 0) / components.reduce((n, [, weight]) => n + weight, 0) : null;
   for (const team of data.teams) {
-    const event = team.metricEvidence.event;
+    const event = team.metricEvidence?.event;
+    if (!event) continue;
     event.participationScore = event.averageRate / maxParticipation * 100;
     event.repeatScore = event.repeatRate / maxRepeat * 100;
   }

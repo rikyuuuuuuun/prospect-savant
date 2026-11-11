@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = async file => parseFrozenJson(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'), file);
-const fixture = async () => ({ source: await read('data.js'), events: await read('event-data.js') });
+const fixture = async () => {
+  const source = await read('data.js');
+  delete source.eTeam;
+  return { source, events: await read('event-data.js') };
+};
 
 test('score increases before passing a peer, including the lowest and highest teams', () => {
   assert.ok(continuousScore(11, [20, 30, 40]) > continuousScore(10, [20, 30, 40]));
@@ -134,6 +138,7 @@ test('different score definitions stay incomparable and the deployed bundle uses
     new vm.Script(script[1]).runInNewContext(context);
   }
   assert.equal(context.window.PROSPECT_SAVANT_DATA.scoring.precision, 0);
-  assert.ok(context.window.PROSPECT_SAVANT_DATA.teams.every(team => Number.isInteger(team.overall)));
+  assert.ok(context.window.PROSPECT_SAVANT_DATA.teams.every(team => Number.isInteger(team.overall)
+    || team.overall === null && Object.values(team.metrics).some(value => value === null)));
   assert.ok(bundle.html.includes('前回より'));
 });

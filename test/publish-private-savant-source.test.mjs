@@ -7,7 +7,7 @@ import { E_METRIC_RANGE } from '../scripts/e-team-metrics.mjs';
 import { eMetricSourceRows } from './support/e-team.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile as copySourceFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -18,7 +18,18 @@ import { publishPrivateSavantWithExplanations } from '../scripts/publish-private
 import { PUBLIC_FILES } from '../scripts/stage-public-snapshot.mjs';
 
 const root = resolve(import.meta.dirname, '..');
-const readPublic = async (file) => parsePublicSource(await readFile(join(root, file), 'utf8'), file);
+// These cases exercise legacy four-team source layouts. Five-team metrics and
+// reconciliation have their own fixtures in e-team-metrics.test.mjs.
+const readPublic = async (file) => {
+  const value = parsePublicSource(await readFile(join(root, file), 'utf8'), file);
+  if (file === 'data.js') delete value.eTeam;
+  return value;
+};
+const copyFile = async (source, destination) => {
+  if (source === join(root, 'data.js')) {
+    await writeFile(destination, `window.PROSPECT_SAVANT_DATA = Object.freeze(${JSON.stringify(await readPublic('data.js'), null, 2)});\n`);
+  } else await copySourceFile(source, destination);
+};
 const serial = (iso) => Math.floor((Date.parse(`${iso}T00:00:00Z`) - Date.UTC(1899, 11, 30)) / 86_400_000);
 const RANGES = {
   dashboard: "'00_ダッシュボード'!A1:H23", teams: "'01_チーム比較'!A1:P12", monthly: "'03_月次集計'!A1:V12",
@@ -268,9 +279,10 @@ test('dry-run transforms only a complete reconciled anonymous source snapshot', 
   const [data, events, retentionCurve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(readPublic));
   const dir = await mkdtemp(join(tmpdir(), 'prospect-savant-test-'));
   try {
+    await Promise.all(PUBLIC_FILES.map(file => copyFile(join(root, file), join(dir, file))));
     const sourcePath = join(dir, 'source.json');
     await writeFile(sourcePath, JSON.stringify({ ranges: sourceRows(data, events, retentionCurve, schoolAge, trial), eTeamAnalysis: data.eTeam?.analysis, trialAggregate: { quality: syntheticTrialQuality(), targetDate: data.asOf, fiscalYear: trial.annual.fiscalYear, aggregates: Object.fromEntries(['A', 'B', 'C', 'D'].map((team) => [team, { today: 0 }])) } }), 'utf8');
-    const result = await publishPrivateSavantSource({ rootDir: root, sourcePath, dryRun: true });
+    const result = await publishPrivateSavantSource({ rootDir: dir, sourcePath, dryRun: true });
     assert.deepEqual(result, { ok: true, changedFiles: ['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'snapshot-manifest.json', 'trial-data.js', 'trial-manifest.json'], dryRun: true });
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

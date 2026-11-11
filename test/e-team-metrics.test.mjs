@@ -12,6 +12,7 @@ const read = async file => parseFrozenJson(await readFile(new URL('../' + file, 
 
 async function fixture() {
   const [data, events, curve, schoolAge, trial] = await Promise.all(['data.js', 'event-data.js', 'retention-data.js', 'school-age-data.js', 'trial-data.js'].map(read));
+  trial.today = { status: 'ok', date: data.asOf, total: 0, teams: Object.fromEntries(data.teams.map(team => [team.id, 0])) };
   const e = { asOf: data.asOf, definition: data.admissionConversion.definition, members: 4, allMembers: data.headline.members + 4,
     annual: { trials: 5, admissions: 0, previousTrials: 0, previousAdmissions: 0 } };
   const eligible = events.events.filter(event => event.startDate >= E_EVALUATION_START);
