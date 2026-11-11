@@ -329,12 +329,12 @@ async function publishInto(root, snapshot) {
   const retention = parsePublicSource(await readFile(join(root, 'retention-data.js'), 'utf8'), 'retention-data.js');
   const schoolAge = parsePublicSource(await readFile(join(root, 'school-age-data.js'), 'utf8'), 'school-age-data.js');
   const asOf = sourceAsOf(ranges.monthly);
-  const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
-  assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
-  if (eTeam) data.eTeam = eTeam;
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
+  const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
+  assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
+  if (eTeam) data.eTeam = eTeam;
   if (snapshot.memberComposition) data.memberComposition = validateMemberComposition(snapshot.memberComposition, data);
   else delete data.memberComposition;
   data.admissionConversion = assertAnnualConversionSource(snapshot, asOf);

@@ -143,6 +143,15 @@ function sourceRows(data, events, retentionCurve, schoolAge, trial) {
   source["'98_会員マスター連携'!A12:H18"] = syntheticMemberReadback(data.asOf, Object.fromEntries(data.teams.map(t => [t.id, t.members])));
   source["'98_会員マスター連携'!J12:K20"] = syntheticMemberGate(data.asOf);
   source[RANGES.quality] = [[], [], [], [], ['source', '', '', '', '', '正常']];
+  if (data.eTeam) {
+    const e = data.eTeam;
+    source[E_TEAM_RANGE] = [
+      ['E', e.members, e.members, 0, 0, '', 'E', trial.annual.fiscalYear,
+        e.annual.trials, e.annual.admissions, e.annual.previousTrials, e.annual.previousAdmissions,
+        data.asOf, e.definition],
+      ['合計（A〜E）', data.headline.members + e.members, data.headline.members + e.members, 0, 0],
+    ];
+  }
   return source;
 }
 
