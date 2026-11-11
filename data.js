@@ -20,7 +20,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "cumulative": 85
       },
       "D": {
-        "cumulative": 79
+        "cumulative": 75
       }
     }
   },
@@ -28,9 +28,9 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
   "headline": {
     "members": 1095,
     "monthlyDelta": -12,
-    "admissionRate": 74.7,
+    "admissionRate": 74.9,
     "admissionPreviousRate": 70.4,
-    "admissionYoYDelta": 4.4,
+    "admissionYoYDelta": 4.5,
     "latestEventParticipants": 224
   },
   "comparison": {
@@ -1347,16 +1347,16 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       "benchmark": {
         "retention12mRate": 79.3,
         "retention12mSample": 179,
-        "admissionRate": 63.7,
+        "admissionRate": 64.4,
         "admissionPreviousRate": 63,
-        "admissionYoYDelta": 0.7,
+        "admissionYoYDelta": 1.4,
         "eventRate": 11.9,
         "repeatRate": 37.9,
         "referralPoints": 19,
         "referralRate": 9.313725490196079,
         "referralMembers": 204
       },
-      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 207/223人継続・非継続16人（92.8%・相対点37.5）、12か月 142/179人継続・非継続37人（79.3%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果55点です。 【年度入会力】102人体験のうち65人入会、年度の体験→入会率63.7%（前年同期間63.0%）。A〜Dの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。A〜Dの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員204人＝9.31％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
+      "note": "評価根拠｜【定着力】3か月 241/249人継続・非継続8人（96.8%・相対点12.5）、6か月 207/223人継続・非継続16人（92.8%・相対点37.5）、12か月 142/179人継続・非継続37人（79.3%・相対点37.5）、2年 24/38人継続・非継続14人（63.2%・相対点87.5）。対象20人未満、または比較可能チームが1つだけの期間は採点から除外し、期間が長いほど1〜8倍で重くA〜Dの相対順位を加重した結果55点です。 【年度入会力】104人体験のうち67人入会、年度の体験→入会率64.4%（前年同期間63.0%）。A〜Dの年度入会率を相対評価して13点です。前年同期間率は説明用で、現在点は今年度入会率の相対位置で決まります。 【イベント力】一般会員対象イベントの平均参加率11.9%と継続参加率37.9%を、参加70%・継続30%で統合して50点です。大会参加者限定練習は除外しています。 【成長力】2大会・順位1,068件を対象に、上位10% 5件、10〜20% 10件、20〜30% 9件、上位30%の子ども19人、加重点44点。A〜Dの相対評価で13点です。 【紹介力】2026年度の紹介19ポイント（紹介体験8人・兄弟姉妹入会11人）。子ども1人につき1ポイントで、同じ家庭の複数紹介も人数分を加算します。紹介者未入力は0点、判別できた既存会員の兄弟姉妹入会は加点。同じ子の再体験・入会は重複加算しません。紹介率は19pt÷基準日の会員204人＝9.31％。人数相対点62.5×70％＋紹介率相対点87.5×30％で70点です。年度累計と現在会員数の比なので、会員数の変化でも率は変わります。 2026年11月10日の19→19ポイント。\n運用注記｜イベント力は2025年4月のチーム発足後だけを評価しています。",
       "metricEvidence": {
         "version": "metric-evidence-v1",
         "asOf": "2026-11-11",
@@ -1462,11 +1462,11 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           "weightedIndex": 55
         },
         "admission": {
-          "trials": 102,
-          "admissions": 65,
-          "rate": 63.7,
+          "trials": 104,
+          "admissions": 67,
+          "rate": 64.4,
           "previousRate": 63,
-          "yoyDelta": 0.7,
+          "yoyDelta": 1.4,
           "relativeScore": 12.5
         },
         "event": {
@@ -1647,7 +1647,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         1,
         10,
         8,
-        7,
+        3,
         null,
         null,
         null,
@@ -1662,7 +1662,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       12,
       43,
       41,
-      16,
+      12,
       null,
       null,
       null,
@@ -2103,8 +2103,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         "previousAdmissions": 79
       },
       "D": {
-        "trials": 102,
-        "admissions": 65,
+        "trials": 104,
+        "admissions": 67,
         "previousTrials": 211,
         "previousAdmissions": 133
       }
@@ -2609,7 +2609,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           2,
           11,
           13,
-          0,
+          2,
           null,
           null,
           null,
@@ -2623,7 +2623,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
           2,
           11,
           5,
-          0,
+          2,
           null,
           null,
           null,
@@ -2640,7 +2640,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         9,
         51,
         57,
-        6,
+        8,
         null,
         null,
         null,
@@ -2654,7 +2654,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         7,
         45,
         35,
-        6,
+        8,
         null,
         null,
         null,
@@ -2747,5 +2747,17 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
         }
       }
     ]
+  },
+  "eTeam": {
+    "asOf": "2026-11-11",
+    "members": 4,
+    "allMembers": 1099,
+    "definition": "trial-attendance-fiscal-ytd-v1",
+    "annual": {
+      "trials": 5,
+      "admissions": 0,
+      "previousTrials": 0,
+      "previousAdmissions": 0
+    }
   }
 });
