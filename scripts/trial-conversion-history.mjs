@@ -21,7 +21,7 @@ const flag = (value, code) => {
 };
 
 /** Columns arrive header-first and stay in memory; only per-month team counts leave this function. */
-export function buildTrialConversionHistory({ dates, teams, attended, admitted, asOf }) {
+export function buildTrialConversionHistory({ dates, teams, attended, admitted, asOf }, teamIds = IDS) {
   check(validDate(asOf), 'DATE_INVALID');
   const H = TRIAL_CONVERSION_HEADERS;
   const head = column => squash(column?.[0]);
@@ -30,12 +30,12 @@ export function buildTrialConversionHistory({ dates, teams, attended, admitted, 
   const months = monthsOf(fiscalYear);
   const open = month => month <= asOf.slice(0, 7);
   const series = () => months.map(month => open(month) ? 0 : null);
-  const byTeam = Object.fromEntries(IDS.map(id => [id, { trials: series(), admissions: series() }]));
+  const byTeam = Object.fromEntries(teamIds.map(id => [id, { trials: series(), admissions: series() }]));
   // Matches the annual cutoff: before the day after asOf, so timestamps on asOf count.
   const cutoff = serialOf(asOf) + 1, start = `${fiscalYear}-04-01`;
   for (let i = 1; i < Math.max(dates.length, teams.length, attended.length, admitted.length); i++) {
     const team = teams[i];
-    if (!IDS.includes(team) || !flag(attended[i], 'ATTENDANCE')) continue;
+    if (!teamIds.includes(team) || !flag(attended[i], 'ATTENDANCE')) continue;
     const admittedRow = flag(admitted[i], 'ADMISSION');
     check(dates[i] !== '' && dates[i] != null, 'TRIAL_DATE_INVALID');
     if (typeof dates[i] === 'number' && dates[i] >= cutoff) continue;
@@ -47,9 +47,9 @@ export function buildTrialConversionHistory({ dates, teams, attended, admitted, 
     byTeam[team].trials[index]++;
     if (admittedRow) byTeam[team].admissions[index]++;
   }
-  const total = Object.fromEntries(['trials', 'admissions'].map(key => [key, months.map((month, i) => open(month) ? IDS.reduce((n, id) => n + byTeam[id][key][i], 0) : null)]));
+  const total = Object.fromEntries(['trials', 'admissions'].map(key => [key, months.map((month, i) => open(month) ? teamIds.reduce((n, id) => n + byTeam[id][key][i], 0) : null)]));
   const history = { status: 'ok', definition: TRIAL_CONVERSION_HISTORY_DEFINITION, asOf, fiscalYear, months, teams: byTeam, total };
-  validateTrialConversionHistory(history, { asOf });
+  validateTrialConversionHistory(history, { asOf }, teamIds);
   return history;
 }
 
@@ -59,7 +59,7 @@ export function unavailableTrialConversionHistory(asOf, reason) {
 }
 
 /** Monthly cohorts must add up to the published fiscal-year counts exactly, per team and field. */
-export function validateTrialConversionHistory(history, data) {
+export function validateTrialConversionHistory(history, data, teamIds = IDS) {
   check(history?.definition === TRIAL_CONVERSION_HISTORY_DEFINITION, 'DEFINITION_INVALID');
   check(validDate(history.asOf) && history.asOf === data.asOf && history.fiscalYear === fiscalYearFor(data.asOf), 'DATE_MISMATCH');
   if (history.status === 'unavailable') {
@@ -69,9 +69,9 @@ export function validateTrialConversionHistory(history, data) {
   check(history.status === 'ok' && exact(history, ['status', 'definition', 'asOf', 'fiscalYear', 'months', 'teams', 'total']), 'FIELDS_INVALID');
   const months = monthsOf(history.fiscalYear);
   check(JSON.stringify(history.months) === JSON.stringify(months), 'MONTHS_INVALID');
-  check(exact(history.teams, IDS) && exact(history.total, ['trials', 'admissions']), 'TEAMS_INVALID');
+  check(exact(history.teams, teamIds) && exact(history.total, ['trials', 'admissions']), 'TEAMS_INVALID');
   const open = i => months[i] <= data.asOf.slice(0, 7);
-  for (const value of [history.total, ...IDS.map(id => history.teams[id])]) {
+  for (const value of [history.total, ...teamIds.map(id => history.teams[id])]) {
     check(exact(value, ['trials', 'admissions']), 'SERIES_INVALID');
     for (const key of ['trials', 'admissions']) {
       check(Array.isArray(value[key]) && value[key].length === 12, 'SERIES_INVALID');
@@ -80,12 +80,12 @@ export function validateTrialConversionHistory(history, data) {
     value.admissions.forEach((v, i) => check(!open(i) || v <= value.trials[i], 'ADMISSIONS_EXCEED_TRIALS'));
   }
   for (const key of ['trials', 'admissions']) {
-    months.forEach((_, i) => { if (open(i)) check(history.total[key][i] === IDS.reduce((n, id) => n + history.teams[id][key][i], 0), 'TOTAL_MISMATCH'); });
+    months.forEach((_, i) => { if (open(i)) check(history.total[key][i] === teamIds.reduce((n, id) => n + history.teams[id][key][i], 0), 'TOTAL_MISMATCH'); });
   }
   if (data.admissionConversion) {
     const conversion = data.admissionConversion;
     check(conversion.asOf === history.asOf && conversion.fiscalYear === history.fiscalYear, 'ANNUAL_DATE_MISMATCH');
-    for (const id of IDS) for (const key of ['trials', 'admissions']) {
+    for (const id of teamIds) for (const key of ['trials', 'admissions']) {
       check(sum(history.teams[id][key]) === conversion.teams?.[id]?.[key], `ANNUAL_MISMATCH_${id}_${key}`);
     }
   }
@@ -95,7 +95,7 @@ export function validateTrialConversionHistory(history, data) {
 const columnLetter = index => { let s = ''; for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + (n - 1) % 26) + s; return s; };
 
 // Resolve the member master through the existing private link; never embed a Workspace ID in public code or output.
-export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, requestJson }) {
+export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, conversion, eTeam, requestJson }) {
   const batchUrl = (id, ranges, mode = 'UNFORMATTED_VALUE', dimension = 'COLUMNS') => {
     const params = new URLSearchParams({ valueRenderOption: mode, majorDimension: dimension, dateTimeRenderOption: 'SERIAL_NUMBER' });
     ranges.forEach(range => params.append('ranges', range));
@@ -129,7 +129,17 @@ export async function fetchTrialConversionHistory({ spreadsheetId, token, asOf, 
     const raw = await requestJson(url, token);
     check(raw.valueRanges?.length === 4, 'SOURCE_INCOMPLETE');
     const [dates, teams, attended, admitted] = raw.valueRanges.map(range => range?.values?.[0] || []);
-    try { return buildTrialConversionHistory({ dates, teams, attended, admitted, asOf }); }
+    try {
+      const input = { dates, teams, attended, admitted, asOf };
+      if (eTeam) {
+        const history = buildTrialConversionHistory(input, ['E']);
+        validateTrialConversionHistory(history, {
+          asOf,
+          admissionConversion: { ...conversion, teams: { E: eTeam.annual } },
+        }, ['E']);
+      }
+      return buildTrialConversionHistory(input);
+    }
     catch (error) { error.profile = profileTrialColumns({ dates, teams, attended, admitted }); throw error; }
   };
   const history = await capture();

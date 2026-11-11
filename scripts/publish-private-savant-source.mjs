@@ -5,6 +5,7 @@ import { validateAdmissionHistory } from './admission-history.mjs';
 import { validateAcquisitionHistory } from './acquisition-history.mjs';
 import { validateMemberComposition } from './member-composition.mjs';
 import { assertAnnualConversionSource } from './annual-conversion-source.mjs';
+import { E_TEAM_RANGE, readETeamSource } from './e-team-source.mjs';
 import { validateTrialConversionHistory } from './trial-conversion-history.mjs';
 import { REFERRAL_RANGE, applyReferralMetadata } from './referral-evidence.mjs';
 import { assertMemberSourceReadback, validateSourceQuality } from './source-member-readback.mjs';
@@ -331,6 +332,9 @@ async function publishInto(root, snapshot) {
   assert(ranges.trialAggregate.targetDate === asOf, 'TRIAL_DATE_SOURCE_ASOF_MISMATCH');
   assert(ranges.trialAggregate.fiscalYear === fiscalYearFor(asOf), 'TRIAL_FISCAL_YEAR_SOURCE_ASOF_MISMATCH');
   updateData(data, ranges, asOf);
+  const eTeam = readETeamSource(snapshot.ranges[E_TEAM_RANGE], asOf, memberReceipt.total);
+  assert(eTeam || !data.eTeam, 'E_TEAM_SOURCE_MISSING');
+  if (eTeam) data.eTeam = eTeam;
   if (snapshot.memberComposition) data.memberComposition = validateMemberComposition(snapshot.memberComposition, data);
   else delete data.memberComposition;
   data.admissionConversion = assertAnnualConversionSource(snapshot, asOf);

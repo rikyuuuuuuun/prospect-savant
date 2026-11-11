@@ -8,12 +8,21 @@ const HEADER = ['チーム', '年度', '年度実体験', '体験→入会', '�
 const check = (ok, code) => { if (!ok) throw new Error(`ANNUAL_CONVERSION_${code}`); };
 const exact = (value, keys) => value && Object.keys(value).sort().join() === [...keys].sort().join();
 const round = value => Math.round(value * 10) / 10;
-const rate = (admissions, trials) => trials > 0 ? admissions / trials * 100 : null;
+export const conversionRate = (admissions, trials) => trials > 0 ? admissions / trials * 100 : null;
 
-function validateCounts(value, label) {
+export function validateConversionCounts(value, label) {
   check(exact(value, FIELDS), `FIELDS_INVALID_${label}`);
   for (const key of FIELDS) check(Number.isSafeInteger(value[key]) && value[key] >= 0, `COUNT_INVALID_${label}_${key}`);
   check(value.admissions <= value.trials && value.previousAdmissions <= value.previousTrials, `COUNTS_INVALID_${label}`);
+}
+
+export function readAnnualConversionTeam(row, id, asOf) {
+  check(row?.length === 8 && row[0] === id, 'TEAM_ORDER_INVALID');
+  check(String(row[1]) === fiscalYearFor(asOf) && row[6] === asOf, `DATE_MISMATCH_${id}`);
+  check(row[7] === ANNUAL_CONVERSION_DEFINITION, 'DEFINITION_INVALID');
+  const counts = Object.fromEntries(FIELDS.map((key, j) => [key, row[j + 2]]));
+  validateConversionCounts(counts, id);
+  return counts;
 }
 
 export function readAnnualConversion(rows, asOf) {
@@ -23,11 +32,7 @@ export function readAnnualConversion(rows, asOf) {
   const teams = {};
   for (let i = 0; i < 5; i++) {
     const row = rows[i + 1], id = i < 4 ? IDS[i] : '合計';
-    check(row?.length === 8 && row[0] === id, 'TEAM_ORDER_INVALID');
-    check(String(row[1]) === fiscalYear && row[6] === asOf, `DATE_MISMATCH_${id}`);
-    check(row[7] === ANNUAL_CONVERSION_DEFINITION, 'DEFINITION_INVALID');
-    const counts = Object.fromEntries(FIELDS.map((key, j) => [key, row[j + 2]]));
-    validateCounts(counts, id);
+    const counts = readAnnualConversionTeam(row, id, asOf);
     if (i < 4) teams[id] = counts;
     else for (const key of FIELDS) check(counts[key] === IDS.reduce((n, team) => n + teams[team][key], 0), `TOTAL_MISMATCH_${key}`);
   }
@@ -48,8 +53,8 @@ export function assertAnnualConversionSource(snapshot, asOf) {
     const value = conversion.teams[id];
     check(annual[0][1] === value.trials && annual[0][2] === value.admissions, `STALE_DASHBOARD_${id}`);
     check(member[0][6] === value.trials && member[0][7] === value.admissions, `MEMBER_MISMATCH_${id}`);
-    const current = rate(value.admissions, value.trials);
-    const previous = rate(value.previousAdmissions, value.previousTrials);
+    const current = conversionRate(value.admissions, value.trials);
+    const previous = conversionRate(value.previousAdmissions, value.previousTrials);
     check(current !== null && previous !== null, `RATE_UNAVAILABLE_${id}`);
     for (const [column, expected] of [[3, current], [4, previous], [5, current - previous]]) {
       check(typeof annual[0][column] === 'number' && round(annual[0][column] * 100) === round(expected), `RATE_MISMATCH_${id}_${column}`);
@@ -67,8 +72,8 @@ export function validateAnnualConversion(data, annual) {
   let admissions = 0, trials = 0, previousAdmissions = 0, previousTrials = 0;
   for (const id of IDS) {
     const value = conversion.teams[id];
-    validateCounts(value, id);
-    const current = rate(value.admissions, value.trials), previous = rate(value.previousAdmissions, value.previousTrials);
+    validateConversionCounts(value, id);
+    const current = conversionRate(value.admissions, value.trials), previous = conversionRate(value.previousAdmissions, value.previousTrials);
     check(current !== null && previous !== null, `RATE_UNAVAILABLE_${id}`);
     const team = data.teams.find(item => item.id === id);
     check(team?.benchmark?.admissionRate === round(current), `PUBLIC_RATE_MISMATCH_${id}`);

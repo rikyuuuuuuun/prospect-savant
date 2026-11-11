@@ -1547,6 +1547,7 @@
         "use strict";
         const data = window.PROSPECT_SAVANT_DATA;
         if (!data) return;
+        const eTeam = data.eTeam;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
         document.querySelector(".hero-lead").textContent = `会員数だけでは見えない組織の強さを、${metricKeys.map(key => data.metricLabels[key]).join("・")}の5指標で比較します。`;
@@ -3022,15 +3023,16 @@
 
         const latestEvent = eventHistory?.events?.find((event) => event.id === eventHistory.latestEventId)
           || eventHistory?.events?.[0];
-        const headlineMemberDeltaComparable = memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
+        const headlineMemberDeltaComparable = !eTeam && memberDeltaComparable && Number.isFinite(data.headline.monthlyDelta);
+        const combinedRate = eTeam?.combinedConversion;
         const kpis = [
-          ["運用会員数", formatNumber.format(data.headline.members), "名", ""],
+          ["運用会員数", formatNumber.format(eTeam?.allMembers ?? data.headline.members), "名", eTeam ? "A〜E合計" : ""],
           [headlineMemberDeltaComparable ? memberDeltaLabel : "前月末比 純増減（比較対象外）", formatDelta(headlineMemberDeltaComparable ? data.headline.monthlyDelta : null), headlineMemberDeltaComparable ? "名" : "", headlineMemberDeltaComparable ? `${escapeHtml(data.memberMonthlyComparison.previousAsOfLabel)} ${formatNumber.format(data.memberMonthlyComparison.headline.members)}名 → ${escapeHtml(data.asOfLabel)}${memberDeltaEstimated ? "。前月末の日次保存値を使用（月次締め未確定）" : ""}` : ""],
           [
             "年度 体験→入会率",
-            data.headline.admissionRate.toFixed(1),
+            (combinedRate?.current ?? data.headline.admissionRate).toFixed(1),
             "%",
-            `前年同期間 ${data.headline.admissionPreviousRate.toFixed(1)}% ・ ${formatPointDelta(data.headline.admissionYoYDelta)}`,
+            `前年同期間 ${(combinedRate?.previous ?? data.headline.admissionPreviousRate).toFixed(1)}% ・ ${formatPointDelta(combinedRate?.delta ?? data.headline.admissionYoYDelta)}`,
           ],
           [
             "直近開催イベント実参加",
@@ -3051,8 +3053,9 @@
           <span class="scale-tick" style="left:${item.value}%">${item.value}<br>${item.label}</span>
         `).join("");
 
-        document.getElementById("team-e-status").hidden = data.teams.some((team) => team.id === "E");
+        document.getElementById("team-e-status").hidden = Boolean(eTeam) || data.teams.some((team) => team.id === "E");
         const filters = [{ id: "ALL", label: "全チーム" }, ...data.teams.map((team) => ({ id: team.id, label: `${team.id} TEAM` }))];
+        if (eTeam) filters.push({ id: "E", label: "E TEAM" });
         document.getElementById("team-filters").innerHTML = filters.map((filter, index) => `
           <button type="button" class="filter-button" data-filter="${filter.id}" aria-pressed="${index === 0}">${filter.label}</button>
         `).join("");
@@ -3102,6 +3105,24 @@
               ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
             </article>`;
         }).join("");
+
+        if (eTeam) {
+          const { trials, admissions } = eTeam.annual;
+          const rate = trials ? `${(admissions / trials * 100).toFixed(1)}%` : "—";
+          document.getElementById("team-grid").insertAdjacentHTML("beforeend", `
+            <article class="team-card" data-team="E" aria-label="Eチーム">
+              <div class="team-card-head">
+                <div class="score-ring" style="--score:0;--score-color:${scoreColor(null)}"><div class="score-value"><strong>—</strong><span>集計準備中</span></div></div>
+                <div>
+                  <div class="team-title"><h3>E TEAM</h3><span>${formatNumber.format(eTeam.members)}名</span></div>
+                  <p class="team-meta">運用会員数</p>
+                </div>
+              </div>
+              <div class="benchmark-grid">
+                <div class="benchmark"><strong>${rate}</strong><span>年度 体験→入会率</span><div class="benchmark-detail">体験 ${formatNumber.format(trials)}人 → 入会 ${formatNumber.format(admissions)}人</div></div>
+              </div>
+            </article>`);
+        }
 
         document.getElementById("team-filters").addEventListener("click", (event) => {
           const button = event.target.closest("button[data-filter]");
