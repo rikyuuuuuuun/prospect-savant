@@ -96,9 +96,10 @@ test('whole membership compares A–E with the saved month-end total across E la
   assert.equal(result.teams.reduce((sum, team) => sum + team.monthlyDelta, 0), result.headline.monthlyDelta);
   assert.deepEqual(data, before);
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  const expression = html.match(/const headlineMemberDeltaComparable = (.*);/)[1];
+  const expression = html.match(/const headlineMemberDeltaComparable = ([\s\S]*?);/)[1];
   const renderable = new Function('data', 'memberDeltaComparable', 'eTeam', `return ${expression}`);
   assert.equal(renderable(result, true, result.eTeam), true);
+  assert.equal(renderable(data, true, data.eTeam), false);
 });
 
 test('E month-end membership rolls over, survives same-day retries and never assumes post-launch zero', () => {
