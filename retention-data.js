@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-11-13-0730-trial-ytd-v1",
-  "asOf": "2026-11-13",
+  "snapshotId": "savant-2026-11-14-0730-trial-ytd-v1",
+  "asOf": "2026-11-14",
   "minimumSample": 20,
   "months": [
     1,
@@ -21,19 +21,19 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       93.2,
       86.1,
       79.1,
-      68.3,
-      56,
+      68.2,
+      55.9,
       37.5,
       30.8
     ],
     "samples": [
-      1851,
+      1855,
       1783,
-      1636,
-      1458,
+      1641,
+      1459,
       1404,
-      1178,
-      965,
+      1183,
+      966,
       477,
       169
     ]
@@ -46,7 +46,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         95,
         88.7,
         82.6,
-        69.1,
+        69,
         57.9,
         40.8,
         30.8
@@ -54,10 +54,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         666,
         640,
-        580,
-        530,
+        581,
+        531,
         511,
-        470,
+        471,
         423,
         284,
         169
@@ -67,7 +67,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         98.6,
-        93.8,
+        93.9,
         86.5,
         79.6,
         73,
@@ -76,9 +76,9 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         null
       ],
       "samples": [
-        535,
+        537,
         515,
-        487,
+        490,
         430,
         412,
         359,
@@ -91,22 +91,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         99.2,
         97.1,
-        89.5,
+        89.6,
         80.6,
         72.2,
         59.4,
-        46.4,
+        46.1,
         null,
         null
       ],
       "samples": [
-        388,
+        389,
         379,
-        344,
+        345,
         309,
         302,
-        249,
-        179,
+        251,
+        180,
         0,
         0
       ]
@@ -118,18 +118,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.4,
         86.8,
         79.3,
-        70,
+        69.6,
         63.2,
         null,
         null
       ],
       "samples": [
-        262,
+        263,
         249,
         225,
         189,
         179,
-        100,
+        102,
         38,
         0,
         0
