@@ -327,24 +327,22 @@
 
       .benchmark-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         border-top: 1px solid #e6ecf1;
         background: #f8fafc;
       }
 
-      .benchmark { min-width: 0; padding: 16px; text-align: left; border-right: 1px solid #e6ecf1; }
-      .benchmark:nth-child(2n) { border-right: 0; }
-      .benchmark:nth-child(n+3) { border-top: 1px solid #e6ecf1; }
+      .benchmark { min-width: 0; padding: 14px 10px; text-align: center; border-right: 1px solid #e6ecf1; }
       .benchmark .rate-change { margin-top: 7px; padding: 5px 3px; border-radius: 5px; font-size: 10px; font-weight: 700; }
       .benchmark .rate-change.up { color: #176247; background: #e1f3e9; }
       .benchmark .rate-change.down { color: #a82f2b; background: #fce9e7; }
       .benchmark .referral-rate { color: var(--ink); font-size: 15px; font-weight: 800; }
-      .rate-comparison-note { margin: 0; padding: 8px 24px; color: #526578; background: #f8fafc; font-size: 12px; }
+      .rate-comparison-note { margin: 0; padding: 8px 22px; color: var(--muted); background: #f8fafc; font-size: 10px; }
       .benchmark:last-child { border-right: 0; }
-      .benchmark strong { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
-      .benchmark span { display: block; margin-top: 4px; color: #526578; font-size: 12px; }
-      .benchmark-detail { min-height: 16px; margin-top: 8px; color: #526678; font-size: 12px; line-height: 1.35; font-variant-numeric: tabular-nums; }
-      .benchmark-sample { display: block; color: #294a62; font-size: 12px; font-weight: 700; }
+      .benchmark strong { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
+      .benchmark span { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; }
+      .benchmark-detail { min-height: 14px; margin-top: 4px; color: #526678; font-size: 9px; line-height: 1.35; font-variant-numeric: tabular-nums; }
+      .benchmark-sample { display: block; color: #294a62; font-size: 10px; font-weight: 700; }
       .team-note { margin: 0; padding: 10px 22px 14px; color: var(--muted); background: #f8fafc; font-size: 11px; }
 
       .section { margin-top: 42px; }
@@ -1313,8 +1311,6 @@
       .cx-table thead th:first-child { z-index: 3; left: 0; }
       .comparison-table tbody tr:focus-within, .cx-table tbody tr:focus-within { background: #edf4f9; }
       .heat-pill { border-radius: 6px; min-width: 44px; min-height: 32px; }
-      .benchmark .rate-change { font-size: 12px; padding: 4px 8px; width: fit-content; }
-      .benchmark .referral-rate { font-size: 16px; }
       .team-explanation summary { min-height: 44px; font-size: 13px; padding: 16px 24px; }
       .team-explanation[open] summary { color: var(--blue-deep); }
       .cx-hbar-val small, .cx-db-axis, .cx-db-key { font-size: 12px; }
@@ -1372,10 +1368,6 @@
         .metric-label { font-size: 14px; }
         .metric-score { font-size: 16px; }
         .metric-score small { font-size: 12px; }
-        .benchmark-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-        .benchmark { padding: 16px 12px; }
-        .benchmark strong { font-size: 22px; }
-        .benchmark span, .benchmark-detail, .benchmark-sample, .benchmark .rate-change { font-size: 14px; }
         .rate-comparison-note { padding: 12px 20px; font-size: 14px; }
         .team-explanation summary { font-size: 15px; padding: 16px 20px; }
         .team-explanation .team-note { font-size: 15px; padding: 16px 20px; }
@@ -2233,7 +2225,7 @@
           const validEvent = eventHistory.events.find((event) => event.id === eventId);
           eventState.selectedEventId = validEvent ? validEvent.id : eventHistory.events[0].id;
           document.getElementById("event-note").textContent =
-            [getSelectedEvent().note, eventHistory.note].filter(Boolean).join(" ");
+            "一般会員対象の開催済みイベントを集計。参加率は開催時点の会員数に対する割合です。";
           document.querySelectorAll("#event-timeline [data-event-id]").forEach((button) => {
             button.setAttribute("aria-pressed", String(button.dataset.eventId === eventState.selectedEventId));
           });
@@ -2274,7 +2266,7 @@
             </button>`).join("");
           document.getElementById("event-scale-label").textContent =
             `歴代MAX ${eventHistory.historicalMaxRate.toFixed(1)}% = 比較指数85`;
-          document.getElementById("event-note").textContent = eventHistory.note;
+          document.getElementById("event-note").textContent = "一般会員対象の開催済みイベントを集計。参加率は開催時点の会員数に対する割合です。";
 
           const filters = [{ id: "ALL", label: "全体" }, ...eventTeamIds().map((teamId) => ({ id: teamId, label: `${teamId} TEAM` }))];
           document.getElementById("event-filters").innerHTML = filters.map((filter) => `
@@ -2700,7 +2692,7 @@
               <div class="composition-summary">${stats.map(([label,value,note])=>`<div class="composition-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join('')}</div>
               <div class="composition-charts">${charts}</div>
               <div class="composition-table-wrap"><table class="composition-table"><caption>全体・チーム比較</caption><thead><tr><th scope="col">対象</th><th scope="col">会員数</th><th scope="col">平均在籍</th><th scope="col">3か月未満</th><th scope="col">3年以上</th><th scope="col">女子比率</th><th scope="col">性別不明</th></tr></thead><tbody>${ids.map(id=>{const t=rowFor(id);return `<tr data-selected="${selected===id}"><th scope="row"><button type="button" data-composition-team="${id}">${labelFor(id)}</button></th><td>${formatNumber.format(t.members)}名</td><td>${tenureText(t.summary.meanTenureMonths)}</td><td>${rate(t.tenure.lt3,t.members)}</td><td>${rate(t.tenure.y3to5+t.tenure.y5plus,t.members)}</td><td>${rate(t.gender.female,t.members)}</td><td>${t.gender.unknown}名</td></tr>`;}).join('')}</tbody></table></div>
-              <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>人物単位の運用会員（在籍・休会・退会予定）が対象です。重複契約は1人にまとめ、承認済みの所属補正を反映しています。平均・中央値は入会日が判明している会員だけで計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録・矛盾のある属性は不明として表示します。未登録の会費ペイ外会員も人数から除外しません。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
+              <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>在籍・休会・退会予定の会員が対象です。平均・中央値は入会日が分かる会員で計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録の項目は「不明」と表示します。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
           };
           const render = () => {
             const focusChips = layout === 'compare' ? `<div class="cmp-focus">強調するチーム<div class="composition-switches" id="composition-filters" aria-label="強調するチーム">${ids.map(id => `<button type="button" data-composition-team="${id}" aria-pressed="${selected === id}">${id === 'ALL' ? 'なし' : labelFor(id)}</button>`).join('')}</div></div>` : '';
@@ -2757,7 +2749,7 @@
 
         const initializeWithdrawalHistory = () => {
           const root=document.getElementById('withdrawal-content'), h=data.withdrawalHistory;
-          if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは集計待ちです。未取得の数値を0として表示しません。</p>'; return; }
+          if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは確認中です。</p>'; return; }
           let selected='ALL', month=h.asOf.slice(0,7);
           const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
           const reference=(r,id)=>withdrawalReference(r,data.teams.find(t=>t.id===id)?.members);
@@ -2775,9 +2767,9 @@
               const ref=reference(r,id), prior=prev?reference(prev,id):null;
               const delta=ref.rate!==null && prior?.rate!==null && Number.isFinite(prior?.rate) && ref.basis===prior.basis?Number((ref.rate-prior.rate).toFixed(2)):null;
               const change=delta===null?'前月差：分母の基準が異なるか、比較月なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
-              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
             }).join('')}</div>
-            <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明分は分子に含めず、判明分だけで参考値を計算します。月初人数または月初在籍の判定材料がない月は、判明退会人数を基準日の会員数で割った参考割合を表示します。この割合は通常の月次退会率とは分けて読み、基準日会員数の更新でも変わります。異なる分母基準の前月差は表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
+            <details class="withdrawal-method"><summary>月別の人数・割合</summary><p>月次退会率は、月初の会員のうち、その月に退会した人の割合です。</p><p>退会月が不明な人は含みません。「参考」の割合は、基準日の会員数に対する割合です。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
           };
           root.addEventListener('click',e=>{const team=e.target.closest('[data-withdrawal-team]'),point=e.target.closest('[data-withdrawal-month]');if(team){selected=team.dataset.withdrawalTeam;render();root.querySelector(`[data-withdrawal-team="${selected}"]`)?.focus({preventScroll:true});}else if(point){month=point.dataset.withdrawalMonth;render();root.querySelector(`[data-withdrawal-month="${month}"]`)?.focus({preventScroll:true});}});
           root.addEventListener('change',e=>{if(e.target.id==='withdrawal-month'){month=e.target.value;render();root.querySelector('#withdrawal-month')?.focus({preventScroll:true});}});
@@ -3228,10 +3220,7 @@
                 <div class="benchmark"><strong>${Number.isFinite(team.benchmark.eventRate) ? team.benchmark.eventRate.toFixed(1) + "%" : "対象イベントなし"}</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
-              ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">退会日の根拠が未確認のため、定着力・継続率・総合評価を保留しています。他の指標は基準日まで更新済みです。</p>' : ""}
-              ${data.retentionAvailability?.teams?.[team.id]?.historicalWithdrawals > 0 ? '<p class="rate-comparison-note">過去の退会分は従来の集計基準を維持。新しい退会分は名簿への実移動日時を優先し、不明な場合は会費ペイで確認できた課金停止日、名簿の退会者タブに記入された退会日の順に使います。</p>' : ""}
-              <p class="rate-comparison-note">割合の増減：${escapeHtml(data.comparison?.previousAsOfLabel || "比較元なし")} → ${escapeHtml(data.asOfLabel)}。ポイントは割合の差です。定義・年度の変更や比較データ不足は比較対象外。</p>
-              ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
+              ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">定着力・継続率は確認中です。</p>' : ""}
             </article>`;
         }).join("");
 
@@ -3281,7 +3270,7 @@
           <div class="quality-stat"><strong>${quality.eventCount}</strong><span>集計済みイベント</span></div>
           <div class="quality-stat"><strong>${quality.competitionCount}</strong><span>集計済み大会</span></div>
           <div class="quality-stat"><strong>${formatNumber.format(quality.competitionRows)}</strong><span>大会順位データ</span></div>
-          <p class="quality-note">${quality.note}</p>`;
+          <p class="quality-note">開催前イベントは集計対象外です。Dチームは発足後の実績を評価します。</p>`;
       })();
     </script>
 
@@ -4120,7 +4109,7 @@
         const icon = key => `<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[key] || ''}</svg></span>`;
         // What staff want to know, in their words; the order matches the tab order.
         const views = [
-          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Eの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
+          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Eの5指標と総合点、強み・課題を一覧で確認できます。' },
           { key: 'standings', label: 'チーム順位', question: 'いま何位？ 上位との差は？', description: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。' },
           { key: 'composition', label: '会員構成', question: '学年・在籍期間・男女比は？', description: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。' },
           { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの実入会人数と累計、チラシ・紹介などクラブを知ったきっかけを確認できます。' },
