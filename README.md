@@ -4,6 +4,8 @@ ProspectのA〜Dチームを、Baseball Savant風のパーセンタイル表示�
 
 ## スタッフの共通ログイン
 
+表示改修時は [Savant UIの改修・確認手順](docs/ui-maintenance.md) を参照してください。
+
 閲覧先は [Googleログイン付きサバント](https://prospect-portal.rikuhirata713.chatgpt.site/savant/) です。ポータルと同じGoogleアカウント・同じ7日間のセッションを使用し、旧GitHub Pages URLも画面指定を維持してこの入口へ移動します。
 
 表示と日次公開の両workflowは`node scripts/build-staff-pages.mjs . _site`で検証済み表示・数値を単一の`savant-bundle.json`へまとめ、Pagesの`index.html`には移動用ページを配置します。`index.html`の分析UI本体は引き続きこのリポジトリで管理します。日次更新・匿名集計のルールと公開データの範囲は変更しません。スタッフの認証情報やアクセス履歴をこの公開リポジトリへ保存しません。

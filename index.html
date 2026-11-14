@@ -30,8 +30,9 @@
         --team-d: #6f5b9a;
         --team-e: #8b639b;
         --overall: #68788a;
-        --shadow: 0 14px 36px rgba(16, 40, 64, 0.08);
-        --radius: 18px;
+        --shadow: 0 1px 2px rgba(16, 40, 64, 0.06), 0 3px 4px -2px rgba(16, 40, 64, 0.08);
+        --radius: 12px;
+        --ease-control: cubic-bezier(.23, 1, .32, 1);
       }
 
       * { box-sizing: border-box; }
@@ -43,10 +44,12 @@
         background: var(--page);
         color: var(--ink);
         font-family: Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-        line-height: 1.55;
+        line-height: 1.6;
+        font-variant-numeric: tabular-nums;
       }
 
-      button, input { font: inherit; }
+      button, input, select { font: inherit; }
+      button, summary, select { touch-action: manipulation; }
 
       button:focus-visible,
       a:focus-visible {
@@ -175,15 +178,15 @@
         background: rgba(255,255,255,0.075);
       }
 
-      .kpi-label { color: #b7c8d6; font-size: 12px; }
+      .kpi-label { color: #d5e0e8; font-size: 13px; }
       .kpi-value { margin-top: 3px; font-size: clamp(24px, 3vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; }
       .kpi-unit { margin-left: 3px; font-size: 13px; font-weight: 500; color: #d5e0e8; }
       .kpi-detail { min-height: 17px; margin-top: 4px; color: #b7c8d6; font-size: 10px; font-variant-numeric: tabular-nums; }
 
       .trial-summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 12px; padding: 13px 16px; border: 1px solid rgba(125, 211, 252, 0.32); border-radius: 10px; background: rgba(14, 116, 144, 0.2); }
-      .trial-summary-label { color: #b7c8d6; font-size: 11px; letter-spacing: 0.04em; }
+      .trial-summary-label { color: #d5e0e8; font-size: 13px; letter-spacing: 0.04em; }
       .trial-summary-total { margin-top: 2px; font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
-      .trial-summary-breakdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      .trial-summary-breakdown { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
       .trial-team { min-width: 0; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.18); color: #d5e0e8; font-size: 11px; }
       .trial-team strong { display: block; margin-top: 1px; color: white; font-size: 17px; font-variant-numeric: tabular-nums; }
       .trial-summary-unavailable { color: #fee2e2; font-size: 12px; }
@@ -241,16 +244,18 @@
         cursor: pointer;
         font-size: 13px;
         font-weight: 700;
-        transition: 160ms ease;
+        transition: background-color 150ms var(--ease-control), border-color 150ms var(--ease-control), transform 150ms var(--ease-control);
       }
 
-      .filter-button:hover { border-color: #9fb1c1; transform: translateY(-1px); }
+      @media (hover: hover) and (pointer: fine) {
+        .filter-button:hover { border-color: #9fb1c1; background: #f3f6f9; }
+      }
       .filter-button[aria-pressed="true"] { color: white; border-color: var(--navy-800); background: var(--navy-800); }
 
       .team-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 18px;
+        gap: 24px;
       }
 
       .team-card {
@@ -267,10 +272,10 @@
 
       .team-card-head {
         display: grid;
-        grid-template-columns: 112px minmax(0, 1fr);
-        gap: 18px;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 16px;
         align-items: center;
-        padding: 22px 22px 18px;
+        padding: 24px;
         border-bottom: 1px solid #e6ecf1;
       }
 
@@ -278,7 +283,7 @@
         --score: 50;
         --score-color: var(--red);
         position: relative;
-        width: 106px;
+        width: 96px;
         aspect-ratio: 1;
         display: grid;
         place-items: center;
@@ -294,7 +299,7 @@
       .score-change.up { color: var(--green); }
       .score-change.down { color: var(--red-deep); }
 
-      .rank-line { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; }
+      .rank-line { color: #526578; font-size: 12px; font-weight: 600; letter-spacing: 0; }
       .team-title { display: flex; align-items: baseline; gap: 9px; margin: 3px 0 6px; }
       .team-title h3 { margin: 0; font-size: 30px; line-height: 1; letter-spacing: -0.045em; }
       .team-title span { color: var(--muted); font-size: 12px; }
@@ -307,16 +312,16 @@
       .focus-badge.strong { color: #8e2926; background: #fae7e5; }
       .focus-badge.watch { color: #245b86; background: #e4eff7; }
 
-      .metric-list { padding: 18px 22px 20px; }
-      .metric-row { display: grid; grid-template-columns: 94px minmax(100px, 1fr) 46px; gap: 10px; align-items: center; margin-bottom: 13px; }
+      .metric-list { padding: 24px; }
+      .metric-row { display: grid; grid-template-columns: 100px minmax(64px, 1fr) 44px; gap: 12px; align-items: center; min-height: 28px; margin-bottom: 12px; }
       .metric-row:last-child { margin-bottom: 0; }
-      .metric-label { color: #34485a; font-size: 12px; font-weight: 700; white-space: nowrap; }
+      .metric-label { color: #34485a; font-size: 13px; font-weight: 600; white-space: nowrap; }
       .metric-label small { display: block; margin-top: 3px; font-size: 9px; line-height: 1.3; white-space: normal; font-variant-numeric: tabular-nums; }
       .metric-track { position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--blue-deep) 35%, #d9e1e8 60%, var(--red-deep) 85%); }
       .metric-track::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: 60%; width: 1px; background: rgba(20,34,53,0.28); }
       .metric-marker { --position: 50; --marker: var(--red); position: absolute; top: 50%; left: clamp(5px, calc(var(--position) * 1%), calc(100% - 5px)); width: 17px; height: 17px; border: 4px solid white; border-radius: 50%; background: var(--marker); box-shadow: 0 1px 4px rgba(8,24,39,0.42); transform: translate(-50%, -50%); z-index: 1; }
-      .metric-score { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
-      .metric-score small { display: block; margin-top: 1px; font-size: 8px; }
+      .metric-score { text-align: right; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .metric-score small { display: block; margin-top: 2px; font-size: 11px; }
       .metric-score small.up { color: var(--green); }
       .metric-score small.down { color: var(--red-deep); }
 
@@ -461,7 +466,7 @@
         border-radius: 12px;
         text-align: left;
         cursor: pointer;
-        transition: 160ms ease;
+        transition: background-color 150ms var(--ease-control), border-color 150ms var(--ease-control), transform 150ms var(--ease-control);
       }
 
       .event-chip:hover { border-color: #9fb1c1; transform: translateY(-1px); }
@@ -528,7 +533,7 @@
         border-radius: 12px;
         text-align: left;
         cursor: pointer;
-        transition: 160ms ease;
+        transition: background-color 150ms var(--ease-control), border-color 150ms var(--ease-control), transform 150ms var(--ease-control);
       }
 
       .event-team-row:hover { border-color: #9fb1c1; background: white; transform: translateX(2px); }
@@ -746,7 +751,7 @@
         .kpi { padding: 14px; }
         .trial-summary { grid-template-columns: 1fr; gap: 10px; padding: 12px 14px; }
         .trial-summary-breakdown { gap: 5px; }
-        .trial-team { padding-left: 7px; font-size: 10px; }
+        .trial-team { min-width: 0; padding-left: 7px; font-size: 10px; }
         .trial-team strong { font-size: 15px; }
         .admission-notice { align-items: flex-start; padding: 12px 14px; }
         .admission-notice-asof { width: 100%; margin-left: 0; }
@@ -803,26 +808,26 @@
       [hidden], .view-hidden { display: none !important; }
       .hero-inner { padding: 28px 0 24px; }
       h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.2; }
-      .hero-lead { font-size: 14px; margin-top: 10px; }
-      .kpi-grid { margin-top: 22px; }
-      .kpi { padding: 14px 18px; }
+      .hero-lead { font-size: 15px; margin-top: 12px; line-height: 1.7; }
+      .kpi-grid { margin-top: 24px; }
+      .kpi { padding: 16px; border-radius: 10px; }
       .dashboard-nav { position: sticky; top: 62px; z-index: 19; background: rgba(255,255,255,.97); border-bottom: 1px solid #dce4eb; }
-      .view-controls { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; }
-      .view-controls button { flex: 0 0 auto; border: 0; background: transparent; color: #526578; border-radius: 9px; padding: 12px 18px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+      .view-controls { display: flex; gap: 4px; overflow-x: auto; padding: 8px 0; scroll-padding-inline: 16px; }
+      .view-controls button { flex: 0 0 auto; border: 0; background: transparent; color: #526578; border-radius: 6px; min-height: 44px; padding: 10px 16px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
       .view-controls button:hover { background: #edf3f8; }
       .view-controls button[aria-pressed="true"] { color: white; background: var(--navy-800); }
       button:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #3475a7; outline-offset: 3px; }
-      .workspace-heading { scroll-margin-top: 130px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 28px 0 20px; }
+      .workspace-heading { scroll-margin-top: 140px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 32px 0 24px; }
       .workspace-heading .eyebrow { font-size: 10px; color: var(--blue-deep); margin-bottom: 6px; }
       .workspace-heading h2 { font-size: 26px; margin: 0; }
       .workspace-heading p:last-child { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
-      .team-picker { display: grid; gap: 5px; min-width: 220px; color: var(--muted); font-size: 11px; }
+      .team-picker { display: grid; gap: 8px; min-width: 240px; color: #526578; font-size: 12px; }
       .team-picker select { font: inherit; font-size: 14px; font-weight: 700; color: var(--navy-800); background: white; padding: 11px 14px; border: 1px solid #cdd8e2; border-radius: 10px; }
       .section { margin-top: 28px; scroll-margin-top: 140px; }
       h2[id] { scroll-margin-top: 140px; }
       .section-heading h2 { font-size: 24px; }
       .section-heading .eyebrow { font-size: 10px; margin-bottom: 5px; }
-      .team-card { box-shadow: 0 4px 18px rgba(17,35,50,.04); }
+      .team-card { box-shadow: var(--shadow); }
       .team-explanation { border-top: 1px solid #e5ebf0; background: #f8fafc; }
       .team-explanation summary { padding: 15px 22px; font-size: 12px; color: #425a70; cursor: pointer; font-weight: 700; }
       .team-explanation .team-note { font-size: 12px; line-height: 1.85; }
@@ -841,7 +846,7 @@
         .section-heading h2 { font-size: 22px; }
       }
       @media print {
-        .dashboard-nav, .workspace-heading { scroll-margin-top: 130px; display: none !important; }
+        .dashboard-nav, .workspace-heading { scroll-margin-top: 140px; display: none !important; }
         .view-hidden { display: block !important; }
         .topbar { position: static; }
       }
@@ -1066,8 +1071,10 @@
       .guide-head h3 { margin: 0; font-size: 15px; }
       .guide-head span { color: var(--muted); font-size: 12px; }
       .guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-      .guide-tile { display: grid; grid-template-columns: 40px minmax(0, 1fr) 14px; gap: 12px; align-items: center; min-width: 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 18px rgba(17, 35, 50, 0.04); transition: border-color .2s, box-shadow .2s, transform .2s; }
-      .guide-tile:hover { border-color: #9fb6ca; box-shadow: var(--shadow); transform: translateY(-1px); }
+      .guide-tile { display: grid; grid-template-columns: 40px minmax(0, 1fr) 14px; gap: 12px; align-items: center; min-width: 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 18px rgba(17, 35, 50, 0.04); transition: border-color 150ms var(--ease-control), box-shadow 150ms var(--ease-control), transform 150ms var(--ease-control); }
+      @media (hover: hover) and (pointer: fine) {
+        .guide-tile:hover { border-color: #9fb6ca; box-shadow: var(--shadow); }
+      }
       .guide-tile .nav-icon { width: 40px; height: 40px; border-radius: 12px; }
       .guide-tile .nav-icon svg { width: 20px; height: 20px; }
       .guide-copy { min-width: 0; }
@@ -1254,7 +1261,7 @@
       .cx-hbar-name i { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-c); }
       .cx-hbar-track { position: relative; height: 22px; border-radius: 6px; background: #edf2f6; }
       .cx-hbar-base { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: color-mix(in srgb, var(--cx-c) 22%, #fff); }
-      .cx-hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--cx-c); transition: width .9s cubic-bezier(.2,.8,.2,1); }
+      .cx-hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--cx-c); /* Data figures update immediately; only user controls animate. */ }
       .cx-hbar-fill.is-planned { background: repeating-linear-gradient(135deg, var(--cx-c) 0 6px, color-mix(in srgb, var(--cx-c) 45%, #fff) 6px 12px); }
       .cx-hbar-marker { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--navy-950); opacity: .6; }
       .cx-hbar-val { text-align: right; font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1280,6 +1287,114 @@
       .cx-chart .bar { transition: opacity .2s; }
       @media (max-width: 780px) { .cx-grid2 { grid-template-columns: minmax(0, 1fr); } }
       @media (max-width: 560px) { .cx-hbar, .cx-db-row { grid-template-columns: 44px minmax(0, 1fr) 64px; gap: 8px; } .cx-db-axis { margin: 2px 72px 0 52px; } }
+
+      /* Readability pass: original Savant palette, tactile controls, responsive data. */
+      .kpi-detail { font-size: 12px; color: #d5e0e8; line-height: 1.6; }
+      .kpi-conditions { margin-top: 8px; color: #d5e0e8; font-size: 12px; }
+      .kpi-conditions summary { cursor: pointer; padding-block: 4px; }
+      .kpi-conditions p { margin: 8px 0 0; line-height: 1.6; }
+      .guide-q, .guide-fact, .cx-note, .cx-toolbar p { font-size: 13px; line-height: 1.6; }
+      .guide-tile { border-radius: 10px; padding: 16px; box-shadow: var(--shadow); }
+      .guide-label { font-weight: 600; }
+      .team-picker select, .filter-button, .bt-btn, .composition-switches button,
+      .cmp-seg button, .cmp-focus button {
+        min-height: 36px; box-shadow: 0 1px 2px rgba(16,40,64,.08);
+      }
+      button:active { transform: scale(.98); }
+      button:disabled:active { transform: none; }
+      .comparison-wrap, .cx-table-wrap, .composition-table-wrap { overscroll-behavior-x: contain; }
+      .comparison-table, .cx-table, .composition-table { font-variant-numeric: tabular-nums; }
+      .comparison-table th, .cx-table thead th { font-size: 13px; font-weight: 600; color: #425a70; }
+      .comparison-table td, .cx-table td { font-size: 14px; }
+      .comparison-table th, .comparison-table td, .cx-table th, .cx-table td { padding: 12px 16px; }
+      .cx-table th[scope="row"], .comparison-table td:first-child { z-index: 2; }
+      .cx-table thead th:first-child { z-index: 3; left: 0; }
+      .comparison-table tbody tr:focus-within, .cx-table tbody tr:focus-within { background: #edf4f9; }
+      .heat-pill { border-radius: 6px; min-width: 44px; min-height: 32px; }
+      .team-explanation summary { min-height: 44px; font-size: 13px; padding: 16px 24px; }
+      .team-explanation[open] summary { color: var(--blue-deep); }
+      .cx-hbar-val small, .cx-db-axis, .cx-db-key { font-size: 12px; }
+      .cx-hbar, .cx-db-row { min-height: 36px; }
+      .cx-details summary { min-height: 36px; padding: 8px 12px; }
+      @media (hover: hover) and (pointer: fine) {
+        .comparison-table tbody tr:hover, .cx-table tbody tr:hover { background: #f3f6f9; }
+      }
+      @media screen and (max-width: 780px) {
+        .topbar-inner, .container { width: calc(100% - 40px); }
+        .topbar-inner { min-height: 62px; gap: 8px; }
+        .brand-copy strong { font-size: 13px; letter-spacing: .02em; }
+        .brand-mark { flex: 0 0 30px; width: 30px; }
+        .update-pill { flex: 0 1 112px; min-width: 64px; max-width: 112px; padding: 4px 0; border: 0; font-size: 12px; line-height: 1.4; text-align: right; white-space: normal; }
+        .hero-inner { padding: 24px 0; }
+        h1 { font-size: 30px; }
+        .hero-lead { font-size: 15px; line-height: 1.7; }
+        .kpi-grid { gap: 12px; margin-top: 24px; }
+        .kpi { padding: 12px; }
+        .kpi-label { font-size: 14px; }
+        .kpi-value { font-size: 28px; }
+        .kpi-detail { font-size: 14px; line-height: 1.5; }
+        .kpi-conditions { font-size: 14px; }
+        .kpi-conditions summary { min-height: 44px; display: flex; align-items: center; gap: 4px; }
+        .kpi-conditions summary::before { content: "+"; }
+        .kpi-conditions[open] summary::before { content: "−"; }
+        .trial-summary { padding: 16px; gap: 12px; }
+        .trial-summary-breakdown { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+        .trial-team { padding-left: 4px; font-size: 12px; }
+        .trial-team strong { font-size: 18px; }
+        .trial-summary-label { font-size: 14px; }
+        .view-controls { gap: 4px; padding: 8px 0; }
+        .view-controls button { font-size: 15px; min-height: 44px; padding: 10px 12px; }
+        .nav-more { min-height: 44px; font-size: 15px; }
+        .overtake-assumptions summary { min-height: 44px; padding-block: 12px; font-size: 15px; }
+        .overtake-assumptions p { font-size: 14px; }
+        .workspace-heading { padding-top: 24px; }
+        .workspace-heading p:last-child, .section-heading p { font-size: 15px; line-height: 1.7; }
+        .team-picker { font-size: 14px; }
+        .team-picker span { display: block; }
+        .team-picker select { font-size: 16px; min-height: 44px; }
+        .guide-grid { grid-template-columns: 1fr; gap: 8px; }
+        .guide-tile { grid-template-columns: 32px minmax(0,1fr) 14px; align-items: center; gap: 12px; padding: 16px; }
+        .guide-arrow { display: block; }
+        .guide-q, .guide-fact { font-size: 14px; }
+        .guide-label { font-size: 16px; }
+        .team-grid { gap: 24px; }
+        .team-card-head { grid-template-columns: 80px minmax(0,1fr); gap: 16px; padding: 20px; }
+        .score-ring { width: 80px; }
+        .rank-line, .team-title span, .team-meta, .focus-badge { font-size: 14px; letter-spacing: 0; }
+        .team-title h3 { font-size: 26px; }
+        .team-title { flex-wrap: wrap; gap: 8px; }
+        .metric-list { padding: 20px; }
+        .metric-row { grid-template-columns: 90px minmax(48px,1fr) 36px; gap: 8px; min-height: 32px; }
+        .metric-label { font-size: 14px; }
+        .metric-score { font-size: 16px; }
+        .metric-score small { font-size: 12px; }
+        .rate-comparison-note { padding: 12px 20px; font-size: 14px; }
+        .team-explanation summary { font-size: 15px; padding: 16px 20px; }
+        .team-explanation .team-note { font-size: 15px; padding: 16px 20px; }
+        .comparison-table, .cx-table { min-width: 680px; }
+        .comparison-wrap::before { content: "左右にスクロールして全指標を確認"; display: block; padding: 12px; color: #526578; font-size: 14px; }
+        .cx-table th, .cx-table td, .comparison-table th, .comparison-table td { padding: 12px; font-size: 15px; }
+        .cx-toolbar p, .cx-note, .cx-db-key, .cx-hbar-val small { font-size: 14px; }
+        .cx-hbar, .cx-db-row { grid-template-columns: 40px minmax(0,1fr) 80px; gap: 8px; }
+        .cx-hbar-name { font-size: 15px; }
+        .cx-grid2 { grid-template-columns: minmax(0, 1fr); }
+        .cx-grid2 > div { min-width: 0; }
+        .cx-chart { overflow-x: auto; padding-bottom: 8px; }
+        .cx-chart svg { min-width: 640px; }
+        .cx-chart::before { content: "グラフは左右にスクロールできます"; display: block; margin-bottom: 8px; font-size: 14px; color: #526578; }
+        .cx-details summary { min-height: 44px; font-size: 15px; }
+        .filter-button, .bt-btn, .bt-myteam button, .composition-switches button,
+        .cmp-seg button, .cmp-focus button, .view-pager button { min-height: 44px; font-size: 15px; }
+      }
+      @media (pointer: coarse) {
+        select, input { font-size: 16px; min-height: 44px; }
+        button, summary { min-height: 44px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        button:active { transform: none; }
+      }
     </style>
   </head>
   <body>
@@ -1342,7 +1457,6 @@
           <article class="bt-card">
             <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合順位</h3></div><button type="button" class="bt-btn" id="bt-replay">再表示</button></div>
             <div class="bt-race" id="bt-race"></div>
-            <p class="bt-note" id="bt-race-note"></p>
           </article>
           <article class="bt-card bt-mission" id="bt-mission">
             <div class="bt-card-head"><div><p class="eyebrow">FOCUS METRICS</p><h3>所属チームの重点指標</h3></div><span>総合点への影響度順</span></div>
@@ -1378,7 +1492,6 @@
               <input type="range" id="bt-month-range" min="0" max="0" value="0" aria-label="表示する月">
             </div>
             <div class="bt-podium" id="bt-podium"></div>
-            <p class="bt-note" id="bt-admit-note"></p>
           </article>
         </div>
       </section>
@@ -1831,7 +1944,7 @@
             return;
           }
           target.hidden = false;
-          target.innerHTML = `<span class="admission-notice-title">🎉 新規入会</span><span class="admission-notice-teams">${items.map((item) => `${item.id} TEAM +${item.count}`).join(" ・ ")}</span><span class="admission-notice-asof">基準日 ${data.admissions.asOf}</span>`;
+          target.innerHTML = `<span class="admission-notice-title">新規入会</span><span class="admission-notice-teams">${items.map((item) => `${item.id} TEAM +${item.count}`).join(" ・ ")}</span><span class="admission-notice-asof">基準日 ${data.admissions.asOf}</span>`;
         };
         const eventChipDate = (event) => {
           const [year, month, day] = isoParts(event.startDate);
@@ -2110,7 +2223,7 @@
           const validEvent = eventHistory.events.find((event) => event.id === eventId);
           eventState.selectedEventId = validEvent ? validEvent.id : eventHistory.events[0].id;
           document.getElementById("event-note").textContent =
-            [getSelectedEvent().note, eventHistory.note].filter(Boolean).join(" ");
+            "一般会員対象の開催済みイベントを集計。参加率は開催時点の会員数に対する割合です。";
           document.querySelectorAll("#event-timeline [data-event-id]").forEach((button) => {
             button.setAttribute("aria-pressed", String(button.dataset.eventId === eventState.selectedEventId));
           });
@@ -2151,7 +2264,7 @@
             </button>`).join("");
           document.getElementById("event-scale-label").textContent =
             `歴代MAX ${eventHistory.historicalMaxRate.toFixed(1)}% = 比較指数85`;
-          document.getElementById("event-note").textContent = eventHistory.note;
+          document.getElementById("event-note").textContent = "一般会員対象の開催済みイベントを集計。参加率は開催時点の会員数に対する割合です。";
 
           const filters = [{ id: "ALL", label: "全体" }, ...eventTeamIds().map((teamId) => ({ id: teamId, label: `${teamId} TEAM` }))];
           document.getElementById("event-filters").innerHTML = filters.map((filter) => `
@@ -2577,7 +2690,7 @@
               <div class="composition-summary">${stats.map(([label,value,note])=>`<div class="composition-stat"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`).join('')}</div>
               <div class="composition-charts">${charts}</div>
               <div class="composition-table-wrap"><table class="composition-table"><caption>全体・チーム比較</caption><thead><tr><th scope="col">対象</th><th scope="col">会員数</th><th scope="col">平均在籍</th><th scope="col">3か月未満</th><th scope="col">3年以上</th><th scope="col">女子比率</th><th scope="col">性別不明</th></tr></thead><tbody>${ids.map(id=>{const t=rowFor(id);return `<tr data-selected="${selected===id}"><th scope="row"><button type="button" data-composition-team="${id}">${labelFor(id)}</button></th><td>${formatNumber.format(t.members)}名</td><td>${tenureText(t.summary.meanTenureMonths)}</td><td>${rate(t.tenure.lt3,t.members)}</td><td>${rate(t.tenure.y3to5+t.tenure.y5plus,t.members)}</td><td>${rate(t.gender.female,t.members)}</td><td>${t.gender.unknown}名</td></tr>`;}).join('')}</tbody></table></div>
-              <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>人物単位の運用会員（在籍・休会・退会予定）が対象です。重複契約は1人にまとめ、承認済みの所属補正を反映しています。平均・中央値は入会日が判明している会員だけで計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録・矛盾のある属性は不明として表示します。未登録の会費ペイ外会員も人数から除外しません。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
+              <details class="composition-method"><summary>集計の定義と欠損データ</summary><p>在籍・休会・退会予定の会員が対象です。平均・中央値は入会日が分かる会員で計算します。</p><p>学年相当は4月2日〜翌4月1日生まれを同じ学年とし、生年月日から算出します。在学校の実際の学年を確認した値ではありません。在籍期間・入会年度は有効な入会日の最古日を使用し、休会期間を含みます。入会年度の人数は現在の会員の構成であり、その年度の総入会数とは異なります。</p><p>未登録の項目は「不明」と表示します。性別不明 ${row.gender.unknown}名 ／ 生年月日不明 ${row.age.unknown}名 ／ 入会日不明 ${row.tenure.unknown}名。総合スコアには含めません。</p></details>`;
           };
           const render = () => {
             const focusChips = layout === 'compare' ? `<div class="cmp-focus">強調するチーム<div class="composition-switches" id="composition-filters" aria-label="強調するチーム">${ids.map(id => `<button type="button" data-composition-team="${id}" aria-pressed="${selected === id}">${id === 'ALL' ? 'なし' : labelFor(id)}</button>`).join('')}</div></div>` : '';
@@ -2634,7 +2747,7 @@
 
         const initializeWithdrawalHistory = () => {
           const root=document.getElementById('withdrawal-content'), h=data.withdrawalHistory;
-          if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは集計待ちです。未取得の数値を0として表示しません。</p>'; return; }
+          if(!h || h.asOf!==data.asOf) { root.innerHTML='<p>退会データは確認中です。</p>'; return; }
           let selected='ALL', month=h.asOf.slice(0,7);
           const monthLabel=m=>`${Number(m.slice(0,4))}年${Number(m.slice(5))}月`;
           const reference=(r,id)=>withdrawalReference(r,data.teams.find(t=>t.id===id)?.members);
@@ -2646,15 +2759,14 @@
             const ids=selected==='ALL'?data.teams.map(team=>team.id):[selected];
             const max=Math.max(1,...Object.values(h.teams).flatMap(t=>t.months.filter(Boolean).map(r=>r.count)));
             root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL',...data.teams.map(team=>team.id)].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
-            <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。割合は判明分だけの参考値です。退会月不明分は計算に含めません。月初人数がない月は基準日の会員数を分母に使い、計算式を各カードに表示します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
             <div class="withdrawal-grid">${ids.map(id=>{
               const t=h.teams[id],r=t.months[selectedIndex],prev=t.months[selectedIndex-1];
               const ref=reference(r,id), prior=prev?reference(prev,id):null;
               const delta=ref.rate!==null && prior?.rate!==null && Number.isFinite(prior?.rate) && ref.basis===prior.basis?Number((ref.rate-prior.rate).toFixed(2)):null;
               const change=delta===null?'前月差：分母の基準が異なるか、比較月なし':delta<0?`前月より ${Math.abs(delta).toFixed(2)}ポイント改善`:delta>0?`前月より ${delta.toFixed(2)}ポイント上昇`:'前月から変化なし';
-              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><p>退会日 ${r.explicit}人 ／ 課金停止日 ${r.stopped}人 ／ 停止検知日 ${r.detected}人</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
+              return `<article class="withdrawal-card"><h3>${id} TEAM</h3><p>${monthLabel(month)}${month===h.asOf.slice(0,7)?' · 途中集計':''}</p>${month===h.asOf.slice(0,7)&&Number.isFinite(scheduledOf(id))?`<p class="withdrawal-scheduled">当月の退会予定 <b>${scheduledOf(id)}人</b>（月末を過ぎると退会として確定）</p>`:''}<div class="withdrawal-stats"><div><span>退会月が判明した人数</span><strong>${r.count}<small>人</small></strong></div><div><span>${ref.basis==='month-start'?'判明分の月次退会率':'基準日会員数に対する割合'}（参考）</span><strong class="withdrawal-rate">${fmtRate(r,id)}</strong></div></div><p class="${delta<0?'delta-positive':delta>0?'delta-negative':''}">${change}</p><div class="withdrawal-bars" aria-label="${id}チームの月別判明人数">${h.months.map((m,i)=>{const point=t.months[i];return point?`<button type="button" data-withdrawal-month="${m}" aria-pressed="${m===month}" aria-label="${id}チーム ${monthLabel(m)} 確認${point.count}人"><span>${point.count}</span><i style="height:${Math.max(point.count?3:0,point.count/max*86)}px"></i><small>${Number(m.slice(5))}月</small></button>`:`<span class="withdrawal-future">—<small>${Number(m.slice(5))}月</small></span>`;}).join('')}</div><p class="withdrawal-unknown">退会月不明：${t.unknownMonth}人（過去分を含む）</p><p>${ref.basis==='month-start'?'月初在籍者の判明退会':'判明退会'} ${ref.numerator}人 ÷ ${ref.basis==='month-start'?'月初人数':escapeHtml(data.asOfLabel)+'の会員数'} ${ref.denominator??'—'}人 × 100</p></article>`;
             }).join('')}</div>
-            <details class="withdrawal-method"><summary>退会率の定義・補完ルールと月別表</summary><p>月次退会率＝月初在籍者のうち当月に退会した人数 ÷ 月初人数。休会は退会に数えず、月初人数には既存の運用会員定義と同じく休会・退会予定を含めます。当月入会・当月退会は人数に含め、率の分子には含めません。</p><p>退会日を優先し、なければ課金停止日、それもなければ契約コースの停止検知日で退会月を補完します。検知日による補完には実際の退会月とのずれがあり得ます。チーム移動や一部コースの変更は退会として扱いません。退会月不明分は分子に含めず、判明分だけで参考値を計算します。月初人数または月初在籍の判定材料がない月は、判明退会人数を基準日の会員数で割った参考割合を表示します。この割合は通常の月次退会率とは分けて読み、基準日会員数の更新でも変わります。異なる分母基準の前月差は表示しません。</p><p>現在の連携では会員マスターの退会日と、所属コース履歴の停止検知日を使用しています。課金停止日の専用項目は未接続です。過去の履歴不足や後日の修正・名寄せにより、判明人数が変わることがあります。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>退会日</th><th>停止日</th><th>検知日</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${r.explicit}</td><td>${r.stopped}</td><td>${r.detected}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
+            <details class="withdrawal-method"><summary>月別の人数・割合</summary><p>月次退会率は、月初の会員のうち、その月に退会した人の割合です。</p><p>退会月が不明な人は含みません。「参考」の割合は、基準日の会員数に対する割合です。</p><div class="comparison-wrap"><table class="comparison-table"><thead><tr><th>月</th><th>チーム</th><th>判明人数</th><th>分母の基準</th><th>分母人数</th><th>判明分の割合（参考）</th></tr></thead><tbody>${h.months.flatMap((m,i)=>ids.map(id=>{const r=h.teams[id].months[i];return r?`<tr><td>${monthLabel(m)}</td><td>${id}</td><td>${r.count}</td><td>${reference(r,id).basis==='month-start'?'月初':'基準日 '+escapeHtml(data.asOfLabel)}</td><td>${reference(r,id).denominator??'—'}</td><td>${fmtRate(r,id)}</td></tr>`:'';})).join('')}</tbody></table></div></details><p class="curve-note">${escapeHtml(data.asOfLabel)}基準。表示年度は${h.fiscalYear}年度。総合スコア・定着力スコアには加算しません。</p>`;
           };
           root.addEventListener('click',e=>{const team=e.target.closest('[data-withdrawal-team]'),point=e.target.closest('[data-withdrawal-month]');if(team){selected=team.dataset.withdrawalTeam;render();root.querySelector(`[data-withdrawal-team="${selected}"]`)?.focus({preventScroll:true});}else if(point){month=point.dataset.withdrawalMonth;render();root.querySelector(`[data-withdrawal-month="${month}"]`)?.focus({preventScroll:true});}});
           root.addEventListener('change',e=>{if(e.target.id==='withdrawal-month'){month=e.target.value;render();root.querySelector('#withdrawal-month')?.focus({preventScroll:true});}});
@@ -2672,7 +2784,7 @@
           let selectedMonth = history.months.indexOf(data.asOf.slice(0, 7));
           const currentMonth = selectedMonth;
           const labelFor = month => `${Number(month.slice(5))}月`;
-          root.innerHTML = `<div class="admission-history-tools"><div class="team-tools" id="admission-history-filters" aria-label="入会者数の表示チーム"></div><p id="admission-history-summary"></p></div><div class="admission-history-legend"><span><i class="admission-bar-key"></i>棒：月ごとの入会者数</span><span><i class="admission-line-key"></i>線：4月からの累計</span></div><div class="admission-history-chart" id="admission-history-chart"></div><p class="admission-history-detail" id="admission-history-detail" aria-live="polite"></p><details class="admission-history-table"><summary>月別の人数を表で確認</summary><div id="admission-history-table"></div></details><p class="team-note">${history.fiscalYear}年度（4月〜翌3月）。${escapeHtml(data.asOfLabel)}基準。今月は途中集計、未来の月は未集計です。会員マスターの入会日による実入会者数（再入会を含む）。退会による減少を差し引かない累計です。</p>`;
+          root.innerHTML = `<div class="admission-history-tools"><div class="team-tools" id="admission-history-filters" aria-label="入会者数の表示チーム"></div><p id="admission-history-summary"></p></div><div class="admission-history-legend"><span><i class="admission-bar-key"></i>棒：月ごとの入会者数</span><span><i class="admission-line-key"></i>線：4月からの累計</span></div><div class="admission-history-chart" id="admission-history-chart"></div><p class="admission-history-detail" id="admission-history-detail" aria-live="polite"></p><details class="admission-history-table"><summary>月別の人数を表で確認</summary><div id="admission-history-table"></div></details>`;
           let activeDetailTeam = "A";
           const valuesFor = () => history.teams[activeDetailTeam];
           const totalsFor = values => { let sum = 0; return values.map(v => v === null ? null : (sum += v)); };
@@ -3047,8 +3159,8 @@
             latestEvent ? `${eventDateLabel(latestEvent)}開催済 ・ 参加率 ${latestEvent.total.rate.toFixed(1)}% ・ 開催時点 ${formatNumber.format(latestEvent.total.members)}名` : "",
           ],
         ];
-        document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail]) => `
-          <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-detail">${detail}</div></article>
+        document.getElementById("headline-kpis").innerHTML = kpis.map(([label, value, unit, detail], index) => `
+          <article class="kpi"><div class="kpi-label">${label}</div><div class="kpi-value">${value}<span class="kpi-unit">${unit}</span></div>${detail && (index === 1 || index === 3) ? `<details class="kpi-conditions"><summary>集計期間・条件</summary><p>${detail}</p></details>` : `<div class="kpi-detail">${detail}</div>`}</article>
         `).join("");
         renderTrialSummary();
         const newAdmissions = newAdmissionItems();
@@ -3105,10 +3217,7 @@
                 <div class="benchmark"><strong>${Number.isFinite(team.benchmark.eventRate) ? team.benchmark.eventRate.toFixed(1) + "%" : "対象イベントなし"}</strong><span>平均イベント参加率</span>${rateChangeMarkup(team, "eventRate")}<div class="benchmark-detail">イベント力の70%</div></div>
                 <div class="benchmark"><strong>${Number.isSafeInteger(team.benchmark.referralPoints) ? team.benchmark.referralPoints + "pt" : "—"}</strong><span>年度紹介ポイント</span><span class="referral-rate">${Number.isFinite(team.benchmark.referralRate) ? team.benchmark.referralRate.toFixed(2) + "%" : "—"}</span><span>紹介率</span>${rateChangeMarkup(team, "referralRate")}</div>
               </div>
-              ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">退会日の根拠が未確認のため、定着力・継続率・総合評価を保留しています。他の指標は基準日まで更新済みです。</p>' : ""}
-              ${data.retentionAvailability?.teams?.[team.id]?.historicalWithdrawals > 0 ? '<p class="rate-comparison-note">過去の退会分は従来の集計基準を維持。新しい退会分は名簿への実移動日時を優先し、不明な場合は会費ペイで確認できた課金停止日、名簿の退会者タブに記入された退会日の順に使います。</p>' : ""}
-              <p class="rate-comparison-note">割合の増減：${escapeHtml(data.comparison?.previousAsOfLabel || "比較元なし")} → ${escapeHtml(data.asOfLabel)}。ポイントは割合の差です。定義・年度の変更や比較データ不足は比較対象外。</p>
-              ${team.note ? `<details class="team-explanation"><summary>集計の内訳・指標の詳しい説明</summary><div class="team-note">${escapeHtml(team.note).split(/(?=【)/).filter(Boolean).map(part => `<p>${part}</p>`).join("")}</div></details>` : ""}
+              ${data.retentionAvailability?.teams?.[team.id]?.unknownWithdrawals > 0 ? '<p class="rate-comparison-note">定着力・継続率は確認中です。</p>' : ""}
             </article>`;
         }).join("");
 
@@ -3158,7 +3267,7 @@
           <div class="quality-stat"><strong>${quality.eventCount}</strong><span>集計済みイベント</span></div>
           <div class="quality-stat"><strong>${quality.competitionCount}</strong><span>集計済み大会</span></div>
           <div class="quality-stat"><strong>${formatNumber.format(quality.competitionRows)}</strong><span>大会順位データ</span></div>
-          <p class="quality-note">${quality.note}</p>`;
+          <p class="quality-note">開催前イベントは集計対象外です。Dチームは発足後の実績を評価します。</p>`;
       })();
     </script>
 
@@ -3258,18 +3367,10 @@
         visit.seen = { asOf: data.asOf, scoreVersion: data.scoreVersion, overall: Object.fromEntries(teams.map(team => [team.id, team.overall])) };
         store.set("savant-visit", visit);
 
-        /* ---------- Count-up helper ---------- */
-        const countUp = (el, to, { digits = 0, prefix = "", duration = 1400 } = {}) => {
+        /* Figures show their final value immediately, including on first load. */
+        const countUp = (el, to, { digits = 0, prefix = "" } = {}) => {
           if (!el || !Number.isFinite(to)) return;
-          if (reduceMotion) { el.textContent = prefix + num(to, digits); return; }
-          const start = performance.now();
-          const step = now => {
-            const p = Math.min(1, (now - start) / duration);
-            const eased = 1 - Math.pow(1 - p, 3);
-            el.textContent = prefix + num(to * eased, digits);
-            if (p < 1) requestAnimationFrame(step);
-          };
-          requestAnimationFrame(step);
+          el.textContent = prefix + num(to, digits);
         };
 
         /* ---------- Overall standings race ---------- */
@@ -3300,16 +3401,15 @@
                 <div class="bt-track" role="img" aria-label="${esc(teamName(team.id))} 総合${num(team.overall)}点"><div class="bt-bar" data-score="${team.overall}"><span class="bt-runner" style="color:${savantInk(team.overall)}">${num(team.overall)}</span></div></div>
                 <div class="bt-gap">${gapText}${team.chase?.closed > 0 ? `　／　前回より <b>${team.chase.closed}点接近</b>` : ""}</div>
               </div>
-              <div class="bt-score"><strong data-count="${team.overall}">0</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
+              <div class="bt-score"><strong data-count="${team.overall}">${num(team.overall)}</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
             </div>`;
           }).join("");
-          document.getElementById("bt-race-note").textContent = `順位を抜く前も、実績差に応じて点数が動きます。点数と点差は整数表示。小さな改善は表示できる点数に達すると1点ずつ変わります。総合点は算出済み指標×配点の合計を総配点で割って算出（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。一部指標が対象実績待ちでも順位を表示し、集計した指標数を併記します。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}を同じ採点方式で再計算した結果との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
         };
         const playRace = () => {
           const bars = [...raceEl.querySelectorAll(".bt-bar")];
           const scores = [...raceEl.querySelectorAll("[data-count]")];
           bars.forEach(bar => { bar.style.transition = "none"; bar.style.width = "0%"; });
-          scores.forEach(el => { el.textContent = "0"; });
+          scores.forEach(el => countUp(el, Number(el.dataset.count)));
           void raceEl.offsetWidth;
           requestAnimationFrame(() => {
             bars.forEach((bar, index) => {
@@ -3490,7 +3590,6 @@
           rangeEl.max = String(lastIndex);
           rangeEl.addEventListener("input", () => { stopPlay(); monthIndex = Number(rangeEl.value); renderAdmit(); });
           playBtn.addEventListener("click", () => (playTimer ? stopPlay() : startPlay()));
-          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。`;
         } else {
           section.querySelector(".bt-admit-stage").closest(".bt-card").hidden = true;
         }
@@ -3805,7 +3904,7 @@
             const sumOf = (id, key) => pick(id, key).reduce((n, v) => n + (v ?? 0), 0);
             const tableRow = id => `<tr${id === 'ALL' ? ' class="is-overall"' : ''} data-team="${id}">${rowHead(id)}${cm.map((_, i) => cell(id, i)).join('')}<td class="cx-total">${num(sumOf(id, 'admissions') / sumOf(id, 'trials') * 100, 1)}%<small>体験${num(sumOf(id, 'trials'))}→入会${num(sumOf(id, 'admissions'))}</small></td></tr>`;
             const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${cm.map((m, i) => `<th scope="col">${monthLabel(m)}${cmPartial && i === cm.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">年度累計</th></tr></thead><tbody>${ids.map(tableRow).join('')}${tableRow('ALL')}</tbody></table></div>`;
-            return `<div class="cx-grid2"><div><p class="cx-sub">体験→入会率（体験した月ごと）</p>${rateChart}${legend([...ids, 'ALL'])}</div><div><p class="cx-sub">体験人数</p>${trialBars}${legend(ids)}</div></div><p class="cx-note">体験した月ごとに、その月に体験した人のうち入会した割合です（入会した月ではありません）。月別の合計は上の年度累計と一致します。直近の月は入会の判断がまだ進んでいる途中のため、後から率が上がることがあります。体験人数が少ない月は率が大きく振れます。</p>${details('数値を表で見る', table)}`;
+            return `<div class="cx-grid2"><div><p class="cx-sub">体験→入会率（体験した月ごと）</p>${rateChart}${legend([...ids, 'ALL'])}</div><div><p class="cx-sub">体験人数</p>${trialBars}${legend(ids)}</div></div>${details('数値を表で見る', table)}`;
           })() : '';
           compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
             + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
@@ -3865,11 +3964,9 @@
           </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          const unassigned = Number(h.unassigned) || 0;
-          const caution = `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>`;
           const monthlyValues = id => rows(id).map((row, i) => i === currentIndex && hasScheduled ? scheduledOf(id) : row ? row.count : null);
           compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員（${esc(data.asOfLabel)}時点）。月末を過ぎると退会として確定します`, hbars(ids.map(id => ({ id, value: scheduledOf(id), planned: true, display: finite(scheduledOf(id)) ? `${num(scheduledOf(id))}人` : '—', sub: `年度の確定 ${num(known(id))}人` })))) : '')
-            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${caution}${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
+            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
           addToggle(section, compare);
         })();
 
@@ -4005,7 +4102,7 @@
         const icon = key => `<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${icons[key] || ''}</svg></span>`;
         // What staff want to know, in their words; the order matches the tab order.
         const views = [
-          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Eの5指標と総合点、強み・課題を一覧で確認できます。各カードから集計の内訳も開けます。' },
+          { key: 'overview', label: 'チーム概要', question: '各チームの強みと課題は？', description: 'A〜Eの5指標と総合点、強み・課題を一覧で確認できます。' },
           { key: 'standings', label: 'チーム順位', question: 'いま何位？ 上位との差は？', description: '総合順位、部門別首位、チーム間比較、年度入会推移を確認できます。所属チームを選択すると、上位との差と重点指標を表示します。' },
           { key: 'composition', label: '会員構成', question: '学年・在籍期間・男女比は？', description: '会員の学年・在籍期間・男女比などを全体と各チームで確認し、構成の違いを比較できます。' },
           { key: 'admissions', label: '実入会の推移', question: '毎月何人が入会している？', description: '月ごとの実入会人数と累計、チラシ・紹介などクラブを知ったきっかけを確認できます。' },
@@ -4163,6 +4260,7 @@
       .overtake-assumptions { grid-column:1/-1; margin:8px 0; color:#526578; font-size:11px; line-height:1.7; }
       .overtake-assumptions p { max-width:900px; margin:8px 0; }
       @media(max-width:680px) { .overtake-grid { grid-template-columns:1fr; } .overtake-goal { margin:12px; padding:12px; } }
+
     </style>
     <script>
       (() => {
@@ -4191,6 +4289,7 @@
     <style>
       .acquisition-tools{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:20px 22px 0;font-size:13px;font-weight:700}.acquisition-tools select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink)}
       #acquisition-content{padding:20px 22px 24px}.acquisition-summary{font-size:18px;font-weight:800;margin:0 0 6px}.acquisition-note{font-size:12px;color:var(--muted);line-height:1.8;margin:8px 0 20px}.acquisition-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}.acquisition-grid h3{font-size:15px;margin:0 0 12px}.acquisition-stack{display:flex;height:26px;background:#edf0f2;border-radius:5px;overflow:hidden;min-width:100px}.acquisition-stack span{display:block;min-width:0}.acquisition-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;margin:12px 0}.acquisition-legend i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px}.acquisition-table{width:100%;border-collapse:collapse;font-size:12px}.acquisition-table td,.acquisition-table th{padding:8px 5px;border-bottom:1px solid var(--line);text-align:right}.acquisition-table td:first-child,.acquisition-table th:first-child{text-align:left}.acquisition-row{display:grid;grid-template-columns:74px 1fr 78px;gap:9px;align-items:center;margin:12px 0;font-size:12px}.acquisition-empty{display:flex;align-items:center;min-height:26px;color:var(--muted);font-size:12px}.acquisition-months{margin-top:26px}.acquisition-months h3{font-size:15px}.acquisition-months .acquisition-row{grid-template-columns:74px 1fr 140px}.acquisition-unknown{color:var(--muted);font-size:12px;margin-top:10px}@media(max-width:780px){.acquisition-grid{grid-template-columns:1fr}.acquisition-row{grid-template-columns:62px 1fr 68px}#acquisition-content{padding:16px}.acquisition-tools{padding:16px 16px 0}}
+
     </style>
     <style>@media(max-width:520px){.acquisition-months .acquisition-row{grid-template-columns:62px 1fr}.acquisition-months .acquisition-row>span{grid-column:2}}</style>
     <script>
