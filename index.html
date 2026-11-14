@@ -1457,7 +1457,6 @@
           <article class="bt-card">
             <div class="bt-card-head"><div><p class="eyebrow">OVERALL STANDINGS</p><h3>総合順位</h3></div><button type="button" class="bt-btn" id="bt-replay">再表示</button></div>
             <div class="bt-race" id="bt-race"></div>
-            <p class="bt-note" id="bt-race-note"></p>
           </article>
           <article class="bt-card bt-mission" id="bt-mission">
             <div class="bt-card-head"><div><p class="eyebrow">FOCUS METRICS</p><h3>所属チームの重点指標</h3></div><span>総合点への影響度順</span></div>
@@ -1493,7 +1492,6 @@
               <input type="range" id="bt-month-range" min="0" max="0" value="0" aria-label="表示する月">
             </div>
             <div class="bt-podium" id="bt-podium"></div>
-            <p class="bt-note" id="bt-admit-note"></p>
           </article>
         </div>
       </section>
@@ -2761,7 +2759,6 @@
             const ids=selected==='ALL'?data.teams.map(team=>team.id):[selected];
             const max=Math.max(1,...Object.values(h.teams).flatMap(t=>t.months.filter(Boolean).map(r=>r.count)));
             root.innerHTML=`<div class="withdrawal-toolbar"><div class="team-tools" id="withdrawal-filters" aria-label="退会推移の表示チーム">${['ALL',...data.teams.map(team=>team.id)].map(id=>`<button type="button" class="filter-button" data-withdrawal-team="${id}" aria-pressed="${id===selected}">${id==='ALL'?'全チーム':id+' TEAM'}</button>`).join('')}</div><label>表示月 <select id="withdrawal-month">${h.months.filter(m=>m<=h.asOf.slice(0,7)).map(m=>`<option value="${m}" ${m===month?'selected':''}>${monthLabel(m)}${m===h.asOf.slice(0,7)?'（途中）':''}</option>`).join('')}</select></label></div>
-            <p class="withdrawal-caution">棒グラフは退会月が判明した分のみです。「確認0人」は退会ゼロの確定を意味しません。割合は判明分だけの参考値です。退会月不明分は計算に含めません。月初人数がない月は基準日の会員数を分母に使い、計算式を各カードに表示します。${h.unassigned?`所属チームを確定できない退会履歴が${h.unassigned}件あり、チーム別集計には含めていません。`:''}</p>
             <div class="withdrawal-grid">${ids.map(id=>{
               const t=h.teams[id],r=t.months[selectedIndex],prev=t.months[selectedIndex-1];
               const ref=reference(r,id), prior=prev?reference(prev,id):null;
@@ -2787,7 +2784,7 @@
           let selectedMonth = history.months.indexOf(data.asOf.slice(0, 7));
           const currentMonth = selectedMonth;
           const labelFor = month => `${Number(month.slice(5))}月`;
-          root.innerHTML = `<div class="admission-history-tools"><div class="team-tools" id="admission-history-filters" aria-label="入会者数の表示チーム"></div><p id="admission-history-summary"></p></div><div class="admission-history-legend"><span><i class="admission-bar-key"></i>棒：月ごとの入会者数</span><span><i class="admission-line-key"></i>線：4月からの累計</span></div><div class="admission-history-chart" id="admission-history-chart"></div><p class="admission-history-detail" id="admission-history-detail" aria-live="polite"></p><details class="admission-history-table"><summary>月別の人数を表で確認</summary><div id="admission-history-table"></div></details><p class="team-note">${history.fiscalYear}年度（4月〜翌3月）。${escapeHtml(data.asOfLabel)}基準。今月は途中集計、未来の月は未集計です。会員マスターの入会日による実入会者数（再入会を含む）。退会による減少を差し引かない累計です。</p>`;
+          root.innerHTML = `<div class="admission-history-tools"><div class="team-tools" id="admission-history-filters" aria-label="入会者数の表示チーム"></div><p id="admission-history-summary"></p></div><div class="admission-history-legend"><span><i class="admission-bar-key"></i>棒：月ごとの入会者数</span><span><i class="admission-line-key"></i>線：4月からの累計</span></div><div class="admission-history-chart" id="admission-history-chart"></div><p class="admission-history-detail" id="admission-history-detail" aria-live="polite"></p><details class="admission-history-table"><summary>月別の人数を表で確認</summary><div id="admission-history-table"></div></details>`;
           let activeDetailTeam = "A";
           const valuesFor = () => history.teams[activeDetailTeam];
           const totalsFor = values => { let sum = 0; return values.map(v => v === null ? null : (sum += v)); };
@@ -3407,7 +3404,6 @@
               <div class="bt-score"><strong data-count="${team.overall}">${num(team.overall)}</strong><span>OVERALL</span>${overallDelta === null ? "" : `<small class="${overallDelta > 0 ? "up" : overallDelta < 0 ? "down" : ""}">前回比 ${overallDelta === 0 ? "±0" : signed(overallDelta)}</small>`}</div>
             </div>`;
           }).join("");
-          document.getElementById("bt-race-note").textContent = `順位を抜く前も、実績差に応じて点数が動きます。点数と点差は整数表示。小さな改善は表示できる点数に達すると1点ずつ変わります。総合点は算出済み指標×配点の合計を総配点で割って算出（${(data.weights || []).map(item => `${item.label}${item.value}`).join("・")}）。一部指標が対象実績待ちでも順位を表示し、集計した指標数を併記します。▲▼と前回比は${comparable ? `${comparison.previousAsOfLabel || "前回公開"}を同じ採点方式で再計算した結果との比較` : "スコア版・定義の変更により今回は比較対象外"}です。`;
         };
         const playRace = () => {
           const bars = [...raceEl.querySelectorAll(".bt-bar")];
@@ -3594,7 +3590,6 @@
           rangeEl.max = String(lastIndex);
           rangeEl.addEventListener("input", () => { stopPlay(); monthIndex = Number(rangeEl.value); renderAdmit(); });
           playBtn.addEventListener("click", () => (playTimer ? stopPlay() : startPlay()));
-          document.getElementById("bt-admit-note").textContent = `入会日基準の月別実入会（再入会を含む）を4月から積み上げています。`;
         } else {
           section.querySelector(".bt-admit-stage").closest(".bt-card").hidden = true;
         }
@@ -3909,7 +3904,7 @@
             const sumOf = (id, key) => pick(id, key).reduce((n, v) => n + (v ?? 0), 0);
             const tableRow = id => `<tr${id === 'ALL' ? ' class="is-overall"' : ''} data-team="${id}">${rowHead(id)}${cm.map((_, i) => cell(id, i)).join('')}<td class="cx-total">${num(sumOf(id, 'admissions') / sumOf(id, 'trials') * 100, 1)}%<small>体験${num(sumOf(id, 'trials'))}→入会${num(sumOf(id, 'admissions'))}</small></td></tr>`;
             const table = `<div class="cx-table-wrap"><table class="cx-table"><thead><tr><th scope="col">チーム</th>${cm.map((m, i) => `<th scope="col">${monthLabel(m)}${cmPartial && i === cm.length - 1 ? '<br><small>途中</small>' : ''}</th>`).join('')}<th scope="col">年度累計</th></tr></thead><tbody>${ids.map(tableRow).join('')}${tableRow('ALL')}</tbody></table></div>`;
-            return `<div class="cx-grid2"><div><p class="cx-sub">体験→入会率（体験した月ごと）</p>${rateChart}${legend([...ids, 'ALL'])}</div><div><p class="cx-sub">体験人数</p>${trialBars}${legend(ids)}</div></div><p class="cx-note">体験した月ごとに、その月に体験した人のうち入会した割合です（入会した月ではありません）。月別の合計は上の年度累計と一致します。直近の月は入会の判断がまだ進んでいる途中のため、後から率が上がることがあります。体験人数が少ない月は率が大きく振れます。</p>${details('数値を表で見る', table)}`;
+            return `<div class="cx-grid2"><div><p class="cx-sub">体験→入会率（体験した月ごと）</p>${rateChart}${legend([...ids, 'ALL'])}</div><div><p class="cx-sub">体験人数</p>${trialBars}${legend(ids)}</div></div>${details('数値を表で見る', table)}`;
           })() : '';
           compare.innerHTML = block('年度の入会者数', `${h.fiscalYear}年度・入会日基準（再入会を含む）`, hbars(ids.map(id => ({ id, value: totals[id], display: `${num(totals[id])}人`, sub: `${totalRank.indexOf(id) + 1}位` }))))
             + (conversion ? block('体験と入会率', `${h.fiscalYear}年度（4月〜${esc(data.asOfLabel)}）に実際に体験した人と、そのうちの入会`, conversionCharts + details('数値を表で見る', convRows)) : '')
@@ -3969,11 +3964,9 @@
           </tbody></table></div>${divergingKey('全体より退会が少ない', '全体より退会が多い')}`;
           const compare = scope(document.createElement('div'));
           compare.className = 'cx-compare cx-scope';
-          const unassigned = Number(h.unassigned) || 0;
-          const caution = `<p class="cx-caution">退会月が判明した分だけの参考値です。「0人」は退会ゼロの確定を意味しません。退会月不明（過去分を含む）は A ${num(h.teams.A?.unknownMonth || 0)}人・B ${num(h.teams.B?.unknownMonth || 0)}人・C ${num(h.teams.C?.unknownMonth || 0)}人・D ${num(h.teams.D?.unknownMonth || 0)}人で、計算に含めていません。${unassigned ? `所属チームを確定できない退会履歴${num(unassigned)}件はチーム別に含めていません。` : ''}</p>`;
           const monthlyValues = id => rows(id).map((row, i) => i === currentIndex && hasScheduled ? scheduledOf(id) : row ? row.count : null);
           compare.innerHTML = (hasScheduled ? block(`${monthLabel(months[currentIndex])}の退会予定`, `在籍状態が「退会予定」の会員（${esc(data.asOfLabel)}時点）。月末を過ぎると退会として確定します`, hbars(ids.map(id => ({ id, value: scheduledOf(id), planned: true, display: finite(scheduledOf(id)) ? `${num(scheduledOf(id))}人` : '—', sub: `年度の確定 ${num(known(id))}人` })))) : '')
-            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${caution}${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
+            + block('月別の退会', `退会月が判明した人数${hasScheduled ? `。${monthLabel(months[currentIndex])}は退会予定者（斜線）` : ''}`, `${groupedBars({ labels: months.map(monthLabel), series: ids.map(id => ({ id, values: monthlyValues(id) })), planned: months.map((_, i) => i === currentIndex && hasScheduled) })}${legend(ids)}${details('数値を表で見る', `${table}<p class="cx-note">${hasScheduled ? '当月の列は、月末に確定する前の退会予定者数（上段）と、すでに確定した退会（下段）です。予定者は色分けの対象外です。' : ''}下段の割合の分母は、月初人数がそろう月は月初人数、それ以外は基準日の会員数です（チーム別に見るの各カードと同じ計算）。総合スコアには含めない補助指標です。</p>`)}`);
           addToggle(section, compare);
         })();
 
