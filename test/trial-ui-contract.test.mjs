@@ -14,6 +14,21 @@ test('renders the trial summary and annual admission samples without a new secti
   assert.match(source, /体験\$\{formatNumber.format\(entry.trials\)\}人 → 入会\$\{formatNumber.format\(entry.admissions\)\}人/);
 });
 
+test('annual counts reconcile with both full-precision and rounded team rates', async () => {
+  const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
+  const helper = source.slice(source.indexOf('const annualAdmissionSample ='), source.indexOf('const annualRealAdmissionSample ='));
+  const render = new Function('trialData', 'formatNumber', helper + 'return annualAdmissionSample;');
+  const sample = (trials, admissions, rate) =>
+    render({ annual: { status: 'ok', teams: { E: { trials, admissions } } } }, new Intl.NumberFormat('ja-JP'))(
+      { id: 'E', benchmark: { admissionRate: rate } });
+  assert.equal(sample(12, 5, 5 / 12 * 100), '体験12人 → 入会5人');
+  assert.equal(sample(12, 5, 41.7), '体験12人 → 入会5人');
+  assert.equal(sample(12, 5, 100), '母数不整合');
+  assert.equal(sample(12, 0, null), '母数不整合');
+  assert.equal(sample(12, 0, 0), '体験12人 → 入会0人');
+  assert.equal(sample(0, 0, null), '母数未取得');
+});
+
 test('keeps unavailable or stale daily data distinct from zero on the public UI', async () => {
   const source = await readFile(resolve(process.cwd(), 'index.html'), 'utf8');
   assert.match(source, /today\?\.status === "ok" && today\.date === tokyoDate\(\)/);

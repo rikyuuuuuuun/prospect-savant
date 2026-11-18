@@ -1901,8 +1901,9 @@
           const annual = trialData?.annual;
           const entry = annual?.status === "ok" ? annual.teams?.[team.id] : null;
           if (!entry || !Number.isSafeInteger(entry.admissions) || !Number.isSafeInteger(entry.trials) || entry.trials <= 0) return "母数未取得";
-          const calculatedRate = Math.round(entry.admissions * 1000 / entry.trials) / 10;
-          if (calculatedRate !== team.benchmark.admissionRate) return "母数不整合";
+          const calculatedRate = entry.admissions / entry.trials * 100;
+          const benchmarkRate = team.benchmark.admissionRate;
+          if (!Number.isFinite(benchmarkRate) || Math.round(calculatedRate * 10) !== Math.round(benchmarkRate * 10)) return "母数不整合";
           return `体験${formatNumber.format(entry.trials)}人 → 入会${formatNumber.format(entry.admissions)}人`;
         };
         const annualRealAdmissionSample = (team) => {
