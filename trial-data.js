@@ -31,8 +31,8 @@ window.PROSPECT_TRIAL_DATA = Object.freeze({
         "trials": 113
       },
       "D": {
-        "admissions": 67,
-        "trials": 104
+        "admissions": 73,
+        "trials": 111
       }
     }
   }
