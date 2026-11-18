@@ -2754,7 +2754,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "allMembers": 1114,
     "definition": "trial-attendance-fiscal-ytd-v1",
     "annual": {
-      "trials": 5,
+      "trials": 12,
       "admissions": 5,
       "previousTrials": 0,
       "previousAdmissions": 0
@@ -2879,11 +2879,11 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
       },
       "family": {
         "definition": "referral-volume-rate-v2",
-        "trialPoints": 0,
+        "trialPoints": 2,
         "siblingPoints": 0,
-        "points": 0,
+        "points": 2,
         "members": 5,
-        "rate": 0,
+        "rate": 40,
         "weights": {
           "points": 70,
           "rate": 30
@@ -3788,7 +3788,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
               0,
               0,
               0,
-              5,
+              12,
               null,
               null,
               null,
@@ -3819,7 +3819,7 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
             9,
             51,
             58,
-            21,
+            28,
             null,
             null,
             null,

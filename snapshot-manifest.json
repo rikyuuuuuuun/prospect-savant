@@ -5,7 +5,7 @@
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readback-sha256:2d6a1d562e7a917b10b6381e0492c9d800b28f64ad59faaa9a948b09b2ba3975",
   "files": {
-    "data.js": "3fe08b1e945353a8869b1be2be7153b5f06ca3cf",
+    "data.js": "c6038dd4954f5da03b63a49a12057a7705024832",
     "event-data.js": "418caaf94ffd86698502e09e3725b6d5ef1f6d10",
     "retention-data.js": "d729e5273b425771f4c2c16b09fae92c7bea8f53",
     "school-age-data.js": "0f21d8f67789186a54a3bbf65bb3359ae3413e49"
