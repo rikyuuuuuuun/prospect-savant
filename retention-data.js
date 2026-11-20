@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-11-20-0730-trial-ytd-v1",
-  "asOf": "2026-11-20",
+  "snapshotId": "savant-2026-11-21-0730-trial-ytd-v1",
+  "asOf": "2026-11-21",
   "minimumSample": 20,
   "months": [
     1,
@@ -22,19 +22,19 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       86.1,
       79.1,
       68.4,
-      55.8,
-      37.8,
+      55.6,
+      38,
       30.6
     ],
     "samples": [
       1861,
       1786,
-      1669,
+      1673,
       1463,
       1407,
-      1204,
-      972,
-      479,
+      1210,
+      976,
+      481,
       170
     ]
   },
@@ -54,7 +54,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         669,
         642,
-        595,
+        597,
         533,
         511,
         477,
@@ -67,23 +67,23 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         100,
         98.6,
-        93.9,
+        94,
         86.5,
         79.7,
-        73.1,
+        73.3,
         57.8,
-        32.6,
+        33.3,
         null
       ],
       "samples": [
         538,
         515,
-        495,
+        496,
         430,
         413,
-        361,
+        363,
         325,
-        193,
+        195,
         0
       ]
     },
@@ -95,7 +95,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         80.6,
         72.3,
         59.4,
-        45.4,
+        44.9,
         null,
         null
       ],
@@ -106,7 +106,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         309,
         303,
         251,
-        183,
+        187,
         0,
         0
       ]
@@ -118,7 +118,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.1,
         86.9,
         79.4,
-        69.6,
+        68.9,
         64.1,
         null,
         null
@@ -126,10 +126,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "samples": [
         264,
         249,
-        227,
+        228,
         191,
         180,
-        115,
+        119,
         39,
         0,
         0
