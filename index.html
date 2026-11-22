@@ -102,7 +102,6 @@
 
       .brand-copy { min-width: 0; }
       .brand-copy strong { display: block; font-size: 15px; letter-spacing: 0.08em; }
-      .brand-copy span { display: block; color: #b8c5d0; font-size: 11px; letter-spacing: 0.08em; }
 
       .update-pill {
         flex: 0 0 auto;
@@ -156,30 +155,17 @@
         letter-spacing: -0.045em;
       }
 
-      .hero-lead {
-        max-width: 720px;
-        margin: 18px 0 0;
-        color: #d5e0e8;
-        font-size: clamp(15px, 2vw, 18px);
-      }
-
       .kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 34px;
+        display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+        border-block: 1px solid rgba(255,255,255,.25); margin-top: 20px;
       }
-
       .kpi {
-        min-width: 0;
-        padding: 18px;
-        border: 1px solid rgba(255,255,255,0.14);
-        border-radius: 14px;
-        background: rgba(255,255,255,0.075);
+        display: grid; grid-template-rows: subgrid; grid-row: span 3;
+        min-width: 0; padding: 14px 20px; border-inline-start: 1px solid rgba(255,255,255,.2);
       }
-
-      .kpi-label { color: #d5e0e8; font-size: 13px; }
-      .kpi-value { margin-top: 3px; font-size: clamp(24px, 3vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; }
+      .kpi:first-child { border-inline-start: 0; }
+      .kpi-label { color: #d5e0e8; font-size: 13px; text-wrap: balance; word-break: auto-phrase; }
+      .kpi-value { margin-top: 3px; line-height: 1.2; font-size: clamp(30px, 3vw, 40px); font-weight: 800; font-variant-numeric: tabular-nums; }
       .kpi-unit { margin-left: 3px; font-size: 13px; font-weight: 500; color: #d5e0e8; }
       .kpi-detail { min-height: 17px; margin-top: 4px; color: #b7c8d6; font-size: 10px; font-variant-numeric: tabular-nums; }
 
@@ -196,7 +182,7 @@
       .admission-notice-teams { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
       .admission-notice-asof { margin-left: auto; color: #fde68a; font-size: 11px; }
 
-      .main { padding: 34px 0 56px; }
+      .main { padding: 0 0 56px; }
 
       .section-heading {
         display: flex;
@@ -731,6 +717,8 @@
 
       @media (max-width: 900px) {
         .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .kpi:nth-child(odd) { border-inline-start: 0; }
+        .kpi:nth-child(n+3) { border-block-start: 1px solid rgba(255,255,255,.2); }
         .movement-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
         .movement-item:nth-child(4n) { border-right: 1px solid #e6ecf1; }
         .movement-item:nth-child(2n) { border-right: 0; }
@@ -744,10 +732,8 @@
 
       @media (max-width: 640px) {
         .topbar-inner, .container { width: min(100% - 22px, 1180px); }
-        .brand-copy span { display: none; }
         .update-pill { max-width: 138px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hero-inner { padding: 36px 0 30px; }
-        .kpi-grid { gap: 8px; margin-top: 24px; }
         .kpi { padding: 14px; }
         .trial-summary { grid-template-columns: 1fr; gap: 10px; padding: 12px 14px; }
         .trial-summary-breakdown { gap: 5px; }
@@ -808,17 +794,12 @@
       [hidden], .view-hidden { display: none !important; }
       .hero-inner { padding: 28px 0 24px; }
       h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1.2; }
-      .hero-lead { font-size: 15px; margin-top: 12px; line-height: 1.7; }
-      .kpi-grid { margin-top: 24px; }
-      .kpi { padding: 16px; border-radius: 10px; }
       .dashboard-nav { position: sticky; top: 62px; z-index: 19; background: rgba(255,255,255,.97); border-bottom: 1px solid #dce4eb; }
       .view-controls { display: flex; gap: 4px; overflow-x: auto; padding: 8px 0; scroll-padding-inline: 16px; }
       .view-controls button { flex: 0 0 auto; border: 0; background: transparent; color: #526578; border-radius: 6px; min-height: 44px; padding: 10px 16px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
-      .view-controls button:hover { background: #edf3f8; }
-      .view-controls button[aria-pressed="true"] { color: white; background: var(--navy-800); }
+      @media (hover: hover) and (pointer: fine) { .view-controls button:hover { background: #edf3f8; } }
       button:focus-visible, summary:focus-visible, select:focus-visible { outline: 3px solid #3475a7; outline-offset: 3px; }
       .workspace-heading { scroll-margin-top: 140px; display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 32px 0 24px; }
-      .workspace-heading .eyebrow { font-size: 10px; color: var(--blue-deep); margin-bottom: 6px; }
       .workspace-heading h2 { font-size: 26px; margin: 0; }
       .workspace-heading p:last-child { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
       .team-picker { display: grid; gap: 8px; min-width: 240px; color: #526578; font-size: 12px; }
@@ -1045,43 +1026,55 @@
         .bt-ticker-track { animation: none; flex-wrap: wrap; width: auto; gap: 6px 24px; padding: 12px 16px 12px 130px; white-space: normal; }
         .bt-ticker-track [aria-hidden="true"] { display: none; }
       }
-      /* ---- Wayfinding: analysis menu, overflow-aware tabs, pager ---- */
-      .dashboard-nav-inner { position: relative; display: flex; align-items: center; gap: 10px; }
-      .view-controls { flex: 1 1 auto; min-width: 0; scrollbar-width: none; scroll-behavior: smooth; }
-      .view-controls::-webkit-scrollbar { display: none; }
-      .dashboard-nav-inner.is-overflow .view-controls { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
-      .view-controls button[data-view="all"] { margin-left: auto; color: var(--muted); font-weight: 600; }
-      .view-controls button[data-view="all"][aria-pressed="true"] { color: #fff; }
-      .nav-more { display: none; flex: 0 0 auto; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid #cdd8e2; border-radius: 10px; background: #fff; color: var(--navy-800); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
-      .nav-more svg { width: 14px; height: 14px; transition: transform .2s; }
-      .nav-more[aria-expanded="true"] svg { transform: rotate(180deg); }
-      .dashboard-nav-inner.is-overflow .nav-more { display: inline-flex; }
-      .nav-menu { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; width: min(380px, 100%); max-height: calc(100vh - 150px); overflow-y: auto; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(8, 24, 39, 0.18); }
-      .nav-menu button { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
-      .nav-menu button:hover, .nav-menu button[aria-current="true"] { background: #eef3f7; }
-      .nav-menu strong { display: block; font-size: 13px; }
-      .nav-menu span span { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
-      .nav-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: #e9f0f6; color: var(--navy-800); }
-      .nav-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-
-      .workspace-step { color: var(--muted); font-weight: 700; letter-spacing: .08em; }
+      /* Analysis navigation and summary directory */
+      .analysis-picker { display: none; }
+      .view-controls { gap: 8px; padding: 0; }
+      .view-controls button {
+        min-height: 48px; padding: 10px 14px; border-radius: 0;
+        border-bottom: 3px solid transparent;
+      }
+      .view-controls button[aria-pressed="true"] {
+        color: var(--navy-950); background: transparent; border-bottom-color: var(--blue-deep);
+      }
+      .view-controls button:last-child { margin-inline-start: auto; }
+      .view-controls button:focus-visible { outline-offset: -4px; }
+      @media screen and (max-width: 900px) {
+        .view-controls { display: none; }
+        .analysis-picker {
+          display: flex; align-items: center; gap: 12px; min-height: 52px;
+          color: #526578; font-size: 13px;
+        }
+        .analysis-picker select {
+          flex: 1; min-width: 0; min-height: 44px; padding-inline: 8px;
+          border: 0; background-color: white; color: var(--navy-800);
+          font-size: 16px; font-weight: 700; cursor: pointer;
+        }
+      }
 
       .guide-section { margin-top: 0; }
-      .guide-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 12px; }
-      .guide-head h3 { margin: 0; font-size: 15px; }
-      .guide-head span { color: var(--muted); font-size: 12px; }
-      .guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-      .guide-tile { display: grid; grid-template-columns: 40px minmax(0, 1fr) 14px; gap: 12px; align-items: center; min-width: 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 4px 18px rgba(17, 35, 50, 0.04); transition: border-color 150ms var(--ease-control), box-shadow 150ms var(--ease-control), transform 150ms var(--ease-control); }
-      @media (hover: hover) and (pointer: fine) {
-        .guide-tile:hover { border-color: #9fb6ca; box-shadow: var(--shadow); }
+      .guide-head h3 { margin: 0 0 10px; font-size: 16px; }
+      .guide-grid {
+        display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 32px;
+        border-top: 1px solid var(--line);
       }
-      .guide-tile .nav-icon { width: 40px; height: 40px; border-radius: 12px; }
-      .guide-tile .nav-icon svg { width: 20px; height: 20px; }
-      .guide-copy { min-width: 0; }
-      .guide-q { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
-      .guide-label { display: block; margin-top: 1px; font-size: 15px; font-weight: 900; letter-spacing: -0.02em; }
-      .guide-fact { display: block; margin-top: 3px; color: var(--blue-deep); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-      .guide-arrow { width: 14px; height: 14px; fill: none; stroke: #9aabba; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+      .guide-tile {
+        display: grid; grid-template-columns: 24px minmax(0,1fr) 14px; align-items: center;
+        gap: 12px; min-height: 56px; padding: 8px 6px; text-align: left;
+        background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--ink);
+        cursor: pointer; transition: background-color 120ms var(--ease-control);
+      }
+      .guide-tile:active { background: #e8eff5; transform: none; }
+      @media (hover: hover) and (pointer: fine) { .guide-tile:hover { background: #e8eff5; } }
+      .nav-icon { display: grid; place-items: center; color: var(--blue-deep); }
+      .nav-icon svg, .guide-arrow {
+        width: 18px; height: 18px; fill: none; stroke: currentColor;
+        stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      }
+      .guide-arrow { width: 14px; color: #526578; }
+      .guide-copy { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 1px 12px; }
+      .guide-label { font-size: 15px; font-weight: 700; }
+      .guide-fact { color: #425a70; font-size: 13px; }
+      @media (max-width: 780px) { .guide-grid { grid-template-columns: minmax(0,1fr); } }
 
       .view-pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 40px; }
       .view-pager button { display: grid; gap: 2px; min-width: 0; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .2s, box-shadow .2s; }
@@ -1095,16 +1088,7 @@
       .to-top.is-visible { opacity: 1; pointer-events: auto; transform: none; }
       .to-top svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 
-      @media (max-width: 980px) {
-        .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      }
       @media (max-width: 560px) {
-        .guide-grid { gap: 8px; }
-        .guide-tile { grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; padding: 12px; }
-        .guide-tile .nav-icon { width: 32px; height: 32px; border-radius: 9px; }
-        .guide-tile .nav-icon svg { width: 17px; height: 17px; }
-        .guide-arrow { display: none; }
-        .guide-label { font-size: 14px; }
         .view-pager { gap: 8px; }
         .view-pager button { padding: 12px; }
         .view-pager strong { font-size: 14px; }
@@ -1293,9 +1277,7 @@
       .kpi-conditions { margin-top: 8px; color: #d5e0e8; font-size: 12px; }
       .kpi-conditions summary { cursor: pointer; padding-block: 4px; }
       .kpi-conditions p { margin: 8px 0 0; line-height: 1.6; }
-      .guide-q, .guide-fact, .cx-note, .cx-toolbar p { font-size: 13px; line-height: 1.6; }
-      .guide-tile { border-radius: 10px; padding: 16px; box-shadow: var(--shadow); }
-      .guide-label { font-weight: 600; }
+      .cx-note, .cx-toolbar p { font-size: 13px; line-height: 1.6; }
       .team-picker select, .filter-button, .bt-btn, .composition-switches button,
       .cmp-seg button, .cmp-focus button {
         min-height: 36px; box-shadow: 0 1px 2px rgba(16,40,64,.08);
@@ -1324,14 +1306,12 @@
         .topbar-inner { min-height: 62px; gap: 8px; }
         .brand-copy strong { font-size: 13px; letter-spacing: .02em; }
         .brand-mark { flex: 0 0 30px; width: 30px; }
-        .update-pill { flex: 0 1 112px; min-width: 64px; max-width: 112px; padding: 4px 0; border: 0; font-size: 12px; line-height: 1.4; text-align: right; white-space: normal; }
-        .hero-inner { padding: 24px 0; }
+        .update-pill { flex: 0 1 auto; min-width: 0; max-width: none; padding: 4px 0; border: 0; font-size: 12px; line-height: 1.4; text-align: right; white-space: normal; }
+        .hero-inner { padding: 20px 0; }
         h1 { font-size: 30px; }
-        .hero-lead { font-size: 15px; line-height: 1.7; }
-        .kpi-grid { gap: 12px; margin-top: 24px; }
         .kpi { padding: 12px; }
         .kpi-label { font-size: 14px; }
-        .kpi-value { font-size: 28px; }
+        .kpi-value { font-size: 30px; }
         .kpi-detail { font-size: 14px; line-height: 1.5; }
         .kpi-conditions { font-size: 14px; }
         .kpi-conditions summary { min-height: 44px; display: flex; align-items: center; gap: 4px; }
@@ -1342,9 +1322,8 @@
         .trial-team { padding-left: 4px; font-size: 12px; }
         .trial-team strong { font-size: 18px; }
         .trial-summary-label { font-size: 14px; }
-        .view-controls { gap: 4px; padding: 8px 0; }
-        .view-controls button { font-size: 15px; min-height: 44px; padding: 10px 12px; }
-        .nav-more { min-height: 44px; font-size: 15px; }
+        .trial-summary > div:first-child { display: flex; align-items: baseline; gap: 12px; }
+        .trial-summary-total { margin-top: 0; }
         .overtake-assumptions summary { min-height: 44px; padding-block: 12px; font-size: 15px; }
         .overtake-assumptions p { font-size: 14px; }
         .workspace-heading { padding-top: 24px; }
@@ -1352,11 +1331,6 @@
         .team-picker { font-size: 14px; }
         .team-picker span { display: block; }
         .team-picker select { font-size: 16px; min-height: 44px; }
-        .guide-grid { grid-template-columns: 1fr; gap: 8px; }
-        .guide-tile { grid-template-columns: 32px minmax(0,1fr) 14px; align-items: center; gap: 12px; padding: 16px; }
-        .guide-arrow { display: block; }
-        .guide-q, .guide-fact { font-size: 14px; }
-        .guide-label { font-size: 16px; }
         .team-grid { gap: 24px; }
         .team-card-head { grid-template-columns: 80px minmax(0,1fr); gap: 16px; padding: 20px; }
         .score-ring { width: 80px; }
@@ -1402,26 +1376,15 @@
       <div class="topbar-inner">
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">P</div>
-          <div class="brand-copy"><strong>PROSPECT SAVANT</strong><span>TEAM PERFORMANCE INTELLIGENCE</span></div>
+          <div class="brand-copy"><strong>PROSPECT SAVANT</strong></div>
         </div>
         <div class="update-pill" id="update-pill">データ基準日を取得中</div>
       </div>
     </header>
 
-    <section class="hero">
-      <div class="container hero-inner">
-        <p class="eyebrow">A–E TEAM ANALYTICS</p>
-        <h1>チームの現在地。</h1>
-        <p class="hero-lead">会員数だけでは見えない組織の強さを、定着・入会・イベント・成長・紹介の5指標で比較します。</p>
-        <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
-        <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
-        <section class="admission-notice" id="admission-notice" aria-live="polite" hidden></section>
-      </div>
-    </section>
-
     <nav class="dashboard-nav" aria-label="分析メニュー" hidden>
       <div class="container dashboard-nav-inner">
-        <div class="view-controls" aria-label="表示する分析">
+        <div class="view-controls" role="group" aria-label="表示する分析">
           <button type="button" data-view="overview" aria-pressed="true">チーム概要</button>
           <button type="button" data-view="standings" aria-pressed="false">チーム順位</button>
           <button type="button" data-view="composition" aria-pressed="false">会員構成</button>
@@ -1431,15 +1394,25 @@
           <button type="button" data-view="reference" aria-pressed="false">指標・データ</button>
           <button type="button" data-view="all" aria-pressed="false">すべて</button>
         </div>
-        <button type="button" class="nav-more" id="nav-more" aria-expanded="false" aria-controls="nav-menu">すべての分析<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="nav-menu" id="nav-menu" role="menu" aria-label="分析の一覧" hidden></div>
-        </div>
+        <label class="analysis-picker">
+          <span>分析メニュー</span>
+          <select id="nav-more"></select>
+        </label>
       </div>
     </nav>
+    <section class="hero">
+      <div class="container hero-inner">
+        <h1 tabindex="-1">全チームの実績</h1>
+        <div class="kpi-grid" id="headline-kpis" aria-label="全体の主要指標"></div>
+        <section class="trial-summary" id="trial-summary" aria-label="本日の体験人数" aria-live="polite"></section>
+        <section class="admission-notice" id="admission-notice" aria-live="polite" hidden></section>
+      </div>
+    </section>
+
     <main class="container main" id="dashboard-main">
       <div class="workspace-heading" id="workspace-heading" hidden>
-        <div><p class="eyebrow">ANALYSIS</p><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
-        <label class="team-picker">チームをまとめて切り替え<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option><option value="E">E TEAM</option></select><span>各グラフでも個別に選べます</span></label>
+        <div><h2 id="workspace-title" tabindex="-1">チーム概要</h2><p id="workspace-description"></p></div>
+        <label class="team-picker">表示チーム<select id="dashboard-team"><option value="ALL">全チームを比較</option><option value="A">A TEAM</option><option value="B">B TEAM</option><option value="C">C TEAM</option><option value="D">D TEAM</option><option value="E">E TEAM</option></select><span>各グラフでも個別に選べます</span></label>
       </div>
       <section class="section" id="standings-section" aria-labelledby="standings-title">
         <div class="section-heading">
@@ -1497,7 +1470,7 @@
       </section>
 
       <section class="section guide-section" id="guide-section" aria-labelledby="guide-title">
-        <div class="guide-head"><h3 id="guide-title">ほかの分析を見る</h3><span>知りたいことから選べます。上部のメニューからもいつでも切り替えられます。</span></div>
+        <div class="guide-head"><h3 id="guide-title">分析別の実績</h3></div>
         <div class="guide-grid" id="guide-grid"></div>
       </section>
       <section id="movement-section" aria-labelledby="movement-title" hidden>
@@ -1664,7 +1637,6 @@
         const eTeam = data.eTeam;
 
         const metricKeys = ["retention", "admission", "event", "growth", "family"];
-        document.querySelector(".hero-lead").textContent = `会員数だけでは見えない組織の強さを、${metricKeys.map(key => data.metricLabels[key]).join("・")}の5指標で比較します。`;
         const eventHistory = window.PROSPECT_EVENT_HISTORY;
         const retentionCurve = window.PROSPECT_RETENTION_CURVE;
         const schoolAgeRetention = window.PROSPECT_SCHOOL_AGE_RETENTION;
@@ -4142,7 +4114,7 @@
         guide.querySelector('#guide-grid').innerHTML = views.filter(view => view.key !== 'overview').map(view => `
           <button type="button" class="guide-tile" data-goto="${view.key}">
             ${icon(view.key)}
-            <span class="guide-copy"><span class="guide-q">${view.question}</span><span class="guide-label">${view.label}</span>${facts[view.key] ? `<span class="guide-fact">${facts[view.key]}</span>` : ''}</span>
+            <span class="guide-copy"><span class="guide-label">${view.label}</span>${facts[view.key] ? `<span class="guide-fact">${facts[view.key]}</span>` : ''}</span>
             <svg class="guide-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
           </button>`).join('');
 
@@ -4151,21 +4123,11 @@
         const pager = document.getElementById('view-pager');
         main.append(pager);
 
-        const navInner = document.querySelector('.dashboard-nav-inner');
         const controls = document.querySelector('.view-controls');
-        const moreButton = document.getElementById('nav-more');
-        const menu = document.getElementById('nav-menu');
-        menu.innerHTML = [...views, { key: 'all', label: 'すべて', question: 'すべての分析を続けて表示' }].map(view => `
-          <button type="button" data-goto="${view.key}">${icon(view.key)}<span><strong>${view.label}</strong><span>${view.question}</span></span></button>`).join('');
-        const stepEl = document.querySelector('#workspace-heading .eyebrow');
-        let current = 'overview';
-
-        const updateOverflow = () => navInner.classList.toggle('is-overflow', controls.scrollWidth > controls.clientWidth + 2);
-        const revealActiveTab = () => {
-          const active = controls.querySelector('[aria-pressed="true"]');
-          if (active) controls.scrollTo({ left: active.offsetLeft - (controls.clientWidth - active.offsetWidth) / 2 });
-        };
-        const closeMenu = () => { menu.hidden = true; moreButton.setAttribute('aria-expanded', 'false'); };
+        const analysisPicker = document.getElementById('nav-more');
+        for (const button of controls.querySelectorAll('[data-view]')) {
+          analysisPicker.add(new Option(button.textContent, button.dataset.view));
+        }
 
         const renderPager = view => {
           const index = views.findIndex(item => item.key === view);
@@ -4180,26 +4142,26 @@
         };
 
         const selectView = (view, focus = false) => {
-          if (!groups[view]) view = 'overview';
-          current = view;
+          if (!Object.hasOwn(groups, view)) view = 'overview';
+          document.querySelector('.hero').classList.toggle('view-hidden', view !== 'overview' && view !== 'all');
           sections.forEach(section => section.classList.toggle('view-hidden', !groups[view].includes(section)));
           controls.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
-          menu.querySelectorAll('button').forEach(button => button.setAttribute('aria-current', String(button.dataset.goto === view)));
+          analysisPicker.value = view;
           document.getElementById('workspace-title').textContent = labelOf(view);
           document.getElementById('workspace-description').textContent = descriptions[view];
-          const index = views.findIndex(item => item.key === view);
-          stepEl.innerHTML = index >= 0 ? `ANALYSIS <span class="workspace-step">${index + 1} / ${views.length}</span>` : 'ALL ANALYSES';
           document.querySelector('.team-picker').hidden = view === 'reference' || view === 'standings';
           renderPager(view);
-          revealActiveTab();
-          if (focus) document.getElementById('workspace-title').focus({preventScroll: true});
+          if (focus) {
+            const heading = view === 'overview' || view === 'all' ? document.querySelector('.hero h1') : document.getElementById('workspace-title');
+            heading.focus({preventScroll: true});
+          }
           window.dispatchEvent(new Event('resize'));
         };
         const goTo = view => {
-          closeMenu();
-          history.replaceState(null, '', `#view-${view}`);
+          const hash = `#view-${view}`;
+          if (location.hash !== hash && location.protocol !== 'about:') history.pushState(null, '', hash);
           selectView(view, true);
-          document.getElementById('workspace-heading').scrollIntoView({block: 'start', behavior: 'instant'});
+          window.scrollTo({top: 0, behavior: 'instant'});
         };
 
         controls.addEventListener('click', event => {
@@ -4208,18 +4170,9 @@
         });
         document.addEventListener('click', event => {
           const target = event.target.closest('[data-goto]');
-          if (target) { goTo(target.dataset.goto); return; }
-          if (!menu.hidden && !event.target.closest('#nav-menu, #nav-more')) closeMenu();
+          if (target) goTo(target.dataset.goto);
         });
-        moreButton.addEventListener('click', () => {
-          const open = menu.hidden;
-          menu.hidden = !open;
-          moreButton.setAttribute('aria-expanded', String(open));
-          if (open) menu.querySelector('[aria-current="true"]')?.focus();
-        });
-        document.addEventListener('keydown', event => {
-          if (event.key === 'Escape' && !menu.hidden) { closeMenu(); moreButton.focus(); }
-        });
+        analysisPicker.addEventListener('change', () => goTo(analysisPicker.value));
 
         const readHash = () => {
           const hash = location.hash.slice(1);
@@ -4242,12 +4195,10 @@
         const onScroll = () => toTop.classList.toggle('is-visible', window.scrollY > 900);
         toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', updateOverflow);
         window.addEventListener('hashchange', readHash);
         document.querySelector('.dashboard-nav').hidden = false;
         document.getElementById('workspace-heading').hidden = false;
         readHash();
-        updateOverflow();
         onScroll();
       })();
     </script>
