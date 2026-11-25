@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-11-25-0730-trial-ytd-v1",
-  "asOf": "2026-11-25",
+  "snapshotId": "savant-2026-11-26-0730-trial-ytd-v1",
+  "asOf": "2026-11-26",
   "minimumSample": 20,
   "months": [
     1,
@@ -18,23 +18,23 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
     "rates": [
       99.7,
       98,
-      93.1,
-      86.1,
+      93.2,
+      86.2,
       79.1,
       68.4,
       55.7,
-      38,
+      37.9,
       30.6
     ],
     "samples": [
-      1867,
-      1786,
-      1677,
-      1465,
+      1868,
+      1787,
+      1679,
+      1468,
       1411,
-      1217,
-      980,
-      481,
+      1218,
+      984,
+      483,
       170
     ]
   },
@@ -47,7 +47,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         88.8,
         82.7,
         69.2,
-        58.1,
+        58.3,
         41.3,
         30.6
       ],
@@ -55,10 +55,10 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         672,
         642,
         597,
-        534,
+        537,
         513,
         480,
-        427,
+        429,
         286,
         170
       ]
@@ -72,7 +72,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         79.7,
         73.3,
         57.8,
-        33.3,
+        33,
         null
       ],
       "samples": [
@@ -83,7 +83,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         414,
         363,
         325,
-        195,
+        197,
         0
       ]
     },
@@ -91,22 +91,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         99.2,
         97.1,
-        89.8,
+        89.9,
         80.6,
         72.3,
         59.5,
-        45,
+        44.5,
         null,
         null
       ],
       "samples": [
         392,
-        380,
-        354,
+        381,
+        356,
         309,
         303,
         252,
-        189,
+        191,
         0,
         0
       ]
@@ -118,18 +118,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.1,
         87,
         79,
-        68.9,
+        69.1,
         64.1,
         null,
         null
       ],
       "samples": [
-        265,
+        266,
         249,
         229,
         192,
         181,
-        122,
+        123,
         39,
         0,
         0
