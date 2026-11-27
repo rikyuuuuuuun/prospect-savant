@@ -1,6 +1,6 @@
 window.PROSPECT_RETENTION_CURVE = Object.freeze({
-  "snapshotId": "savant-2026-11-27-0730-trial-ytd-v1",
-  "asOf": "2026-11-27",
+  "snapshotId": "savant-2026-11-28-0730-trial-ytd-v1",
+  "asOf": "2026-11-28",
   "minimumSample": 20,
   "months": [
     1,
@@ -20,22 +20,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       98,
       93.2,
       86.2,
-      79.1,
+      78.9,
       68.4,
-      55.6,
-      37.9,
-      30.2
+      55.7,
+      38,
+      30.5
     ],
     "samples": [
-      1869,
+      1871,
       1788,
-      1682,
+      1686,
       1468,
-      1411,
-      1219,
-      985,
-      483,
-      172
+      1415,
+      1222,
+      990,
+      484,
+      174
     ]
   },
   "teams": {
@@ -47,20 +47,20 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         88.8,
         82.7,
         69.2,
-        58.3,
-        41.3,
-        30.2
+        58.6,
+        41.5,
+        30.5
       ],
       "samples": [
-        672,
+        673,
         642,
-        598,
+        600,
         537,
         513,
         480,
-        429,
-        286,
-        172
+        432,
+        287,
+        174
       ]
     },
     "B": {
@@ -69,7 +69,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         98.6,
         94,
         86.5,
-        79.7,
+        79.4,
         73.3,
         57.8,
         33,
@@ -80,7 +80,7 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         515,
         497,
         430,
-        414,
+        417,
         363,
         325,
         197,
@@ -91,22 +91,22 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
       "rates": [
         99.2,
         97.1,
-        89.9,
+        90,
         80.6,
-        72.3,
+        72,
         59.5,
-        44.3,
+        43.8,
         null,
         null
       ],
       "samples": [
         392,
         381,
-        358,
+        360,
         309,
-        303,
+        304,
         252,
-        192,
+        194,
         0,
         0
       ]
@@ -118,18 +118,18 @@ window.PROSPECT_RETENTION_CURVE = Object.freeze({
         92.1,
         87,
         79,
-        69.4,
+        69.3,
         64.1,
         null,
         null
       ],
       "samples": [
-        267,
+        268,
         250,
         229,
         192,
         181,
-        124,
+        127,
         39,
         0,
         0
