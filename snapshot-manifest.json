@@ -5,7 +5,7 @@
   "scoreVersion": "v7-operational-member-denominator",
   "sourceCommit": "sheets-readback-sha256:3e8e3f21286379922cc7e144677fe0e2d106d3c04e31c33a15505739512f6d1d",
   "files": {
-    "data.js": "4f2f10a32d902a02af8fe60809877e7444f3bca4",
+    "data.js": "6d04b5e7f403012192b7eaba6dadc560c806fc3b",
     "event-data.js": "2dafb5a31b694ad44c2ece6055883f8c8e30c95b",
     "retention-data.js": "6283cd9a90816d4c6f1a2e08cf27e2bc8aeeb0a0",
     "school-age-data.js": "fbc12bf66a63b4b5c6e7784e772d32cab16a2584"
@@ -50,6 +50,6 @@
     "denominatorDate": "2026-08-09"
   },
   "publication": {
-    "status": "partial"
+    "status": "complete"
   }
 }

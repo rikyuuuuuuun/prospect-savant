@@ -3024,8 +3024,8 @@ window.PROSPECT_SAVANT_DATA = Object.freeze({
     "analysis": {
       "today": {
         "asOf": "2026-11-28",
-        "status": "unavailable",
-        "count": null
+        "status": "ok",
+        "count": 7
       },
       "admissionHistory": {
         "definition": "member-master-admission-date-monthly-v1",
